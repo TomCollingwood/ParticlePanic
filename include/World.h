@@ -55,10 +55,12 @@ protected: // Protected means that it is accessible to derived classes
     double m_elapsedTime;
 
     std::vector<Particle> particles;
+    std::vector<Particle::Spring> springs;
     //std::vector<std::vector<Particle>> grid(10, std::vector<Particle>);
 
     float halfwidth;
     float halfheight;
+    float interactionradius;
 };
 
 #endif // WORLD_H

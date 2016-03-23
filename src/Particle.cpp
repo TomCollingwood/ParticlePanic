@@ -88,3 +88,36 @@ void Particle::addVelocity(Vec3 addedvel)
   velocity+=addedvel;
 }
 
+Particle::Spring *Particle::getSpring(int i) const
+{
+  return particlesprings[i];
+}
+
+void Particle::addSpring(Spring *newspring)
+{
+  particlesprings.push_back(newspring);
+}
+
+int Particle::springNumber() const
+{
+  return (int)particlesprings.size();
+}
+
+GLfloat Particle::alp() const
+{
+  return alpha;
+}
+
+void Particle::deleteSpring(int s)
+{
+  bool quit = false;
+  for(int i =0; i<(int)particlesprings.size() && !quit; ++i)
+  {
+    if(particlesprings[i]->indexi == s || particlesprings[i]->indexj == s)
+    {
+      particlesprings.erase(i);
+      quit=true;
+    }
+  }
+}
+

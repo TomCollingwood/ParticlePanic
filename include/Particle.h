@@ -9,12 +9,16 @@
 #endif
 
 #include <cmath>
+#include <vector>
 #include "Vec3.h"
 
 
 class Particle
 {
 public:
+
+  typedef struct spring{GLfloat indexi, indexj, L;} Spring;
+
   //Particle();
   Particle(const Particle &_p) = default;
   Particle(Vec3 pos=Vec3() /*,ParticleProperties prop*/) :
@@ -23,7 +27,8 @@ public:
     force(Vec3()),
     mass(1.0f),
     sigma(0.4f),
-    beta(0.4f)
+    beta(0.4f),
+    gamma()
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -49,8 +54,15 @@ public:
 
   GLfloat sig() const;
   GLfloat bet() const;
+  GLfloat gam() const;
+  GLfloat alp() const;
 
   bool collision(Particle p) const;
+
+  Spring *getSpring(int i) const;
+  void addSpring(Spring *newspring);
+  int springNumber() const;
+  void deleteSpring(int s); // deletes spring with indexi or indexj == i
 
 
 //  void updateDeathTime();
@@ -62,6 +74,9 @@ private:
   GLfloat mass;
   GLfloat sigma;
   GLfloat beta;
+  GLfloat gamma;
+  GLfloat alpha;
+  std::vector<Spring *> particlesprings;
 
 //  GLfloat rotation;
 //  Colour particleColour;

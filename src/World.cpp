@@ -68,6 +68,8 @@ void World::init() {
       particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,((float)(rand() % 100 - 50))*0.001f));
     }
 
+    interactionradius=0.5f;
+
     m_isInit = true;
 }
 
@@ -110,6 +112,16 @@ void World::draw() {
 void World::update() {
     if (!m_isInit) return;
 
+    // Some stuff we need to perform timings
+    struct timeval tim;
+
+    // Retrieve the current time in nanoseconds (accurate to 10ns)
+    gettimeofday(&tim, NULL);
+    double now =tim.tv_sec+(tim.tv_usec * 1e-6);
+
+    // Increment the rotation based on the time elapsed since we started running
+    m_elapsedTime = m_startTime - now;
+
     static int everyother = 0;
     everyother++;
     static int particlecount = 100;
@@ -122,28 +134,19 @@ void World::update() {
       }
     }
 
-    // Some stuff we need to perform timings
-    struct timeval tim;
-
-    // Retrieve the current time in nanoseconds (accurate to 10ns)
-    gettimeofday(&tim, NULL);
-    double now =tim.tv_sec+(tim.tv_usec * 1e-6);
-
-    // Increment the rotation based on the time elapsed since we started running
-    m_elapsedTime = m_startTime - now;
-
     for(int i =0; i<(int)particles.size(); ++i)
     {
       particles[i].applyGravity();
       particles[i].updateVelocity();
     }
 
+    // viscosity algorithm
     for(int i =0; i<(int)particles.size(); ++i)
     {
       for(int j =i+1; j<(int)particles.size(); ++j)
       {
         Vec3 rij=(particles[j].getPosition()-particles[i].getPosition());
-        float q = rij.length()/0.25f;
+        float q = rij.length()/interactionradius;
         if(q<1)
         {
           rij.normalize();
@@ -160,6 +163,66 @@ void World::update() {
       }
     }
 
+    // readjust springs
+    for(int i =0; i<(int)particles.size(); ++i)
+    {
+      for(int j =i+1; j<(int)particles.size(); ++j)
+      {
+        Vec3 rij=(particles[j].getPosition()-particles[i].getPosition());
+        float rijmag = rij.length();
+        float q = rijmag/0.5f;
+        if(q<1)
+        {
+          bool quit = false;
+          int springindex=0; // index of relevant spring in particles[i].particlesprings
+          for(int a = 0; a<particles[i].size() && !quit; ++a)
+          {
+            if(getSpring(a)->indexi==i)
+            {
+              if(indexj==j) springindex=a; quit=true;
+            }
+            else
+            {
+              if(indexi==j) springindex=a; quit=true;
+            }
+          }
+          if(!quit)
+          {
+            struct Spring newspring;
+            newspring.indexi = i;
+            newspring.indexj = j;
+            newspring.L = interactionradius; // maybe change this to sum of radius of two particles
+            springs.push_back(newspring);
+            particles[i].addSpring(&newspring);
+            particles[j].addSpring(&newspring);
+            springindex=particles[i].springNumber()-1;
+          }
+          float L = particles[i].getSpring(springindex)->L;
+          float d=gamma*(particles[i].getSpring(springindex)->L);
+          float alpha = particles[i].alph();
+
+          if(rijmag>L+d)
+          {
+            particles[i].getSpring(springindex)->L=L+m_elapsedTime*alpha*(rijmag-L-d);
+          }
+          else if(rijmag<L-d)
+          {
+            particles[i].getSpring(springindex)->L=L-m_elapsedTime*alpha*(L-d-rijmag);
+          }
+        }
+      }
+    }
+
+    // delete springs if over rest length?
+    for(int i=0; i<(int)springs.size(); ++i)
+    {
+      if(springs[i].L>interactionradius)
+      {
+        particles[springs[i].indexi].deleteSpring(springs[j].indexj);
+        particles[springs[i].indexj].deleteSpring(springs[i].indexi);
+        springs.erase(i);
+      }
+    }
 
 
       // OLD METHOD WITHOUT CLEVER MATHS (INSIDE A FOR LOOP
@@ -185,6 +248,7 @@ void World::update() {
 //      particles[i].updateVelocity();
 
 
+    // boundaries
     for(int i =0; i<(int)particles.size();++i)
     {
 
