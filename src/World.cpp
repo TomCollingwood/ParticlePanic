@@ -2,6 +2,7 @@
 
 // Use this to keep track of the times
 #include <sys/time.h>
+#include <stdlib.h>
 
 /**
  * @brief World::World
@@ -38,7 +39,7 @@ void World::init() {
     glEnable( GL_MULTISAMPLE_ARB);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SIZE);
-    glPointSize(20.f);
+    glPointSize(10.f);
 
     // Set the background colour
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -48,8 +49,24 @@ void World::init() {
     gettimeofday(&tim, NULL);
     m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
 
-    particles.push_back(Particle());
-    particles.push_back(Particle(Vec3(0.0f,5.0f)));
+//    particles.push_back(Particle());
+//    particles.push_back(Particle(Vec3(3.0f,0.0f)));
+//    particles[1].setVelocity(Vec3(0.1f,0.0f));
+//    particles.push_back(Particle(Vec3(3.0f,5.0f)));
+//    particles[2].setVelocity(Vec3(-0.1f,0.0f));
+
+    srand (time(NULL));
+    for(int i = 0; i<10; ++i)
+    {
+      for(int j=0; j<10; ++j)
+      {
+        particles.push_back(Particle(Vec3(-3.0f+i*0.25f,3.0f-j*0.25f)));
+      }
+    }
+    for(int a=0; a<10*10; ++a)
+    {
+      particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,((float)(rand() % 100 - 50))*0.001f));
+    }
 
     m_isInit = true;
 }
@@ -93,6 +110,18 @@ void World::draw() {
 void World::update() {
     if (!m_isInit) return;
 
+    static int everyother = 0;
+    everyother++;
+    static int particlecount = 100;
+    if(everyother%5==0){
+      for(int i = 0; i<10; ++i)
+      {
+        particles.push_back(Particle(Vec3(-3.0f+i*0.4f,5.0f)));
+        particles[particlecount].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,((float)(rand() % 100 - 50))*0.001f));
+        particlecount++;
+      }
+    }
+
     // Some stuff we need to perform timings
     struct timeval tim;
 
@@ -103,28 +132,79 @@ void World::update() {
     // Increment the rotation based on the time elapsed since we started running
     m_elapsedTime = m_startTime - now;
 
-    for(int i =0; i<(int)particles.size(); ++i){
+    for(int i =0; i<(int)particles.size(); ++i)
+    {
       particles[i].applyGravity();
       particles[i].updateVelocity();
-      if(particles[i].getPosition()[1]-0.5f<-halfheight)
-      {
-        if(particles[i].getVelocity()[1]<-0.0005f)
-          particles[i].setVelocity(-(particles[i].getVelocity())*0.8f);
-        else particles[i].setVelocity(Vec3(0.0f,0.0f));
-      }
+    }
 
-      /*
-      for(int j=i+1; j<(int)particles.size(); ++j){
-        if (particles[i].collision(particles[j]))
+    for(int i =0; i<(int)particles.size(); ++i)
+    {
+      for(int j =i+1; j<(int)particles.size(); ++j)
+      {
+        Vec3 rij=(particles[j].getPosition()-particles[i].getPosition());
+        float q = rij.length()/0.25f;
+        if(q<1)
         {
-          Vec3 newi = Vec3(particles[i].getPosition()-particles[j].getPosition()).perpendicular();
-          Vec3 newj = Vec3(particles[j].getPosition()-particles[i].getPosition()).perpendicular();
-          particles[i].addForce(newi);
-          particles[j].addForce(newj);
+          rij.normalize();
+          float u = (particles[i].getVelocity()-particles[j].getVelocity()).dot(rij);
+          if(u>0)
+          {
+            float sig = particles[i].sig();
+            float bet = particles[i].bet();
+            Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u));
+            particles[i].addVelocity(-impulse/2.0f);
+            particles[j].addVelocity(impulse/2.0f);
+          }
         }
       }
-      //*/
+    }
 
+
+
+      // OLD METHOD WITHOUT CLEVER MATHS (INSIDE A FOR LOOP
+//      particles[i].applyGravity();
+//      static int number =0;
+//      for(int j=i+1; j<(int)particles.size(); ++j){
+//        if (particles[i].collision(particles[j]))
+//        {
+//          number++;
+//          //printf("CRASH(%d)",number);
+//          Vec3 newi = Vec3(particles[i].getPosition()-particles[j].getPosition());
+//          Vec3 newj = Vec3(particles[j].getPosition()-particles[i].getPosition());
+//          //printf("1: %f, %f | 2: %f, %f |",particles[i].getPosition()[0],particles[i].getPosition()[1],particles[j].getPosition()[0],particles[j].getPosition()[1]);
+//          newi.normalize();
+//          newj.normalize();
+//          newi*=particles[i].getVelocity().length()*0.1f;
+//          newj*=particles[j].getVelocity().length()*0.1f;
+//          particles[i].addForce(newi);
+//          particles[j].addForce(newj);
+//          printf("(%f)",newi[0]);
+//        }
+//      }
+//      particles[i].updateVelocity();
+
+
+    for(int i =0; i<(int)particles.size();++i)
+    {
+
+      if(particles[i].getPosition()[1]-0.5f<-halfheight)
+      {
+        particles[i].setVelocity(Vec3(particles[i].getVelocity()[0],-(particles[i].getVelocity()[1])*0.2f));
+      }
+
+      if(std::abs(particles[i].getPosition()[0])>halfwidth)
+      {
+        particles[i].setVelocity(Vec3(-(particles[i].getVelocity()[0])*0.2f,particles[i].getVelocity()[1]));
+        if(particles[i].getPosition()[0]<0)
+        {
+          particles[i].setPosition(Vec3(-halfwidth+0.01f,particles[i].getPosition()[1]));
+        }
+        else
+        {
+          particles[i].setPosition(Vec3(halfwidth-0.01f,particles[i].getPosition()[1]));
+        }
+      }
       particles[i].updatePosition();
       particles[i].clearForces();
     }

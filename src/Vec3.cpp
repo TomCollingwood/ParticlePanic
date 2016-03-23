@@ -20,9 +20,12 @@ float Vec3::lengthSquared() const
 void Vec3::normalize()
 {
   float l=length();
-  assert(l != 0.0f);
-  m_x/=l;
-  m_y/=l;
+  //assert(l != 0.0f);
+  if(l!=0.0f)
+  {
+    m_x/=l;
+    m_y/=l;
+  }
 }
 
 Vec3 Vec3::perpendicular()

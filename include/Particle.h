@@ -8,7 +8,9 @@
   #include <GL/glu.h>
 #endif
 
+#include <cmath>
 #include "Vec3.h"
+
 
 class Particle
 {
@@ -19,7 +21,9 @@ public:
     position(pos),
     velocity(Vec3()),
     force(Vec3()),
-    mass(1.0f)
+    mass(1.0f),
+    sigma(0.4f),
+    beta(0.4f)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -38,9 +42,13 @@ public:
 
   void setVelocity(Vec3 newvel);
   Vec3 getVelocity() const;
+  void addVelocity(Vec3 addedvel);
 
   void updateVelocity();
   void updatePosition();
+
+  GLfloat sig() const;
+  GLfloat bet() const;
 
   bool collision(Particle p) const;
 
@@ -52,6 +60,8 @@ private:
   Vec3 velocity;
   Vec3 force;
   GLfloat mass;
+  GLfloat sigma;
+  GLfloat beta;
 
 //  GLfloat rotation;
 //  Colour particleColour;

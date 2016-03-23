@@ -24,6 +24,11 @@ Vec3 Particle::getPosition() const
   return position;
 }
 
+void Particle::setPosition(Vec3 pos)
+{
+  position=pos;
+}
+
 void Particle::setVelocity(Vec3 newvel)
 {
   velocity = newvel;
@@ -63,8 +68,23 @@ bool Particle::collision(Particle p) const
 {
   Vec3 difference = position - p.getPosition();
 
-  if(difference[0]<0.0005f && difference[1]<0.0005f)
+  if(std::abs(difference[0])<0.5f && std::abs(difference[1])<0.5f)
     return true;
   else return false;
+}
+
+GLfloat Particle::sig() const
+{
+  return sigma;
+}
+
+GLfloat Particle::bet() const
+{
+  return beta;
+}
+
+void Particle::addVelocity(Vec3 addedvel)
+{
+  velocity+=addedvel;
 }
 
