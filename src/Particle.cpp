@@ -2,21 +2,20 @@
 
 void Particle::drawParticle()
 {
-
   glBegin(GL_POINTS);
   glColor3f(1.0f,1.0f,1.0f);
   glVertex3f(position[0],position[1],-2.0f);
   glEnd();
 }
 
-void Particle::updateVelocity()
+void Particle::updateVelocity(double elapsedtime)
 {
-  velocity+=(force/mass);
+  velocity+=(force/mass)*0.01f*elapsedtime;
 }
 
-void Particle::updatePosition()
+void Particle::updatePosition(double elapsedtime)
 {
-  position+=velocity;
+  position+=velocity*elapsedtime*0.01f;
 }
 
 Vec3 Particle::getPosition() const
@@ -46,7 +45,7 @@ void Particle::clearForces()
 
 void Particle::applyGravity()
 {
-  force+=Vec3(0.0f,-0.0008f);
+  force+=Vec3(0.0f,-1.0f);
 }
 
 void Particle::setForce(Vec3 newforce)
@@ -88,36 +87,17 @@ void Particle::addVelocity(Vec3 addedvel)
   velocity+=addedvel;
 }
 
-Particle::Spring *Particle::getSpring(int i) const
-{
-  return particlesprings[i];
-}
-
-void Particle::addSpring(Spring *newspring)
-{
-  particlesprings.push_back(newspring);
-}
-
-int Particle::springNumber() const
-{
-  return (int)particlesprings.size();
-}
-
 GLfloat Particle::alp() const
 {
   return alpha;
 }
 
-void Particle::deleteSpring(int s)
+GLfloat Particle::gam() const
 {
-  bool quit = false;
-  for(int i =0; i<(int)particlesprings.size() && !quit; ++i)
-  {
-    if(particlesprings[i]->indexi == s || particlesprings[i]->indexj == s)
-    {
-      particlesprings.erase(i);
-      quit=true;
-    }
-  }
+  return gamma;
 }
 
+void Particle::addPosition(Vec3 pos)
+{
+  position+=pos;
+}

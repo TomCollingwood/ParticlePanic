@@ -3,6 +3,7 @@
 // Use this to keep track of the times
 #include <sys/time.h>
 #include <stdlib.h>
+#include <iostream>
 
 /**
  * @brief World::World
@@ -49,23 +50,34 @@ void World::init() {
     gettimeofday(&tim, NULL);
     m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
 
-//    particles.push_back(Particle());
-//    particles.push_back(Particle(Vec3(3.0f,0.0f)));
-//    particles[1].setVelocity(Vec3(0.1f,0.0f));
-//    particles.push_back(Particle(Vec3(3.0f,5.0f)));
-//    particles[2].setVelocity(Vec3(-0.1f,0.0f));
-
     srand (time(NULL));
+
+    // can only get away with this as they are the first particles (otherwise insertParticle)
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.25f,3.0f-j*0.25f)));
+        particles.push_back(Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f)));
       }
     }
     for(int a=0; a<10*10; ++a)
     {
-      particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,((float)(rand() % 100 - 50))*0.001f));
+
+      particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50)),((float)(rand() % 10000 - 50))));
+    }
+
+
+    for(int i = 0; i<10; ++i)
+    {
+      for(int j=0; j<10; ++j)
+      {
+        particles.push_back(Particle(Vec3(-3.0f+i*0.2f,-1.0f-j*0.2f)));
+      }
+    }
+    for(int a=0; a<10*10; ++a)
+    {
+
+      particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,4.0f+((float)(rand() % 100 - 50))*0.001f));
     }
 
     interactionradius=0.5f;
@@ -92,6 +104,27 @@ void World::resize(int w, int h) {
   glViewport(0,0,w,h);
 
   glMatrixMode(GL_MODELVIEW);
+
+  float squaresize = 5.0f;
+  // initialize map
+  int mapwidth=ceil((float)w/squaresize);
+  int mapheight=ceil((float)h/squaresize);
+  float onepixel=(halfheight*2)/h; // one pixel is halfheight/h vertex coordinates;
+  map.resize(mapheight);
+  for(int i=0; i<mapheight; i++)
+  {
+    map[i].resize(mapwidth);
+  }
+  printf("(w:%d,h:%d)",mapwidth,mapheight);
+  // fill it up baby
+  for(int i=0; i<(int)particles.size(); ++i)
+  {
+    int x = floor((particles[i].getPosition()[0]+halfwidth)/(squaresize*onepixel));
+    int y = floor((particles[i].getPosition()[1]+halfheight)/(squaresize*onepixel));
+    printf("(%d,%d)",x,y);
+    map[y][x].push_back(&particles[i]);
+  }
+
 }
 
 /**
@@ -105,6 +138,7 @@ void World::draw() {
       particles[i].drawParticle();
     }
 }
+
 
 /**
  * @brief World::update updates the World based on a timer. Used for animation.
@@ -122,23 +156,29 @@ void World::update() {
     // Increment the rotation based on the time elapsed since we started running
     m_elapsedTime = m_startTime - now;
 
+
+    //make it rain
+    /*
     static int everyother = 0;
     everyother++;
     static int particlecount = 100;
     if(everyother%5==0){
-      for(int i = 0; i<10; ++i)
+      for(int i = 0; i<5; ++i)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.4f,5.0f)));
-        particles[particlecount].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,((float)(rand() % 100 - 50))*0.001f));
+        particles.push_back(Particle(Vec3(-3.0f+i*1.0f,5.0f)));
+        particles[particlecount].setVelocity(Vec3(((float)(rand() % 20 - 10))*0.0001f,((float)(rand() % 20 - 10))*0.0001f));
         particlecount++;
       }
     }
+    */
 
+    // apply gravity to velocity
     for(int i =0; i<(int)particles.size(); ++i)
     {
       particles[i].applyGravity();
-      particles[i].updateVelocity();
+      particles[i].updateVelocity(m_elapsedTime);
     }
+
 
     // viscosity algorithm
     for(int i =0; i<(int)particles.size(); ++i)
@@ -151,63 +191,67 @@ void World::update() {
         {
           rij.normalize();
           float u = (particles[i].getVelocity()-particles[j].getVelocity()).dot(rij);
+          //printf("(%f)",u);
           if(u>0)
           {
             float sig = particles[i].sig();
             float bet = particles[i].bet();
-            Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u));
+            Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*0.01f*m_elapsedTime;
             particles[i].addVelocity(-impulse/2.0f);
             particles[j].addVelocity(impulse/2.0f);
+
           }
         }
       }
     }
 
-    // readjust springs
-    for(int i =0; i<(int)particles.size(); ++i)
-    {
-      for(int j =i+1; j<(int)particles.size(); ++j)
-      {
-        Vec3 rij=(particles[j].getPosition()-particles[i].getPosition());
-        float rijmag = rij.length();
-        float q = rijmag/0.5f;
-        if(q<1)
-        {
-          bool quit = false;
-          int springindex=0; // index of relevant spring in particles[i].particlesprings
-          for(int a = 0; a<particles[i].size() && !quit; ++a)
-          {
-            if(getSpring(a)->indexi==i)
-            {
-              if(indexj==j) springindex=a; quit=true;
-            }
-            else
-            {
-              if(indexi==j) springindex=a; quit=true;
-            }
-          }
-          if(!quit)
-          {
-            struct Spring newspring;
-            newspring.indexi = i;
-            newspring.indexj = j;
-            newspring.L = interactionradius; // maybe change this to sum of radius of two particles
-            springs.push_back(newspring);
-            particles[i].addSpring(&newspring);
-            particles[j].addSpring(&newspring);
-            springindex=particles[i].springNumber()-1;
-          }
-          float L = particles[i].getSpring(springindex)->L;
-          float d=gamma*(particles[i].getSpring(springindex)->L);
-          float alpha = particles[i].alph();
 
-          if(rijmag>L+d)
+
+
+    // readjust springs
+    for(int h=0; h<mapheight; ++h)
+    {
+      for(int w=0; w<mapwidth; ++w)
+      {
+        for(int i=0; i<map[h][w].size(); ++i)
+        {
+          for(int j=0; j<map[h][w].size();++j)
           {
-            particles[i].getSpring(springindex)->L=L+m_elapsedTime*alpha*(rijmag-L-d);
-          }
-          else if(rijmag<L-d)
-          {
-            particles[i].getSpring(springindex)->L=L-m_elapsedTime*alpha*(L-d-rijmag);
+            Vec3 rij=(map[h][w][j]->getPosition()-map[h][w][i]->getPosition());
+            float rijmag = rij.length();
+            float q = rijmag/0.5f;
+            if(q<1)
+            {
+              bool quit = false;
+              Spring *thisspring;
+              for(int a = 0; a<(int)springs.size() && !quit; ++a)
+              {
+                if(((springs[a].indexi==(map[h][w][i])) && (springs[a].indexj==(map[h][w][j]))) ||
+                   ((springs[a].indexi==(map[h][w][j])) && (springs[a].indexj==(map[h][w][i]))))
+                  thisspring=&springs[a];
+              }
+              if(!quit)
+              {
+                Spring newspring;
+                newspring.indexi = map[h][w][i];
+                newspring.indexj = map[h][w][j];
+                newspring.L = interactionradius; // maybe change this to sum of radius of two particles
+                springs.push_back(newspring);
+              }
+              thisspring = &springs.back();
+              GLfloat L = thisspring->L;
+              GLfloat d= L*map[h][w][i]->gam();
+              GLfloat alpha = map[h][w][i]->alp();
+
+              if(rijmag>L+d)
+              {
+                thisspring->L=L+0.001f*m_elapsedTime*alpha*(rijmag-L-d);
+              }
+              else if(rijmag<L-d)
+              {
+                thisspring->L=L-0.001f*m_elapsedTime*alpha*(L-d-rijmag);
+              }
+            }
           }
         }
       }
@@ -217,44 +261,35 @@ void World::update() {
     for(int i=0; i<(int)springs.size(); ++i)
     {
       if(springs[i].L>interactionradius)
-      {
-        particles[springs[i].indexi].deleteSpring(springs[j].indexj);
-        particles[springs[i].indexj].deleteSpring(springs[i].indexi);
-        springs.erase(i);
-      }
+        springs.erase(springs.begin()+i);
     }
 
+    //spring displacements
+    for(int i=0; i<(int)springs.size(); ++i)
+    {
+      Vec3 rij = (springs[i].indexi)->getPosition() - (springs[i].indexj)->getPosition();
+      float rijmag = rij.length();
+      rij.normalize();
+      Vec3 D = rij*m_elapsedTime*m_elapsedTime*0.1f*(1-(springs[i].L/interactionradius))*(springs[i].L-rijmag);
+      springs[i].indexi->addPosition(-D/2);
+      springs[i].indexj->addPosition(D/2);
+      //printf("(%f,%f)",(float)D[0],(float)D[1]);
+    }
 
-      // OLD METHOD WITHOUT CLEVER MATHS (INSIDE A FOR LOOP
-//      particles[i].applyGravity();
-//      static int number =0;
-//      for(int j=i+1; j<(int)particles.size(); ++j){
-//        if (particles[i].collision(particles[j]))
-//        {
-//          number++;
-//          //printf("CRASH(%d)",number);
-//          Vec3 newi = Vec3(particles[i].getPosition()-particles[j].getPosition());
-//          Vec3 newj = Vec3(particles[j].getPosition()-particles[i].getPosition());
-//          //printf("1: %f, %f | 2: %f, %f |",particles[i].getPosition()[0],particles[i].getPosition()[1],particles[j].getPosition()[0],particles[j].getPosition()[1]);
-//          newi.normalize();
-//          newj.normalize();
-//          newi*=particles[i].getVelocity().length()*0.1f;
-//          newj*=particles[j].getVelocity().length()*0.1f;
-//          particles[i].addForce(newi);
-//          particles[j].addForce(newj);
-//          printf("(%f)",newi[0]);
-//        }
-//      }
-//      particles[i].updateVelocity();
-
-
+    //*/
     // boundaries
     for(int i =0; i<(int)particles.size();++i)
     {
-
       if(particles[i].getPosition()[1]-0.5f<-halfheight)
       {
-        particles[i].setVelocity(Vec3(particles[i].getVelocity()[0],-(particles[i].getVelocity()[1])*0.2f));
+        // erase springs
+        for(int j=0; j<(int)springs.size();++j)
+        {
+          if(springs[j].indexi==&particles[i] || springs[j].indexj==&particles[i])
+            springs.erase(springs.begin()+j);
+        }
+        // erase particle
+        particles.erase(particles.begin()+i);
       }
 
       if(std::abs(particles[i].getPosition()[0])>halfwidth)
@@ -269,9 +304,8 @@ void World::update() {
           particles[i].setPosition(Vec3(halfwidth-0.01f,particles[i].getPosition()[1]));
         }
       }
-      particles[i].updatePosition();
+      particles[i].updatePosition(m_elapsedTime);
       particles[i].clearForces();
     }
 }
-
 

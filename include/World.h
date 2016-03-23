@@ -25,6 +25,8 @@ public:
     /// A struct to hold triangles
     typedef struct {GLuint idx[3];} Triangle;
 
+    typedef struct spring{Particle *indexi, *indexj; GLfloat L;} Spring;
+
 public:
     /// A constructor, called when this class is instanced in the form of an object
     World();
@@ -44,6 +46,10 @@ public:
     /// Called most frequently, redraws the scene.
     virtual void draw();
 
+    void deleteParticle(int i);
+
+    void insertParticle(Particle p);
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -55,12 +61,13 @@ protected: // Protected means that it is accessible to derived classes
     double m_elapsedTime;
 
     std::vector<Particle> particles;
-    std::vector<Particle::Spring> springs;
-    //std::vector<std::vector<Particle>> grid(10, std::vector<Particle>);
+    std::vector<Spring> springs;
+    std::vector<std::vector<std::vector<Particle *>>> map; //we initialize this on resize
 
-    float halfwidth;
-    float halfheight;
+    float halfwidth, halfheight;
     float interactionradius;
+
+    int mapheight, mapwidth;
 };
 
 #endif // WORLD_H

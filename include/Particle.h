@@ -17,7 +17,7 @@ class Particle
 {
 public:
 
-  typedef struct spring{GLfloat indexi, indexj, L;} Spring;
+
 
   //Particle();
   Particle(const Particle &_p) = default;
@@ -26,9 +26,10 @@ public:
     velocity(Vec3()),
     force(Vec3()),
     mass(1.0f),
-    sigma(0.4f),
-    beta(0.4f),
-    gamma()
+    sigma(0.3f),
+    beta(0.8f), //above 0.4 explodes
+    gamma(0.8f),
+    alpha(0.2f)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -38,6 +39,7 @@ public:
 
   void setPosition(Vec3 pos);
   Vec3 getPosition() const;
+  void addPosition(Vec3 pos);
 
   void clearForces();
   Vec3 getForce() const;
@@ -49,8 +51,8 @@ public:
   Vec3 getVelocity() const;
   void addVelocity(Vec3 addedvel);
 
-  void updateVelocity();
-  void updatePosition();
+  void updateVelocity(double elapsedtime);
+  void updatePosition(double elapsedtime);
 
   GLfloat sig() const;
   GLfloat bet() const;
@@ -59,14 +61,9 @@ public:
 
   bool collision(Particle p) const;
 
-  Spring *getSpring(int i) const;
-  void addSpring(Spring *newspring);
-  int springNumber() const;
-  void deleteSpring(int s); // deletes spring with indexi or indexj == i
-
-
 //  void updateDeathTime();
 //  void setColour(Colour newcolour);
+
 private:
   Vec3 position;
   Vec3 velocity;
@@ -76,12 +73,10 @@ private:
   GLfloat beta;
   GLfloat gamma;
   GLfloat alpha;
-  std::vector<Spring *> particlesprings;
 
 //  GLfloat rotation;
 //  Colour particleColour;
 //  int timeToDeath;
-//  int* connected[4];
 //  ParticleProperties* system;
 };
 
