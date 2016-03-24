@@ -11,6 +11,7 @@
 
 #include <stdlib.h>
 #include <vector>
+#include <deque>
 #include "include/Particle.h"
 
 /**
@@ -60,7 +61,7 @@ protected: // Protected means that it is accessible to derived classes
     /// A member that is updated when update() is called indicating the elapsed time
     double m_elapsedTime;
 
-    std::vector<Particle> particles;
+    std::deque<Particle> particles;
     std::vector<Spring> springs;
     std::vector<std::vector<std::vector<Particle *>>> map; //we initialize this on resize
 

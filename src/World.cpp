@@ -105,23 +105,21 @@ void World::resize(int w, int h) {
 
   glMatrixMode(GL_MODELVIEW);
 
-  float squaresize = 5.0f;
   // initialize map
-  int mapwidth=ceil((float)w/squaresize);
-  int mapheight=ceil((float)h/squaresize);
-  float onepixel=(halfheight*2)/h; // one pixel is halfheight/h vertex coordinates;
+  float squaresize = interactionradius; //each square is size of interaction radius
+  int mapwidth=ceil((halfwidth*2)/squaresize);
+  int mapheight=ceil((halfheight*2)/squaresize);
   map.resize(mapheight);
   for(int i=0; i<mapheight; i++)
   {
     map[i].resize(mapwidth);
   }
-  printf("(w:%d,h:%d)",mapwidth,mapheight);
+
   // fill it up baby
   for(int i=0; i<(int)particles.size(); ++i)
   {
-    int x = floor((particles[i].getPosition()[0]+halfwidth)/(squaresize*onepixel));
-    int y = floor((particles[i].getPosition()[1]+halfheight)/(squaresize*onepixel));
-    printf("(%d,%d)",x,y);
+    int x = floor((particles[i].getPosition()[0]+halfwidth)/squaresize);
+    int y = floor((particles[i].getPosition()[1]+halfheight)/squaresize);
     map[y][x].push_back(&particles[i]);
   }
 
@@ -158,19 +156,17 @@ void World::update() {
 
 
     //make it rain
-    /*
+
     static int everyother = 0;
     everyother++;
-    static int particlecount = 100;
     if(everyother%5==0){
-      for(int i = 0; i<5; ++i)
+      for(int i = 0; i<4; ++i)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*1.0f,5.0f)));
-        particles[particlecount].setVelocity(Vec3(((float)(rand() % 20 - 10))*0.0001f,((float)(rand() % 20 - 10))*0.0001f));
-        particlecount++;
+        particles.push_back(Particle(Vec3(-3.0f+i*0.2f,5.0f)));
+        particles.back().setVelocity(Vec3(((float)(rand() % 20 - 10))*0.0001f,((float)(rand() % 20 - 10))*0.0001f));
       }
     }
-    */
+
 
     // apply gravity to velocity
     for(int i =0; i<(int)particles.size(); ++i)
@@ -219,7 +215,7 @@ void World::update() {
           {
             Vec3 rij=(map[h][w][j]->getPosition()-map[h][w][i]->getPosition());
             float rijmag = rij.length();
-            float q = rijmag/0.5f;
+            float q = rijmag/interactionradius;
             if(q<1)
             {
               bool quit = false;
@@ -228,7 +224,10 @@ void World::update() {
               {
                 if(((springs[a].indexi==(map[h][w][i])) && (springs[a].indexj==(map[h][w][j]))) ||
                    ((springs[a].indexi==(map[h][w][j])) && (springs[a].indexj==(map[h][w][i]))))
+                {
                   thisspring=&springs[a];
+                  quit=true;
+                }
               }
               if(!quit)
               {
