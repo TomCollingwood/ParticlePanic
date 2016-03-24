@@ -13,8 +13,8 @@ World::World() :
   m_isInit(false),
   m_startTime(0.0),
   m_elapsedTime(0.0),
-  interactionradius(0.5f),
-  squaresize(0.5f)
+  interactionradius(0.3f),
+  squaresize(0.3f)
 {
 }
 
@@ -64,16 +64,21 @@ void World::init() {
         particles.push_back(Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f)));
     }
     for(int a=0; a<10*10; ++a)
-      particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50)),((float)(rand() % 10000 - 50))));
+    {
+      //particles[a].setVelocity(Vec3(-8.0f,0.0f));
+      //particles[a].addVelocity(Vec3(0.0f,(float)(rand() % 100 - 50)*0.01f));
+      //particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50)),((float)(rand() % 10000 - 50))));
+    }
+
 
 
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
-        particles.push_back(Particle(Vec3(-3.0f+i*0.2f,-1.0f-j*0.2f)));
+        particles.push_back(Particle(Vec3(3.0f+i*0.2f,3.0f-j*0.2f)));
     }
-    for(int a=0; a<10*10; ++a)
-      particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,4.0f+((float)(rand() % 100 - 50))*0.001f));
+    for(int a=100; a<10*10*2; ++a)
+      //particles[a].setVelocity(Vec3(8.0f,0.0f));
 
     m_isInit = true;
 }
@@ -137,13 +142,13 @@ void World::update() {
     m_elapsedTime = m_startTime - now;
 
     //make it rain
-    /*
+
     static int everyother = 0;
     everyother++;
     if(everyother%5==0){
       for(int i = 0; i<4; ++i)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.2f,5.0f)));
+        particles.push_back(Particle(Vec3(-3.0f+i*0.1f,5.0f)));
         particles.back().setVelocity(Vec3(((float)(rand() % 20 - 10))*0.0001f,((float)(rand() % 20 - 10))*0.0001f));
       }
     }
@@ -158,6 +163,7 @@ void World::update() {
     }
 
     // viscosity algorithm
+    // TODO : Implement spatial hash for loop here
     for(int i =0; i<(int)particles.size(); ++i)
     {
       for(int j =i+1; j<(int)particles.size(); ++j)
@@ -180,6 +186,7 @@ void World::update() {
         }
       }
     }
+    //*/
 
     // update previous and current position
     for(int i =0; i<(int)particles.size(); ++i)
@@ -190,48 +197,54 @@ void World::update() {
     cellsContainingParticles.assign(gridwidth*gridheight,false);
     hashParticles();
 
-    /*
+
     //readjust the springs
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
       {
         std::vector<Particle *> surroundingParticles = getSurroundingParticles(k);
-        std::cout<<(int)surroundingParticles.size()<<std::endl;
+        // std::cout<<(int)surroundingParticles.size()<<std::endl;
 
-        for(int i=0; i<(int)surroundingParticles.size(); ++i)
+        std::cout<<"START";
+        for(int i=0; i<(int)grid[k].size(); ++i)
         {
-          for(int j=i+1; j<(int)surroundingParticles.size();++j)
+          //std::cout<<"("<<surroundingParticles[i]->getPosition()[0]<<")"<<std::endl;
+          for(int j=0; j<(int)surroundingParticles.size();++j)
           {
-            Vec3 rij=(surroundingParticles[j]->getPosition()-surroundingParticles[i]->getPosition());
+            Vec3 rij=(surroundingParticles[j]->getPosition()-grid[k][i]->getPosition());
             float rijmag = rij.length();
             float q = rijmag/interactionradius;
             if(q<1)
             {
-              bool quit = false;
+
+              bool quiter = false;
               Spring *thisspring;
-              for(int a = 0; a<(int)springs.size() && !quit; ++a)
+              for(int a = 0; a<(int)springs.size(); ++a)
               {
                 if(((springs[a].indexi==(surroundingParticles[i])) && (springs[a].indexj==(surroundingParticles[j]))) ||
                    ((springs[a].indexi==(surroundingParticles[j])) && (springs[a].indexj==(surroundingParticles[i]))))
                 {
                   thisspring=&springs[a];
-                  quit=true;
+                  quiter=true;
+                  //std::cout<<"FUCK"<<std::endl;
+                  break;
                 }
               }
 
-              if(!quit)
+              if(!quiter)
               {
                 Spring newspring;
-                newspring.indexi=surroundingParticles[i];
+                newspring.indexi=grid[k][i];
                 newspring.indexj=surroundingParticles[j];
                 newspring.L = interactionradius; // maybe change this to sum of radius of two particles
                 springs.push_back(newspring);
+                thisspring = &springs.back();
+                std::cout<<"SHIT ON YOU"<<std::endl;
               }
-              thisspring = &springs.back();
               GLfloat L = thisspring->L;
-              GLfloat d= L*surroundingParticles[i]->gam();
-              GLfloat alpha = surroundingParticles[i]->alp();
+              GLfloat d= L*grid[k][i]->gam();
+              GLfloat alpha = grid[k][i]->alp();
 
               if(rijmag>L+d)
               {
@@ -247,21 +260,24 @@ void World::update() {
       }
     }
 
-    if((int)springs.size()>1) std::cout<<"Yess!"<<std::endl;
+    if((int)springs.size()>1) std::cout<<"YESSSSS!"<<std::endl;
 
     std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
 
     // delete springs if over rest length?
+
     for(int i=0; i<(int)springs.size(); ++i)
     {
       if(springs[i].L>interactionradius)
         springs.erase(springs.begin()+i);
     }
 
+
     //spring displacements
+
     for(int i=0; i<(int)springs.size(); ++i)
     {
-      Vec3 rij = (springs[i].indexi)->getPosition() - (springs[i].indexj)->getPosition();
+      Vec3 rij = (*(springs[i].indexj)).getPosition() - (*(springs[i].indexi)).getPosition();
       float rijmag = rij.length();
       rij.normalize();
       Vec3 D = rij*m_elapsedTime*m_elapsedTime*0.3f*(1-(springs[i].L/interactionradius))*(springs[i].L-rijmag);
@@ -325,8 +341,13 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell) const
     for(int j = -numSurrounding; j <= numSurrounding; ++j)
     {
       int grid_cell = thiscell+ i + j*gridwidth;
-      if(grid_cell<(gridwidth*gridheight) && grid_cell>=0)
-        surroundingParticles.insert(surroundingParticles.begin(),grid[grid_cell].begin(),grid[grid_cell].end());
+      if(grid_cell<(gridwidth*gridheight) && grid_cell>=0 && j!=0 && i!=0)
+      {
+        for(auto p : grid[grid_cell])
+        {
+          surroundingParticles.push_back(p);
+        }
+      }
     }
   }
   return surroundingParticles;
