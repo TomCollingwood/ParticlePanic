@@ -16,9 +16,6 @@
 class Particle
 {
 public:
-
-
-
   //Particle();
   Particle(const Particle &_p) = default;
   Particle(Vec3 pos=Vec3() /*,ParticleProperties prop*/) :
@@ -28,7 +25,7 @@ public:
     mass(1.0f),
     sigma(0.3f),
     beta(0.8f), //above 0.4 explodes
-    gamma(0.8f),
+    gamma(0.7f),
     alpha(0.2f)
 /*  system(prop),
     rotation(0.0f),
@@ -40,6 +37,9 @@ public:
   void setPosition(Vec3 pos);
   Vec3 getPosition() const;
   void addPosition(Vec3 pos);
+
+  void updatePrevPosition();
+  Vec3 getPrevPosition() const;
 
   void clearForces();
   Vec3 getForce() const;
@@ -59,6 +59,11 @@ public:
   GLfloat gam() const;
   GLfloat alp() const;
 
+  bool operator ==(const Particle &_rhs) const;
+
+  int getGridPosition() const;
+  void setGridPosition(int p);
+
   bool collision(Particle p) const;
 
 //  void updateDeathTime();
@@ -66,6 +71,8 @@ public:
 
 private:
   Vec3 position;
+  Vec3 prevPosition;
+  int gridPosition;
   Vec3 velocity;
   Vec3 force;
   GLfloat mass;
@@ -73,6 +80,7 @@ private:
   GLfloat beta;
   GLfloat gamma;
   GLfloat alpha;
+
 
 //  GLfloat rotation;
 //  Colour particleColour;

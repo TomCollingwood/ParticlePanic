@@ -101,3 +101,29 @@ void Particle::addPosition(Vec3 pos)
 {
   position+=pos;
 }
+
+void Particle::updatePrevPosition()
+{
+  prevPosition=Vec3(position[0],position[1]);
+}
+
+Vec3 Particle::getPrevPosition() const
+{
+  return prevPosition;
+}
+
+bool Particle::operator ==(const Particle &_rhs) const
+{
+  if(position==_rhs.position && velocity==_rhs.velocity) return true;
+  else return false;
+}
+
+void Particle::setGridPosition(int p)
+{
+  gridPosition=p;
+}
+
+int Particle::getGridPosition() const
+{
+  return gridPosition;
+}

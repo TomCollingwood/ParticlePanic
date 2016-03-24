@@ -4,6 +4,7 @@
 #include <sys/time.h>
 #include <stdlib.h>
 #include <iostream>
+#include <algorithm>
 
 /**
  * @brief World::World
@@ -105,24 +106,14 @@ void World::resize(int w, int h) {
 
   glMatrixMode(GL_MODELVIEW);
 
-  // initialize map
-  float squaresize = interactionradius; //each square is size of interaction radius
-  int mapwidth=ceil((halfwidth*2)/squaresize);
-  int mapheight=ceil((halfheight*2)/squaresize);
-  map.resize(mapheight);
-  for(int i=0; i<mapheight; i++)
-  {
-    map[i].resize(mapwidth);
-  }
-
-  // fill it up baby
-  for(int i=0; i<(int)particles.size(); ++i)
-  {
-    int x = floor((particles[i].getPosition()[0]+halfwidth)/squaresize);
-    int y = floor((particles[i].getPosition()[1]+halfheight)/squaresize);
-    map[y][x].push_back(&particles[i]);
-  }
-
+  // initialize grid
+  squaresize = interactionradius; //each square is size of interaction radius
+  gridwidth=ceil((halfwidth*2)/squaresize);
+  gridheight=ceil((halfheight*2)/squaresize);
+  grid.resize(gridheight*gridwidth);
+  //initialize cells conatining
+  cellsContainingParticles.clear();
+  cellsContainingParticles.resize(gridheight*gridwidth,false);
 }
 
 /**
@@ -154,9 +145,8 @@ void World::update() {
     // Increment the rotation based on the time elapsed since we started running
     m_elapsedTime = m_startTime - now;
 
-
     //make it rain
-
+    /*
     static int everyother = 0;
     everyother++;
     if(everyother%5==0){
@@ -167,6 +157,7 @@ void World::update() {
       }
     }
 
+    //*/
 
     // apply gravity to velocity
     for(int i =0; i<(int)particles.size(); ++i)
@@ -174,7 +165,6 @@ void World::update() {
       particles[i].applyGravity();
       particles[i].updateVelocity(m_elapsedTime);
     }
-
 
     // viscosity algorithm
     for(int i =0; i<(int)particles.size(); ++i)
@@ -195,25 +185,32 @@ void World::update() {
             Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*0.01f*m_elapsedTime;
             particles[i].addVelocity(-impulse/2.0f);
             particles[j].addVelocity(impulse/2.0f);
-
           }
         }
       }
     }
 
-
-
-
-    // readjust springs
-    for(int h=0; h<mapheight; ++h)
+    // update previous and current position
+    for(int i =0; i<(int)particles.size(); ++i)
     {
-      for(int w=0; w<mapwidth; ++w)
+      particles[i].updatePrevPosition();
+      particles[i].updatePosition(m_elapsedTime);
+    }
+    cellsContainingParticles.clear();
+    cellsContainingParticles.resize(gridwidth*gridheight,false);
+    hashParticles();
+
+    //readjust the springs
+    for(int k=0; k<gridheight*gridwidth; ++k)
+    {
+      if(cellsContainingParticles[k])
       {
-        for(int i=0; i<map[h][w].size(); ++i)
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(k);
+        for(int i=0; i<(int)surroundingParticles.size(); ++i)
         {
-          for(int j=0; j<map[h][w].size();++j)
+          for(int j=i+1; j<(int)surroundingParticles.size();++j)
           {
-            Vec3 rij=(map[h][w][j]->getPosition()-map[h][w][i]->getPosition());
+            Vec3 rij=(surroundingParticles[j]->getPosition()-surroundingParticles[i]->getPosition());
             float rijmag = rij.length();
             float q = rijmag/interactionradius;
             if(q<1)
@@ -222,25 +219,28 @@ void World::update() {
               Spring *thisspring;
               for(int a = 0; a<(int)springs.size() && !quit; ++a)
               {
-                if(((springs[a].indexi==(map[h][w][i])) && (springs[a].indexj==(map[h][w][j]))) ||
-                   ((springs[a].indexi==(map[h][w][j])) && (springs[a].indexj==(map[h][w][i]))))
+                if(((springs[a].indexi==(surroundingParticles[i])) && (springs[a].indexj==(surroundingParticles[j]))) ||
+                   ((springs[a].indexi==(surroundingParticles[j])) && (springs[a].indexj==(surroundingParticles[i]))))
                 {
                   thisspring=&springs[a];
+                  //std::cout<<"FUCK"<<std::endl;
                   quit=true;
+                  break;
                 }
               }
+
               if(!quit)
               {
                 Spring newspring;
-                newspring.indexi = map[h][w][i];
-                newspring.indexj = map[h][w][j];
+                newspring.indexi=surroundingParticles[i];
+                newspring.indexj=surroundingParticles[j];
                 newspring.L = interactionradius; // maybe change this to sum of radius of two particles
                 springs.push_back(newspring);
               }
               thisspring = &springs.back();
               GLfloat L = thisspring->L;
-              GLfloat d= L*map[h][w][i]->gam();
-              GLfloat alpha = map[h][w][i]->alp();
+              GLfloat d= L*surroundingParticles[i]->gam();
+              GLfloat alpha = surroundingParticles[i]->alp();
 
               if(rijmag>L+d)
               {
@@ -255,6 +255,8 @@ void World::update() {
         }
       }
     }
+
+    std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
 
     // delete springs if over rest length?
     for(int i=0; i<(int)springs.size(); ++i)
@@ -272,39 +274,64 @@ void World::update() {
       Vec3 D = rij*m_elapsedTime*m_elapsedTime*0.1f*(1-(springs[i].L/interactionradius))*(springs[i].L-rijmag);
       springs[i].indexi->addPosition(-D/2);
       springs[i].indexj->addPosition(D/2);
-      //printf("(%f,%f)",(float)D[0],(float)D[1]);
     }
 
-    //*/
-    // boundaries
-    for(int i =0; i<(int)particles.size();++i)
+
+    //----------------------------------BOUNDARIES --------------------------------------------
+    for (std::deque<Particle>::iterator it=particles.begin(); it!=particles.end();)
     {
-      if(particles[i].getPosition()[1]-0.5f<-halfheight)
+      if(std::abs(it->getPosition()[0])>halfwidth)
       {
-        // erase springs
-        for(int j=0; j<(int)springs.size();++j)
+        for(std::deque<Spring>::iterator it2=springs.begin(); it2!=springs.end();)
         {
-          if(springs[j].indexi==&particles[i] || springs[j].indexj==&particles[i])
-            springs.erase(springs.begin()+j);
+          if(it2->indexi==&*(it) || it2->indexj==&*(it))
+            it2=springs.erase(it2);
+          else
+            ++it2;
         }
-        // erase particle
-        particles.erase(particles.begin()+i);
+        it=particles.erase(it);
+      }
+      else
+        ++it;
+
+      if(it->getPosition()[1]-0.5f<-halfheight)
+      {
+        it->setPosition(Vec3(it->getPosition()[0]))
+
       }
 
-      if(std::abs(particles[i].getPosition()[0])>halfwidth)
-      {
-        particles[i].setVelocity(Vec3(-(particles[i].getVelocity()[0])*0.2f,particles[i].getVelocity()[1]));
-        if(particles[i].getPosition()[0]<0)
-        {
-          particles[i].setPosition(Vec3(-halfwidth+0.01f,particles[i].getPosition()[1]));
-        }
-        else
-        {
-          particles[i].setPosition(Vec3(halfwidth-0.01f,particles[i].getPosition()[1]));
-        }
-      }
-      particles[i].updatePosition(m_elapsedTime);
-      particles[i].clearForces();
+
     }
+    //----------------------------------CLEANUP ------------------------------------------------
+    cellsContainingParticles.clear();
+}
+
+void World::hashParticles()
+{
+  grid.clear();
+  grid.resize(gridheight*gridwidth);
+  int grid_cell;
+  for(auto i : particles)
+  {
+    grid_cell=floor((i.getPosition()[0]+halfwidth)/squaresize)+floor((i.getPosition()[1]+halfheight)/squaresize)*gridwidth;
+    cellsContainingParticles[grid_cell]=true;
+    grid[grid_cell].push_back(&i);
+  }
+}
+
+std::vector<Particle *> World::getSurroundingParticles(int thiscell) const
+{
+  int numSurrounding=1;
+  std::vector<Particle *> surroundingParticles;
+  for(int i = -numSurrounding; i <= numSurrounding; ++i)
+  {
+    for(int j = -numSurrounding; j <= numSurrounding; ++j)
+    {
+      int grid_cell = thiscell+ i + j*gridwidth;
+      if(grid_cell<gridwidth*gridheight || grid_cell>=0)
+        surroundingParticles.insert(surroundingParticles.begin(),grid[grid_cell].begin(),grid[grid_cell].end());
+    }
+  }
+  return surroundingParticles;
 }
 

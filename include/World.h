@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <deque>
+#include <array>
 #include "include/Particle.h"
 
 /**
@@ -51,6 +52,10 @@ public:
 
     void insertParticle(Particle p);
 
+    void hashParticles();
+
+    std::vector<Particle *> getSurroundingParticles(int thiscell) const;
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -61,14 +66,16 @@ protected: // Protected means that it is accessible to derived classes
     /// A member that is updated when update() is called indicating the elapsed time
     double m_elapsedTime;
 
-    std::deque<Particle> particles;
-    std::vector<Spring> springs;
-    std::vector<std::vector<std::vector<Particle *>>> map; //we initialize this on resize
+    std::deque<Particle> particles; //using double ended queue to avoid grid having dangling pointers
+    std::deque<Spring> springs;
+    std::vector<std::vector<Particle *>> grid; //we initialize this on resize
+    std::vector<bool> cellsContainingParticles;
 
     float halfwidth, halfheight;
     float interactionradius;
+    float squaresize;
 
-    int mapheight, mapwidth;
+    int gridheight, gridwidth;
 };
 
 #endif // WORLD_H
