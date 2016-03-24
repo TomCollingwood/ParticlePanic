@@ -9,7 +9,12 @@
 /**
  * @brief World::World
  */
-World::World() : m_isInit(false),m_startTime(0.0),m_elapsedTime(0.0)
+World::World() :
+  m_isInit(false),
+  m_startTime(0.0),
+  m_elapsedTime(0.0),
+  interactionradius(0.5f),
+  squaresize(0.5f)
 {
 }
 
@@ -50,38 +55,25 @@ void World::init() {
     struct timeval tim;
     gettimeofday(&tim, NULL);
     m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
-
     srand (time(NULL));
 
-    // can only get away with this as they are the first particles (otherwise insertParticle)
+    // create start two blocks of particles
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
-      {
         particles.push_back(Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f)));
-      }
     }
     for(int a=0; a<10*10; ++a)
-    {
-
       particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50)),((float)(rand() % 10000 - 50))));
-    }
 
 
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
-      {
         particles.push_back(Particle(Vec3(-3.0f+i*0.2f,-1.0f-j*0.2f)));
-      }
     }
     for(int a=0; a<10*10; ++a)
-    {
-
       particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50))*0.001f,4.0f+((float)(rand() % 100 - 50))*0.001f));
-    }
-
-    interactionradius=0.5f;
 
     m_isInit = true;
 }
@@ -107,7 +99,6 @@ void World::resize(int w, int h) {
   glMatrixMode(GL_MODELVIEW);
 
   // initialize grid
-  squaresize = interactionradius; //each square is size of interaction radius
   gridwidth=ceil((halfwidth*2)/squaresize);
   gridheight=ceil((halfheight*2)/squaresize);
   grid.resize(gridheight*gridwidth);
@@ -196,16 +187,18 @@ void World::update() {
       particles[i].updatePrevPosition();
       particles[i].updatePosition(m_elapsedTime);
     }
-    cellsContainingParticles.clear();
-    cellsContainingParticles.resize(gridwidth*gridheight,false);
+    cellsContainingParticles.assign(gridwidth*gridheight,false);
     hashParticles();
 
+    /*
     //readjust the springs
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
       {
         std::vector<Particle *> surroundingParticles = getSurroundingParticles(k);
+        std::cout<<(int)surroundingParticles.size()<<std::endl;
+
         for(int i=0; i<(int)surroundingParticles.size(); ++i)
         {
           for(int j=i+1; j<(int)surroundingParticles.size();++j)
@@ -223,9 +216,7 @@ void World::update() {
                    ((springs[a].indexi==(surroundingParticles[j])) && (springs[a].indexj==(surroundingParticles[i]))))
                 {
                   thisspring=&springs[a];
-                  //std::cout<<"FUCK"<<std::endl;
                   quit=true;
-                  break;
                 }
               }
 
@@ -256,6 +247,8 @@ void World::update() {
       }
     }
 
+    if((int)springs.size()>1) std::cout<<"Yess!"<<std::endl;
+
     std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
 
     // delete springs if over rest length?
@@ -271,10 +264,11 @@ void World::update() {
       Vec3 rij = (springs[i].indexi)->getPosition() - (springs[i].indexj)->getPosition();
       float rijmag = rij.length();
       rij.normalize();
-      Vec3 D = rij*m_elapsedTime*m_elapsedTime*0.1f*(1-(springs[i].L/interactionradius))*(springs[i].L-rijmag);
+      Vec3 D = rij*m_elapsedTime*m_elapsedTime*0.3f*(1-(springs[i].L/interactionradius))*(springs[i].L-rijmag);
       springs[i].indexi->addPosition(-D/2);
       springs[i].indexj->addPosition(D/2);
     }
+    //*/
 
 
     //----------------------------------BOUNDARIES --------------------------------------------
@@ -296,8 +290,8 @@ void World::update() {
 
       if(it->getPosition()[1]-0.5f<-halfheight)
       {
-        it->setPosition(Vec3(it->getPosition()[0]))
-
+        it->setPosition(Vec3(it->getPosition()[0],-halfheight+0.5f));
+        it->setVelocity(Vec3(it->getVelocity()[0]*0.8f,it->getVelocity()[1]*-0.38f));
       }
 
 
@@ -308,14 +302,17 @@ void World::update() {
 
 void World::hashParticles()
 {
-  grid.clear();
-  grid.resize(gridheight*gridwidth);
+  std::vector<Particle *> newvector;
+  grid.assign(gridheight*gridwidth,newvector);
   int grid_cell;
   for(auto i : particles)
   {
     grid_cell=floor((i.getPosition()[0]+halfwidth)/squaresize)+floor((i.getPosition()[1]+halfheight)/squaresize)*gridwidth;
-    cellsContainingParticles[grid_cell]=true;
-    grid[grid_cell].push_back(&i);
+    if(grid_cell>=0 && grid_cell<gridheight*gridwidth)
+    {
+      cellsContainingParticles[grid_cell]=true;
+      grid[grid_cell].push_back(&i);
+    }
   }
 }
 
@@ -328,7 +325,7 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell) const
     for(int j = -numSurrounding; j <= numSurrounding; ++j)
     {
       int grid_cell = thiscell+ i + j*gridwidth;
-      if(grid_cell<gridwidth*gridheight || grid_cell>=0)
+      if(grid_cell<(gridwidth*gridheight) && grid_cell>=0)
         surroundingParticles.insert(surroundingParticles.begin(),grid[grid_cell].begin(),grid[grid_cell].end());
     }
   }
