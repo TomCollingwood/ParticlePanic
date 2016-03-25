@@ -27,8 +27,8 @@
 #define WINDOW_TITLE "ParticlePanic"
 
 // These defines are for the initial window size (it can be changed in the resize function)
-#define WIDTH 640
-#define HEIGHT 480
+#define WIDTH 1250
+#define HEIGHT 800
 
 // Our World, which will store all the GL stuff
 World *world = NULL;
@@ -53,7 +53,6 @@ int initSDL()
     }
     else
     {
-
         //Use OpenGL 3.1 core
         SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 2 );
         SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );

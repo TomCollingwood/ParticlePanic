@@ -13,8 +13,8 @@ World::World() :
   m_isInit(false),
   m_startTime(0.0),
   m_elapsedTime(0.0),
-  interactionradius(0.2f),
-  squaresize(0.2f),
+  interactionradius(0.3f),
+  squaresize(0.3f),
   m_timestep(0.02)
 {
 }
@@ -47,7 +47,7 @@ void World::init() {
     glEnable( GL_MULTISAMPLE_ARB);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SIZE);
-    glPointSize(10.f);
+    glPointSize(13.f);
 
     // Set the background colour
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -155,17 +155,53 @@ void World::update() {
     //*/
 
     // ------------------------------GRAVITY --------------------------------------------
-    for(auto i : particles)
+    for(auto& i : particles)
     {
-      i.applyGravity();
-      i.updateVelocity(m_timestep);
-      i.updatePosition(m_timestep);
+      i.applyGravity(m_timestep);
     }
 
     // ------------------------------VISCOSITY--------------------------------------------
     // TODO : Implement spatial hash for loop here
+    /*
 
     int choo = 0;
+
+    for(auto& k : grid)
+    {
+      int ploo = 0;
+      for(auto& i : grid[k])
+      {
+        int cloo = 0;
+        for(auto& j : grid[k])
+        {
+          if(cloo>ploo)
+          {
+
+            Vec3 rij=(j.getPosition()-i.getPosition());
+            float q = rij.length()/interactionradius;
+            if(q<1 && q!=0)
+            {
+              rij.normalize();
+              float u = (i.getVelocity()-j.getVelocity()).dot(rij);
+              //printf("(%f)",u);
+              if(u>0)
+              {
+                float sig = i.sig();
+                float bet = i.bet();
+                Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*m_timestep;
+                i.addVelocity(-impulse/2.0f);
+                j.addVelocity(impulse/2.0f);
+              }
+            }
+
+          }
+          cloo++;
+        }
+      }
+      ploo++;
+    }
+    // */
+    /*
     for(auto& i : particles)
     {
       int cloo = 0;
@@ -197,7 +233,9 @@ void World::update() {
     }
     //*/
 
-    // update previous and current position
+    //------------------------------------------POSITION----------------------------------------
+
+
     for(auto& i : particles)
     {
       i.updatePrevPosition();
@@ -205,9 +243,8 @@ void World::update() {
     }
     hashParticles();
 
-
     //--------------------------------------SPRINGS-----------------------------------------------
-
+    /*
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
@@ -308,11 +345,13 @@ void World::update() {
       i.indexi->addPosition(-D/2);
       i.indexj->addPosition(D/2);
     }
-    //*/
+    // */
 
     //----------------------------------DOUBLEDENSITY------------------------------------------
 
+
     int count =0;
+
     for(auto& list : grid)
     {
       std::vector<Particle *> neighbours=getSurroundingParticles(count);
@@ -334,7 +373,7 @@ void World::update() {
         }
         float p0 = 10.0f;
         float k = 0.004f;
-        float knear = 0.01f;
+        float knear = 0.05f;
         float P = k*(density -p0);
         float Pnear = knear * neardensity;
         Vec3 dx = Vec3();
@@ -358,6 +397,7 @@ void World::update() {
 
     //----------------------------------MAKE NEW VELOCITY-------------------------------------
 
+
     for(auto& list : grid)
     {
       for(auto& i : list)
@@ -366,11 +406,12 @@ void World::update() {
       }
     }
 
+
     //----------------------------------BOUNDARIES --------------------------------------------
     count = 0;
     for (auto& it : particles)
     {
-      if(std::abs(it.getPosition()[0])>halfwidth || it.getPosition()[1]-0.5f<-halfheight)
+      if(std::abs(it.getPosition()[0])>halfwidth )//|| it.getPosition()[1]-0.5f<-halfheight)
       {
         //here we iterate though particle springs TODO
         int count2 =0;
@@ -395,28 +436,28 @@ void World::update() {
       else
         ++count;
       // */
-      /*
+
 
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f));
-        it.addVelocity(Vec3(0.0f,-2.0f*it.getVelocity()[1]));
+        it.addVelocity(Vec3(0.0f,-0.5f*it.getVelocity()[1]));
+      }
+
+      if(it.getPosition()[0]>halfwidth-0.5f)
+      {
+        it.setPosition(Vec3(halfwidth-0.5f,it.getPosition()[1]));
+        it.addVelocity(Vec3(-0.5f*it.getVelocity()[0],0.0f));
+      }
+
+      if(it.getPosition()[0]<-halfwidth+0.5f)
+      {
+        it.setPosition(Vec3(-halfwidth+0.5f,it.getPosition()[1]));
+        it.addVelocity(Vec3(-0.5f*it.getVelocity()[0],0.0f));
       }
       //*/
     }
     //----------------------------------CLEANUP ------------------------------------------------
-    cellsContainingParticles.clear();
-    hashParticles();
-
-    //check if spring dead
-    if(particles.size()==0)
-    {
-      for(auto& i : springs)
-      {
-        Particle *poopoo = i.indexi;
-      }
-    }
-
 }
 
 void World::hashParticles()

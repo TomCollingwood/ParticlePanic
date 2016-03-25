@@ -46,7 +46,7 @@ public:
   Vec3 getForce() const;
   void setForce(Vec3 newforce);
   void addForce(Vec3 addedforce);
-  void applyGravity();
+  void applyGravity(float m_timestep);
 
   void setVelocity(Vec3 newvel);
   Vec3 getVelocity() const;

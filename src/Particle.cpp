@@ -8,11 +8,6 @@ void Particle::drawParticle()
   glEnd();
 }
 
-void Particle::updateVelocity(double elapsedtime)
-{
-  velocity+=(force/mass)*elapsedtime;
-}
-
 void Particle::updatePosition(double elapsedtime)
 {
   position+=velocity*elapsedtime;
@@ -43,9 +38,9 @@ void Particle::clearForces()
   force=Vec3();
 }
 
-void Particle::applyGravity()
+void Particle::applyGravity(float m_timestep)
 {
-  force+=Vec3(0.0f,-1.0f);
+  velocity+=Vec3(0.0f,-1.0f*m_timestep);
 }
 
 void Particle::setForce(Vec3 newforce)
