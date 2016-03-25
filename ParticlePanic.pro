@@ -16,7 +16,8 @@ HEADERS +== \
     include/Particle.h \
     include/Vec3.h \
     include/Mat3.h \
-    include/World.h
+    include/World.h \
+    include/Spring.h
 
 LIBS += -L/usr/local/lib
 

@@ -16,6 +16,7 @@
 class Particle
 {
 public:
+  typedef struct spring{Particle *indexi, *indexj; GLfloat L;} Spring;
   //Particle();
   Particle(const Particle &_p) = default;
   Particle(Vec3 pos=Vec3() /*,ParticleProperties prop*/) :
@@ -25,7 +26,7 @@ public:
     mass(1.0f),
     sigma(0.0f),
     beta(0.15f), //above 0.4 explodes
-    gamma(0.0f),
+    gamma(0.8f),
     alpha(0.3f)
 /*  system(prop),
     rotation(0.0f),
@@ -80,7 +81,6 @@ private:
   GLfloat beta;
   GLfloat gamma;
   GLfloat alpha;
-
 
 //  GLfloat rotation;
 //  Colour particleColour;

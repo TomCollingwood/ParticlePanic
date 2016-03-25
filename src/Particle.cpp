@@ -127,3 +127,5 @@ int Particle::getGridPosition() const
 {
   return gridPosition;
 }
+
+

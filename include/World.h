@@ -13,6 +13,7 @@
 #include <vector>
 #include <deque>
 #include <array>
+#include <list>
 #include "include/Particle.h"
 
 /**
@@ -27,7 +28,7 @@ public:
     /// A struct to hold triangles
     typedef struct {GLuint idx[3];} Triangle;
 
-    typedef struct spring{Particle *indexi, *indexj; GLfloat L;} Spring;
+
 
 public:
     /// A constructor, called when this class is instanced in the form of an object
@@ -68,8 +69,8 @@ protected: // Protected means that it is accessible to derived classes
 
     double m_timestep;
 
-    std::deque<Particle> particles; //using double ended queue to avoid grid having dangling pointers
-    std::deque<Spring> springs;
+    std::list<Particle> particles; //using double ended queue to avoid grid having dangling pointers
+    std::list<Particle::Spring> springs;
     std::vector<std::vector<Particle *>> grid; //we initialize this on resize
     std::vector<bool> cellsContainingParticles;
 
