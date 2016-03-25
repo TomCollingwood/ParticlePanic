@@ -66,6 +66,8 @@ protected: // Protected means that it is accessible to derived classes
     /// A member that is updated when update() is called indicating the elapsed time
     double m_elapsedTime;
 
+    double m_timestep;
+
     std::deque<Particle> particles; //using double ended queue to avoid grid having dangling pointers
     std::deque<Spring> springs;
     std::vector<std::vector<Particle *>> grid; //we initialize this on resize

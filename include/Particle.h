@@ -25,7 +25,7 @@ public:
     mass(1.0f),
     sigma(0.0f),
     beta(0.15f), //above 0.4 explodes
-    gamma(0.7f),
+    gamma(0.0f),
     alpha(0.3f)
 /*  system(prop),
     rotation(0.0f),

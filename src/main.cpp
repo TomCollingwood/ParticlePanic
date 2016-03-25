@@ -7,6 +7,7 @@
 //#include <SDL2/SDL.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#include <iostream>
 
 #ifdef __APPLE__
   #include <OpenGL/gl.h>
@@ -170,7 +171,6 @@ int main( int argc, char* args[] ) {
 
     // Delete our World
     delete world;
-
     //Destroy window
     SDL_DestroyWindow( gWindow );
 

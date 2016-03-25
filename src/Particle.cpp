@@ -10,12 +10,12 @@ void Particle::drawParticle()
 
 void Particle::updateVelocity(double elapsedtime)
 {
-  velocity+=(force/mass)*0.01f*elapsedtime;
+  velocity+=(force/mass)*elapsedtime;
 }
 
 void Particle::updatePosition(double elapsedtime)
 {
-  position+=velocity*elapsedtime*0.01f;
+  position+=velocity*elapsedtime;
 }
 
 Vec3 Particle::getPosition() const
