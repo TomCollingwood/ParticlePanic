@@ -24,8 +24,8 @@ public:
     velocity(Vec3()),
     force(Vec3()),
     mass(1.0f),
-    sigma(0.0f),
-    beta(0.15f), //above 0.4 explodes
+    sigma(0.3f),
+    beta(0.3f), //above 0.4 explodes
     gamma(0.8f),
     alpha(0.3f)
 /*  system(prop),

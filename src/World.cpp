@@ -15,7 +15,7 @@ World::World() :
   m_elapsedTime(0.0),
   interactionradius(0.3f),
   squaresize(0.3f),
-  m_timestep(0.02)
+  m_timestep(0.0001)
 {
 }
 
@@ -109,6 +109,8 @@ void World::resize(int w, int h) {
   //initialize cells conatining
   cellsContainingParticles.clear();
   cellsContainingParticles.resize(gridheight*gridwidth,false);
+  hashParticles();
+  std::cout<<gridwidth<<std::endl;
 }
 
 /**
@@ -140,15 +142,15 @@ void World::update() {
     // Increment the rotation based on the time elapsed since we started running
     m_elapsedTime = m_startTime - now;
 
-
     //make it rain
-
     static int everyother = 0;
     everyother++;
+    int divisor = (int)(0.00005f/m_timestep);
+    if(divisor==0) divisor=1;
     if(everyother%5==0){
       for(int i = 0; i<4; ++i)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.2f,5.0f)));
+        particles.push_back(Particle(Vec3(-3.0f+i*0.4f,5.0f)));
         particles.back().setVelocity(Vec3(((float)(rand() % 20 - 10))*0.0001f,-2.0f));
       }
     }
@@ -162,35 +164,36 @@ void World::update() {
 
     // ------------------------------VISCOSITY--------------------------------------------
     // TODO : Implement spatial hash for loop here
-    /*
+
 
     int choo = 0;
 
     for(auto& k : grid)
     {
       int ploo = 0;
-      for(auto& i : grid[k])
+      for(auto& i : k)
       {
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(ploo);
         int cloo = 0;
-        for(auto& j : grid[k])
+        for(auto& j : surroundingParticles)
         {
           if(cloo>ploo)
           {
 
-            Vec3 rij=(j.getPosition()-i.getPosition());
+            Vec3 rij=(j->getPosition()-i->getPosition());
             float q = rij.length()/interactionradius;
             if(q<1 && q!=0)
             {
               rij.normalize();
-              float u = (i.getVelocity()-j.getVelocity()).dot(rij);
+              float u = (i->getVelocity()-j->getVelocity()).dot(rij);
               //printf("(%f)",u);
               if(u>0)
               {
-                float sig = i.sig();
-                float bet = i.bet();
+                float sig = i->sig();
+                float bet = i->bet();
                 Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*m_timestep;
-                i.addVelocity(-impulse/2.0f);
-                j.addVelocity(impulse/2.0f);
+                i->addVelocity(-impulse/2.0f);
+                j->addVelocity(impulse/2.0f);
               }
             }
 
@@ -201,40 +204,8 @@ void World::update() {
       ploo++;
     }
     // */
-    /*
-    for(auto& i : particles)
-    {
-      int cloo = 0;
-      //for(int j =choo+1; j<(int)particles.size(); ++j)
-      for (auto& j : particles)
-      {
-        if(cloo>choo)
-        {
-          Vec3 rij=(j.getPosition()-i.getPosition());
-          float q = rij.length()/interactionradius;
-          if(q<1 && q!=0)
-          {
-            rij.normalize();
-            float u = (i.getVelocity()-j.getVelocity()).dot(rij);
-            //printf("(%f)",u);
-            if(u>0)
-            {
-              float sig = i.sig();
-              float bet = i.bet();
-              Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*m_timestep;
-              i.addVelocity(-impulse/2.0f);
-              j.addVelocity(impulse/2.0f);
-            }
-          }
-        }
-        cloo++;
-      }
-      choo++;
-    }
-    //*/
 
     //------------------------------------------POSITION----------------------------------------
-
 
     for(auto& i : particles)
     {
@@ -244,7 +215,8 @@ void World::update() {
     hashParticles();
 
     //--------------------------------------SPRINGS-----------------------------------------------
-    /*
+
+
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
@@ -262,17 +234,15 @@ void World::update() {
             Vec3 rij=(j->getPosition()-i->getPosition());
             float rijmag = rij.length();
             float q = rijmag/interactionradius;
+
             if(q<1 && q!=0)
             {
               bool quiter = false;
               Particle::Spring *thisspring;
+
+              /*
               for(auto& spring : springs)
               {
-                Particle *ME1 = spring.indexi;
-                Particle *ME2 = spring.indexj;
-                Particle *YOU1 = i;
-                Particle *YOU2 = j;
-
                 if(((spring.indexi==i) && (spring.indexj==j)) ||
                    ((spring.indexi==j) && (spring.indexj==i)))
                 {
@@ -281,7 +251,9 @@ void World::update() {
                   //std::cout<<"FUCK"<<std::endl;
                   break;
                 }
+
               }
+              // */
 
               if(!quiter)
               {
@@ -290,9 +262,10 @@ void World::update() {
                 newspring.indexj=j;
                 newspring.L = interactionradius; // maybe change this to sum of radius of two particles
 
-                springs.push_back(newspring);
+                //springs.push_back(newspring);
 
-                thisspring = &(springs.back());
+                //thisspring = &(springs.back());
+                thisspring = &newspring; // delete this
               }
               GLfloat L = thisspring->L;
               GLfloat d= L*i->gam();
@@ -307,16 +280,15 @@ void World::update() {
                 thisspring->L=L-m_timestep*alpha*(L-d-rijmag);
               }
             }
+            // */
           }
         }
       }
     }
 
-    //if((int)springs.size()>1) std::cout<<"YESSSSS!"<<std::endl;
-
-    std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
-
+    //std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
     // delete springs if over rest length?
+
 
     choo=0;
     for(auto& i : springs)
@@ -328,11 +300,12 @@ void World::update() {
         advance(it,choo);
         springs.erase(it);
       }
-      choo++;
+      else{choo++;}
     }
 
-
+    // */
     //spring displacements
+
 
     for(auto& i : springs)
     {
@@ -458,6 +431,13 @@ void World::update() {
       //*/
     }
     //----------------------------------CLEANUP ------------------------------------------------
+
+    gettimeofday(&tim, NULL);
+    double now2 =tim.tv_sec+(tim.tv_usec * 1e-6);
+    double difference = now2-now;
+    static double max= 0;
+    if(difference>max) max=difference;
+    std::cout<<max<<std::endl;
 }
 
 void World::hashParticles()

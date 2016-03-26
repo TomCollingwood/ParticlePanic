@@ -82,7 +82,10 @@ int initSDL()
  * @return the elapsed time.
  */
 Uint32 timerCallback(Uint32 interval, void *) {
-    if (world != NULL) world->update();
+    if (world != NULL)
+    {
+        world->update();
+    }
     return interval;
 }
 
@@ -141,7 +144,7 @@ int main( int argc, char* args[] ) {
                     (e.window.event == SDL_WINDOWEVENT_RESIZED)) {
                 SDL_SetWindowSize(gWindow, e.window.data1, e.window.data2);
                 world->resize(e.window.data1, e.window.data2);
-                world->hashParticles();
+                //world->hashParticles();
             }
             //User requests quit
             else if( e.type == SDL_QUIT ) {
