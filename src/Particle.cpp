@@ -3,7 +3,9 @@
 void Particle::drawParticle()
 {
   glBegin(GL_POINTS);
-  glColor3f(1.0f,1.0f,1.0f);
+  float fast=velocity.length()*0.005;
+  if(fast>1.0f) fast=1.0f;
+  glColor3f(1.0f,0.0f,0.0f);
   glVertex3f(position[0],position[1],-2.0f);
   glEnd();
 }
@@ -40,7 +42,7 @@ void Particle::clearForces()
 
 void Particle::applyGravity(float m_timestep)
 {
-  velocity+=Vec3(0.0f,-10000.0f*m_timestep);
+  velocity+=Vec3(0.0f,-30000.0f*m_timestep);
 }
 
 void Particle::setForce(Vec3 newforce)
@@ -122,5 +124,7 @@ int Particle::getGridPosition() const
 {
   return gridPosition;
 }
+
+
 
 

@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <iostream>
 #include <algorithm>
+#include <cmath>
+#include <string>
 
 /**
  * @brief World::World
@@ -13,9 +15,12 @@ World::World() :
   m_isInit(false),
   m_startTime(0.0),
   m_elapsedTime(0.0),
-  interactionradius(0.3f),
-  squaresize(0.3f),
-  m_timestep(0.0001)
+  interactionradius(0.5f),
+  squaresize(0.5f),
+  m_timestep(0.0003),
+  pointsize(20.0f),
+  renderthreshold(2500.0f),
+  renderresolution(5)
 {
 }
 
@@ -47,7 +52,7 @@ void World::init() {
     glEnable( GL_MULTISAMPLE_ARB);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SIZE);
-    glPointSize(13.f);
+    glPointSize(pointsize);
 
     // Set the background colour
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -58,26 +63,31 @@ void World::init() {
     m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
     srand (time(NULL));
 
+    particles.clear();
+    springs.clear();
+
     // create start two blocks of particles
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
-        particles.push_back(Particle(Vec3(-3.0f+i*0.3f,3.0f-j*0.3f)));
+        particles.push_back(Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f)));
     }
-    for(int a=0; a<10*10; ++a)
-    {
+    //for(int a=0; a<10*10; ++a)
+    //{
       //particles[a].setVelocity(Vec3(-8.0f,0.0f));
       //particles[a].addVelocity(Vec3(0.0f,(float)(rand() % 100 - 50)*0.01f));
       //particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50)),((float)(rand() % 10000 - 50))));
-    }
+    //}
+
 
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
         particles.push_back(Particle(Vec3(3.0f+i*0.2f,3.0f-j*0.2f)));
     }
-    for(int a=100; a<10*10*2; ++a)
-      //particles[a].setVelocity(Vec3(8.0f,0.0f));
+
+    for(auto& i : particles)
+      i.addVelocity(Vec3(((float)(rand() % 100 - 50)*0.001f),((float)(rand() % 10000 - 50))*0.001f));
 
     m_isInit = true;
 }
@@ -92,9 +102,11 @@ void World::resize(int w, int h) {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
+
   float i = 5;
   float ara = float(w)/float(h);
   glOrtho(-i*ara,i*ara,-i,i,0.1, 10.0);
+
   halfheight=i;
   halfwidth=i*ara;
 
@@ -102,15 +114,27 @@ void World::resize(int w, int h) {
 
   glMatrixMode(GL_MODELVIEW);
 
-  // initialize grid
   gridwidth=ceil((halfwidth*2)/squaresize);
   gridheight=ceil((halfheight*2)/squaresize);
+
+  renderwidth=gridwidth*renderresolution;
+  renderheight=gridheight*renderresolution;
+
   grid.resize(gridheight*gridwidth);
-  //initialize cells conatining
+
   cellsContainingParticles.clear();
   cellsContainingParticles.resize(gridheight*gridwidth,false);
+
   hashParticles();
-  std::cout<<gridwidth<<std::endl;
+
+  renderGrid.clear();
+  renderGrid.resize(renderheight+1);
+  for(auto& i : renderGrid)
+  {
+    i.resize(renderwidth+1,0.0f);
+  }
+
+  std::cout<<"HELLO THERE"<<std::endl;
 }
 
 /**
@@ -121,8 +145,299 @@ void World::draw() {
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     for(auto& i : particles){
-      i.drawParticle();
+      //i.drawParticle();
     }
+
+    for(auto& i : particles)
+    {
+      Vec3 heightwidth = getGridColumnRow(i.getGridPosition())*renderresolution;
+      for(int x = -1*renderresolution; x<=3*renderresolution; ++x)
+      {
+        for(int y = -1*renderresolution; y<=3*renderresolution ; ++y)
+        {
+          int currentcolumn=heightwidth[0]+x;
+          int currentrow=heightwidth[1]+y;
+
+          if(currentcolumn<renderwidth+1 && currentcolumn>0 &&
+             currentrow<renderheight+1 && currentrow>0)
+          {      
+            float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
+            float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
+
+            float metaballx = currentx-i.getPosition()[0];
+            float metabally = currenty-i.getPosition()[1];
+
+            float metaballfloat = 40.f/(metaballx*metaballx + metabally*metabally);
+
+            renderGrid[currentrow][currentcolumn]+=metaballfloat;
+
+//            glBegin(GL_POINTS);
+//            glColor3f(1.0f,1.0f,1.0f);
+//            glVertex3f(currentx,currenty,-2.0f);
+//            glEnd();
+          }
+        }
+      }
+    }
+
+    for(int currentrow=0; currentrow<renderheight; ++currentrow)
+    {
+      for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
+      {
+        /*
+
+        1---5---2
+        |       |
+        8       6
+        |       |
+        3---7---4
+
+        */
+
+        float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
+        float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
+
+        float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
+        float p2y = p1y;
+
+        float p3x = p1x;
+        float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
+
+        float p4x = p2x;
+        float p4y = p3y;
+
+        float p5x = (p1x+p2x)/2.0f;
+        float p5y = p1y;
+
+        float p6x = p2x;
+        float p6y = (p2y+p4y)/2.0f;
+
+        float p7x = p5x;
+        float p7y = p3y;
+
+        float p8x = p1x;
+        float p8y = p6y;
+
+
+        std::vector<bool> boolpoints;
+        boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
+        boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
+        boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
+        boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
+
+        //std::cout<<"p1x:"<<p1x<<std::endl;
+        //std::cout<<"p1y:"<<p1y<<std::endl;
+
+//        glBegin(GL_POINTS);
+//        glColor3f(1.0f,1.0f,1.0f);
+//        glVertex3f(p1x,p1y,-2.0f);
+//        glEnd();
+
+
+          if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001
+          {
+            //std::cout<<"hi mom";
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p6x,p6y,-2.0f);
+            glVertex3f(p7x,p7y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010
+          {
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p8x,p8y,-2.0f);
+            glVertex3f(p7x,p7y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p8x,p8y,-2.0f);
+            glVertex3f(p6x,p6y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100
+          {
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p5x,p5y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p6x,p6y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p5x,p5y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p7x,p7y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110
+          {
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p5x,p5y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p6x,p6y,-2.0f);
+            glVertex3f(p8x,p8y,-2.0f);
+            glVertex3f(p7x,p7y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+          }
+          else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.0f,0.0f,0.0f);
+            glVertex3f(p1x,p1y,-1.5f);
+            glVertex3f(p5x,p5y,-1.5f);
+            glVertex3f(p8x,p8y,-1.5f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000
+          {
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-1.5f);
+            glVertex3f(p5x,p5y,-1.5f);
+            glVertex3f(p8x,p8y,-1.5f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001
+          {
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-1.5f);
+            glVertex3f(p5x,p5y,-1.5f);
+            glVertex3f(p8x,p8y,-1.5f);
+            glVertex3f(p7x,p7y,-1.5f);
+            glVertex3f(p6x,p6y,-1.5f);
+            glVertex3f(p4x,p4y,-1.5f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p5x,p5y,-2.0f);
+            glVertex3f(p7x,p7y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.0f,0.0f,0.0f);
+            glVertex3f(p2x,p2y,-1.5f);
+            glVertex3f(p6x,p6y,-1.5f);
+            glVertex3f(p5x,p5y,-1.5f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p6x,p6y,-2.0f);
+            glVertex3f(p8x,p8y,-2.0f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.0f,0.0f,0.0f);
+            glVertex3f(p3x,p3y,-1.5f);
+            glVertex3f(p8x,p8y,-1.5f);
+            glVertex3f(p7x,p7y,-1.5f);
+            glEnd();
+          }
+          else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
+          {
+            glBegin(GL_QUADS);
+            glColor3f(0.5f,1.0f,0.831f);
+            glVertex3f(p1x,p1y,-2.0f);
+            glVertex3f(p2x,p2y,-2.0f);
+            glVertex3f(p4x,p4y,-2.0f);
+            glVertex3f(p3x,p3y,-2.0f);
+            glEnd();
+            glBegin(GL_TRIANGLES);
+            glColor3f(0.0f,0.0f,0.0f);
+            glVertex3f(p6x,p6y,-1.5f);
+            glVertex3f(p4x,p4y,-1.5f);
+            glVertex3f(p7x,p7y,-1.5f);
+            glEnd();
+          }
+          // */
+      }
+    }
+    //GRID2
+
+
+    //clear render grid
+
+    for(auto& i : renderGrid)
+    {
+      i.assign(renderwidth+1,0.0f);
+    }
+    // */
+
+
+    struct timeval tim;
+    gettimeofday(&tim, NULL);
+    static double now = tim.tv_sec+(tim.tv_usec * 1e-6);
+    static double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
+
+    now2=now;
+    now=tim.tv_sec+(tim.tv_usec * 1e-6);
+
+    double calcTimeStep = now-now2;
+    //if(calcTimeStep==0) calcTimeStep=0.03;
+
+    static double max = calcTimeStep;
+    if(calcTimeStep>max) max=calcTimeStep;
+    //std::cout<<"o"<<max<<std::endl;
 }
 
 
@@ -136,22 +451,24 @@ void World::update() {
     struct timeval tim;
 
     // Retrieve the current time in nanoseconds (accurate to 10ns)
-    gettimeofday(&tim, NULL);
-    double now =tim.tv_sec+(tim.tv_usec * 1e-6);
+    //gettimeofday(&tim, NULL);
+    //double now =tim.tv_sec+(tim.tv_usec * 1e-6);
 
     // Increment the rotation based on the time elapsed since we started running
-    m_elapsedTime = m_startTime - now;
+    //m_elapsedTime = m_startTime - now;
 
     //make it rain
+
     static int everyother = 0;
     everyother++;
-    int divisor = (int)(0.00005f/m_timestep);
+
+    int divisor = 5; //(int)(0.00005f/m_timestep);
     if(divisor==0) divisor=1;
-    if(everyother%5==0){
-      for(int i = 0; i<4; ++i)
+    if(everyother%7==0){
+      for(int i = 0; i<5; ++i)
       {
         particles.push_back(Particle(Vec3(-3.0f+i*0.4f,5.0f)));
-        particles.back().setVelocity(Vec3(((float)(rand() % 20 - 10))*0.0001f,-2.0f));
+        particles.back().addVelocity(Vec3(0.0f,-50.0f));
       }
     }
     //*/
@@ -173,25 +490,26 @@ void World::update() {
       int ploo = 0;
       for(auto& i : k)
       {
-        std::vector<Particle *> surroundingParticles = getSurroundingParticles(ploo);
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(choo);
         int cloo = 0;
         for(auto& j : surroundingParticles)
         {
           if(cloo>ploo)
           {
-
             Vec3 rij=(j->getPosition()-i->getPosition());
             float q = rij.length()/interactionradius;
             if(q<1 && q!=0)
             {
               rij.normalize();
               float u = (i->getVelocity()-j->getVelocity()).dot(rij);
+              //std::cout<<"->>"<<impulse.length()<<std::endl;
               //printf("(%f)",u);
               if(u>0)
               {
                 float sig = i->sig();
                 float bet = i->bet();
                 Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*m_timestep;
+                //std::cout<<"-p>>"<<impulse.length()<<std::endl;
                 i->addVelocity(-impulse/2.0f);
                 j->addVelocity(impulse/2.0f);
               }
@@ -200,8 +518,9 @@ void World::update() {
           }
           cloo++;
         }
+        ploo++;
       }
-      ploo++;
+      choo++;
     }
     // */
 
@@ -216,6 +535,7 @@ void World::update() {
 
     //--------------------------------------SPRINGS-----------------------------------------------
 
+    /*
 
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
@@ -233,6 +553,7 @@ void World::update() {
           {
             Vec3 rij=(j->getPosition()-i->getPosition());
             float rijmag = rij.length();
+            //std::cout<<rijmag<<std::endl;
             float q = rijmag/interactionradius;
 
             if(q<1 && q!=0)
@@ -240,53 +561,64 @@ void World::update() {
               bool quiter = false;
               Particle::Spring *thisspring;
 
-              /*
-              for(auto& spring : springs)
+              for(auto& spring : i->particleSprings)
               {
-                if(((spring.indexi==i) && (spring.indexj==j)) ||
-                   ((spring.indexi==j) && (spring.indexj==i)))
+                if(((spring->indexi==i) && (spring->indexj==j)) ||
+                   ((spring->indexi==j) && (spring->indexj==i)))
                 {
-                  thisspring=&spring;
+                  thisspring=(spring);
                   quiter=true;
                   //std::cout<<"FUCK"<<std::endl;
                   break;
                 }
 
               }
-              // */
+
 
               if(!quiter)
               {
                 Particle::Spring newspring;
                 newspring.indexi=i;
                 newspring.indexj=j;
+                newspring.count=everyother-1;
                 newspring.L = interactionradius; // maybe change this to sum of radius of two particles
 
-                //springs.push_back(newspring);
+                springs.push_back(newspring);
+                thisspring = &(springs.back());
 
-                //thisspring = &(springs.back());
-                thisspring = &newspring; // delete this
-              }
-              GLfloat L = thisspring->L;
-              GLfloat d= L*i->gam();
-              GLfloat alpha = i->alp();
+                i->particleSprings.push_back(thisspring);
+                j->particleSprings.push_back(thisspring);
 
-              if(rijmag>L+d)
-              {
-                thisspring->L=L+m_timestep*alpha*(rijmag-L-d);
+                //thisspring = &newspring; // delete this
               }
-              else if(rijmag<L-d)
+
+              if(thisspring->count!=everyother)
               {
-                thisspring->L=L-m_timestep*alpha*(L-d-rijmag);
+                GLfloat L = thisspring->L;
+                GLfloat d= L*i->gam();
+                GLfloat alpha = i->alp();
+
+                if(rijmag>L+d)
+                {
+                  thisspring->L=L+m_timestep*alpha*(rijmag-L-d);
+                  //std::cout<<"Heyboss"<<std::endl;
+                }
+                else if(rijmag<L-d)
+                {
+                  thisspring->L=L-m_timestep*alpha*(L-d-rijmag);
+                  //std::cout<<"Heyboss"<<std::endl;
+                }
+                thisspring->count++;
               }
             }
-            // */
+            //
           }
         }
       }
     }
+    //
 
-    //std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
+    std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
     // delete springs if over rest length?
 
 
@@ -298,12 +630,26 @@ void World::update() {
         std::list<Particle::Spring>::iterator it;
         it = springs.begin();
         advance(it,choo);
+        int hoho=0;
+        for(auto& a : (*it).indexi->particleSprings)
+        {
+          if(a==&i)
+            (*it).indexi->particleSprings.erase((*it).indexj->particleSprings.begin()+hoho);
+          hoho++;
+        }
+        hoho=0;
+        for(auto& b : (*it).indexj->particleSprings)
+        {
+          if(b==&i)
+            (*it).indexj->particleSprings.erase((*it).indexj->particleSprings.begin()+hoho);
+          hoho++;
+        }
         springs.erase(it);
       }
       else{choo++;}
     }
 
-    // */
+    //
     //spring displacements
 
 
@@ -313,7 +659,7 @@ void World::update() {
       float rijmag = rij.length();
 
       rij.normalize();
-      Vec3 D = rij*m_timestep*0.3f*(1-(i.L/interactionradius))*(i.L-rijmag);
+      Vec3 D = rij*m_timestep*1000.f*(1-(i.L/interactionradius))*(i.L-rijmag);
       //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
       i.indexi->addPosition(-D/2);
       i.indexj->addPosition(D/2);
@@ -370,7 +716,6 @@ void World::update() {
 
     //----------------------------------MAKE NEW VELOCITY-------------------------------------
 
-
     for(auto& list : grid)
     {
       for(auto& i : list)
@@ -414,30 +759,46 @@ void World::update() {
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f));
-        it.addVelocity(Vec3(0.0f,-0.5f*it.getVelocity()[1]));
+        it.addVelocity(Vec3(0.0f,-1.1f*it.getVelocity()[1]));
       }
 
       if(it.getPosition()[0]>halfwidth-0.5f)
       {
         it.setPosition(Vec3(halfwidth-0.5f,it.getPosition()[1]));
-        it.addVelocity(Vec3(-0.5f*it.getVelocity()[0],0.0f));
+        it.addVelocity(Vec3(-1.1f*it.getVelocity()[0],0.0f));
       }
 
       if(it.getPosition()[0]<-halfwidth+0.5f)
       {
         it.setPosition(Vec3(-halfwidth+0.5f,it.getPosition()[1]));
-        it.addVelocity(Vec3(-0.5f*it.getVelocity()[0],0.0f));
+        it.addVelocity(Vec3(-1.1f*it.getVelocity()[0],0.0f));
       }
       //*/
     }
     //----------------------------------CLEANUP ------------------------------------------------
 
     gettimeofday(&tim, NULL);
-    double now2 =tim.tv_sec+(tim.tv_usec * 1e-6);
-    double difference = now2-now;
-    static double max= 0;
-    if(difference>max) max=difference;
-    std::cout<<max<<std::endl;
+    static double now = tim.tv_sec+(tim.tv_usec * 1e-6);
+    static double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
+
+    now2=now;
+    now=tim.tv_sec+(tim.tv_usec * 1e-6);
+
+    double calcTimeStep = now-now2;
+    //if(calcTimeStep==0) calcTimeStep=0.03;
+
+    static float total=0;
+    static int howmanys=0;
+    static double max = calcTimeStep;
+    if(calcTimeStep>max) max=calcTimeStep;
+    if(everyother%300==0)
+    {
+      total+=max;
+      howmanys++;
+      std::cout<<total/(float)howmanys<<":"<<howmanys<<std::endl;
+      max=0;
+      particles.clear();
+    }
 }
 
 void World::hashParticles()
@@ -449,6 +810,7 @@ void World::hashParticles()
   for(auto& i : particles)
   {
     grid_cell=floor((i.getPosition()[0]+halfwidth)/squaresize)+floor((i.getPosition()[1]+halfheight)/squaresize)*gridwidth;
+    i.setGridPosition(grid_cell);
     if(grid_cell>=0 && grid_cell<gridheight*gridwidth)
     {
       cellsContainingParticles[grid_cell]=true;
@@ -479,3 +841,35 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell) const
   return surroundingParticles;
 }
 
+
+Vec3 World::getGridColumnRow(int k)
+{
+  int row = floor(k/gridwidth);
+  int column = k - row*gridwidth;
+  return Vec3(column,row);
+}
+
+Vec3 World::getRenderGridColumnRow(int k)
+{
+  //std::cout<<"k:"<<k<<std::endl;
+  //std::cout<<"gridwidth:"<<gridwidth<<std::endl;
+  //std::cout<<"gridheight:"<<gridheight<<std::endl;
+  int row = floor(k/((gridwidth+1)*2));
+  int column = k - row*((gridwidth+1)*2);
+  //std::cout<<"row:"<<row<<std::endl;
+  return Vec3(column, row);
+}
+
+Vec3 World::getRenderGridxy(int h, int w) //wrong
+{
+  float x = w*(squaresize/2) - halfwidth;
+  float y = h*(squaresize/2) - halfheight;
+  return Vec3(x,y);
+}
+
+Vec3 World::getRenderGridxyfromIndex(int k) //wrong
+{
+  //std::cout<<"k:"<<k<<std::endl;
+  Vec3 temp= getRenderGridColumnRow(k);
+  return getRenderGridxy(temp[1],temp[0]); // wrong
+}

@@ -14,6 +14,7 @@
 #include <deque>
 #include <array>
 #include <list>
+#include <tuple>
 #include "include/Particle.h"
 
 /**
@@ -49,11 +50,13 @@ public:
     /// Called most frequently, redraws the scene.
     virtual void draw();
 
-    void deleteParticle(int i);
-
-    void insertParticle(Particle p);
-
     void hashParticles();
+
+    Vec3 getGridColumnRow(int k);
+
+    Vec3 getRenderGridxy(int h, int w);
+    Vec3 getRenderGridColumnRow(int k);
+    Vec3 getRenderGridxyfromIndex(int k);
 
     std::vector<Particle *> getSurroundingParticles(int thiscell) const;
 
@@ -73,10 +76,19 @@ protected: // Protected means that it is accessible to derived classes
     std::list<Particle::Spring> springs;
     std::vector<std::vector<Particle *>> grid; //we initialize this on resize
     std::vector<bool> cellsContainingParticles;
+    std::vector<std::vector<float>> renderGrid;
+    std::vector<std::vector<float>> renderGrid2;
+    //std::vector<float> renderGridColour;
 
     float halfwidth, halfheight;
     float interactionradius;
     float squaresize;
+    float pointsize;
+    float renderthreshold;
+
+    int renderresolution;
+    float renderwidth;
+    float renderheight;
 
     int gridheight, gridwidth;
 };

@@ -27,8 +27,8 @@
 #define WINDOW_TITLE "ParticlePanic"
 
 // These defines are for the initial window size (it can be changed in the resize function)
-#define WIDTH 1250
-#define HEIGHT 800
+#define WIDTH 640
+#define HEIGHT 400
 
 // Our World, which will store all the GL stuff
 World *world = NULL;
@@ -84,7 +84,7 @@ int initSDL()
 Uint32 timerCallback(Uint32 interval, void *) {
     if (world != NULL)
     {
-        world->update();
+        //world->update();
     }
     return interval;
 }
@@ -120,7 +120,7 @@ int main( int argc, char* args[] ) {
     // Use a timer to update our World. This is the best way to handle updates,
     // as the timer runs in a separate thread and is therefore not affected by the
     // rendering performance.
-    SDL_TimerID timerID = SDL_AddTimer(10, /*elapsed time in milliseconds*/
+    SDL_TimerID timerID = SDL_AddTimer(1, /*elapsed time in milliseconds*/
                                      timerCallback, /*callback function*/
                                      (void*) NULL /*parameters (none)*/);
 
@@ -158,6 +158,7 @@ int main( int argc, char* args[] ) {
             }
         }
 
+        world->update();
         //Render the World
         world->draw();
 
