@@ -5,7 +5,8 @@ void Particle::drawParticle()
   glBegin(GL_POINTS);
   float fast=velocity.length()*0.005;
   if(fast>1.0f) fast=1.0f;
-  glColor3f(1.0f,0.0f,0.0f);
+  //glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
+  glColor3f(fast,fast,1.0f);
   glVertex3f(position[0],position[1],-2.0f);
   glEnd();
 }
@@ -125,6 +126,14 @@ int Particle::getGridPosition() const
   return gridPosition;
 }
 
+void Particle::setDrag(bool drag)
+{
+  dragged=drag;
+}
 
+bool Particle::getDrag() const
+{
+  return dragged;
+}
 
 

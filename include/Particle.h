@@ -11,6 +11,8 @@
 #include <cmath>
 #include <vector>
 #include "Vec3.h"
+#include <algorithm>
+#include <cstdlib>
 
 
 class Particle
@@ -25,9 +27,10 @@ public:
     force(Vec3()),
     mass(1.0f),
     sigma(0.0f),
-    beta(0.9f), //above 0.4 explodes
+    beta(0.2f), //above 0.4 explodes
     gamma(0.0001f),
-    alpha(0.7f)
+    alpha(0.7f),
+    dragged(false)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -69,6 +72,9 @@ public:
 
   bool collision(Particle p) const;
 
+  void setDrag(bool drag);
+  bool getDrag() const;
+
 //  void updateDeathTime();
 //  void setColour(Colour newcolour);
 
@@ -83,6 +89,8 @@ private:
   GLfloat beta;
   GLfloat gamma;
   GLfloat alpha;
+
+  bool dragged;
 
   //std::vector<Spring *> particleSprings;
 

@@ -58,7 +58,19 @@ public:
     Vec3 getRenderGridColumnRow(int k);
     Vec3 getRenderGridxyfromIndex(int k);
 
-    std::vector<Particle *> getSurroundingParticles(int thiscell) const;
+    bool isLeftButtonPressed();
+
+    void mouseDraw(int x, int y);
+    void mouseDrag(int x, int y);
+
+    std::vector<Particle *> getSurroundingParticles(int thiscell,int numsur) const;
+
+    void clearDraggedParticles();
+    void selectDraggedParticles(int x, int y);
+
+    void getbackhere(Particle * p);
+
+    void vectorvslist();
 
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
@@ -87,10 +99,17 @@ protected: // Protected means that it is accessible to derived classes
     float renderthreshold;
 
     int renderresolution;
-    float renderwidth;
-    float renderheight;
 
+    int renderwidth, renderheight;
     int gridheight, gridwidth;
+
+    int pixelwidth;
+    int pixelheight;
+    int renderoption;
+
+    std::vector<Particle *> draggedParticles;
+
+    int previousmousex, previousmousey;
 };
 
 #endif // WORLD_H

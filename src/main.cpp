@@ -39,6 +39,11 @@ SDL_Window* gWindow = NULL;
 //OpenGL context
 SDL_GLContext gContext;
 
+bool leftMouseButton = false;
+bool leftMouseButtonPrevious=false;
+bool rightMouseButton = false;
+bool pookd = false;
+
 /**
  * @brief initSDL fires up the SDL window and readies it for OpenGL
  * @return EXIT_SUCCESS or EXIT_FAILURE
@@ -156,14 +161,55 @@ int main( int argc, char* args[] ) {
                 SDL_GetMouseState( &x, &y );
                 //handleKeys( e.text.text[ 0 ], x, y );
             }
+            else if( e.type == SDL_MOUSEBUTTONDOWN) { //on mouse press?
+              //std::cout<<e.button<<std::endl;
+              if (e.button.button == SDL_BUTTON_LEFT)
+                leftMouseButton=true;
+              else if (e.button.button == SDL_BUTTON_RIGHT)
+                rightMouseButton=true;
+            }
+            else if( e.type == SDL_MOUSEBUTTONUP) { //on mouse press?
+              if (e.button.button == SDL_BUTTON_LEFT)
+              {
+                leftMouseButton=false;
+                leftMouseButtonPrevious=false;
+                world->clearDraggedParticles();
+              }
+              else if (e.button.button == SDL_BUTTON_RIGHT)
+                rightMouseButton=false;
+            }
         }
 
+        if(leftMouseButton)
+        {
+          int x = 0, y = 0;
+          SDL_GetMouseState(&x, &y);
+          if(!leftMouseButtonPrevious)
+          {
+            world->selectDraggedParticles(x,y);
+            leftMouseButtonPrevious=true;
+          }
+          world->mouseDrag( x, y);
+        }
+        else if(rightMouseButton)
+        {
+          int x = 0, y = 0;
+          SDL_GetMouseState(&x, &y);
+          std::cout<<"heyboos"<<std::endl;
+          world->mouseDraw( x, y );
+        }
         world->update();
         //Render the World
         world->draw();
 
         //Update screen
         SDL_GL_SwapWindow( gWindow );
+
+        if(pookd==false)
+        {
+          world->vectorvslist();
+          pookd=true;
+        }
     }
 
     //Disable text input

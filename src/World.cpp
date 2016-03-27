@@ -17,10 +17,11 @@ World::World() :
   m_elapsedTime(0.0),
   interactionradius(0.5f),
   squaresize(0.5f),
-  m_timestep(0.0003),
+  m_timestep(0.001),
   pointsize(20.0f),
-  renderthreshold(2500.0f),
-  renderresolution(5)
+  renderthreshold(3000.0f),
+  renderresolution(10),
+  renderoption(1)
 {
 }
 
@@ -89,6 +90,9 @@ void World::init() {
     for(auto& i : particles)
       i.addVelocity(Vec3(((float)(rand() % 100 - 50)*0.001f),((float)(rand() % 10000 - 50))*0.001f));
 
+    previousmousex=-10;
+    previousmousey=-10;
+
     m_isInit = true;
 }
 
@@ -102,6 +106,9 @@ void World::resize(int w, int h) {
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
+
+  pixelheight=h;
+  pixelwidth=w;
 
   float i = 5;
   float ara = float(w)/float(h);
@@ -144,94 +151,100 @@ void World::draw() {
     if (!m_isInit) return;
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    for(auto& i : particles){
-      //i.drawParticle();
-    }
-
-    for(auto& i : particles)
-    {
-      Vec3 heightwidth = getGridColumnRow(i.getGridPosition())*renderresolution;
-      for(int x = -1*renderresolution; x<=3*renderresolution; ++x)
-      {
-        for(int y = -1*renderresolution; y<=3*renderresolution ; ++y)
-        {
-          int currentcolumn=heightwidth[0]+x;
-          int currentrow=heightwidth[1]+y;
-
-          if(currentcolumn<renderwidth+1 && currentcolumn>0 &&
-             currentrow<renderheight+1 && currentrow>0)
-          {      
-            float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
-            float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
-
-            float metaballx = currentx-i.getPosition()[0];
-            float metabally = currenty-i.getPosition()[1];
-
-            float metaballfloat = 40.f/(metaballx*metaballx + metabally*metabally);
-
-            renderGrid[currentrow][currentcolumn]+=metaballfloat;
-
-//            glBegin(GL_POINTS);
-//            glColor3f(1.0f,1.0f,1.0f);
-//            glVertex3f(currentx,currenty,-2.0f);
-//            glEnd();
-          }
-        }
+    if(renderoption==1){
+      for(auto& i : particles){
+        i.drawParticle();
       }
     }
 
-    for(int currentrow=0; currentrow<renderheight; ++currentrow)
+    else if(renderoption==2)
     {
-      for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
+
+
+      for(auto& i : particles)
       {
-        /*
+        Vec3 heightwidth = getGridColumnRow(i.getGridPosition())*renderresolution;
+        for(int x = -1*renderresolution; x<=2*renderresolution; ++x)
+        {
+          for(int y = -1*renderresolution; y<=2*renderresolution ; ++y)
+          {
+            int currentcolumn=heightwidth[0]+x;
+            int currentrow=heightwidth[1]+y;
 
-        1---5---2
-        |       |
-        8       6
-        |       |
-        3---7---4
+            if(currentcolumn<renderwidth+1 && currentcolumn>0 &&
+               currentrow<renderheight+1 && currentrow>0)
+            {
+              float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
+              float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
 
-        */
+              float metaballx = currentx-i.getPosition()[0];
+              float metabally = currenty-i.getPosition()[1];
 
-        float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
-        float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
+              float metaballfloat = 40.f/(metaballx*metaballx + metabally*metabally);
 
-        float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
-        float p2y = p1y;
+              renderGrid[currentrow][currentcolumn]+=metaballfloat;
 
-        float p3x = p1x;
-        float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
+              //            glBegin(GL_POINTS);
+              //            glColor3f(1.0f,1.0f,1.0f);
+              //            glVertex3f(currentx,currenty,-2.0f);
+              //            glEnd();
+            }
+          }
+        }
+      }
 
-        float p4x = p2x;
-        float p4y = p3y;
-
-        float p5x = (p1x+p2x)/2.0f;
-        float p5y = p1y;
-
-        float p6x = p2x;
-        float p6y = (p2y+p4y)/2.0f;
-
-        float p7x = p5x;
-        float p7y = p3y;
-
-        float p8x = p1x;
-        float p8y = p6y;
+      for(int currentrow=0; currentrow<renderheight; ++currentrow)
+      {
+        for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
+        {
 
 
-        std::vector<bool> boolpoints;
-        boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
-        boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
-        boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
-        boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
+          //1---5---2
+          //|       |
+          //8       6
+          //|       |
+          //3---7---4
 
-        //std::cout<<"p1x:"<<p1x<<std::endl;
-        //std::cout<<"p1y:"<<p1y<<std::endl;
 
-//        glBegin(GL_POINTS);
-//        glColor3f(1.0f,1.0f,1.0f);
-//        glVertex3f(p1x,p1y,-2.0f);
-//        glEnd();
+
+          float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
+          float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
+
+          float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
+          float p2y = p1y;
+
+          float p3x = p1x;
+          float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
+
+          float p4x = p2x;
+          float p4y = p3y;
+
+          float p5x = (p1x+p2x)/2.0f;
+          float p5y = p1y;
+
+          float p6x = p2x;
+          float p6y = (p2y+p4y)/2.0f;
+
+          float p7x = p5x;
+          float p7y = p3y;
+
+          float p8x = p1x;
+          float p8y = p6y;
+
+
+          std::vector<bool> boolpoints;
+          boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
+          boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
+          boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
+          boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
+
+          //std::cout<<"p1x:"<<p1x<<std::endl;
+          //std::cout<<"p1y:"<<p1y<<std::endl;
+
+          //        glBegin(GL_POINTS);
+          //        glColor3f(1.0f,1.0f,1.0f);
+          //        glVertex3f(p1x,p1y,-2.0f);
+          //        glEnd();
 
 
           if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111
@@ -409,19 +422,21 @@ void World::draw() {
             glVertex3f(p7x,p7y,-1.5f);
             glEnd();
           }
-          // */
+        }
+
       }
+      //GRID2
+
+
+      //clear render grid
+
+      for(auto& i : renderGrid)
+      {
+        i.assign(renderwidth+1,0.0f);
+      }
+      // */
+
     }
-    //GRID2
-
-
-    //clear render grid
-
-    for(auto& i : renderGrid)
-    {
-      i.assign(renderwidth+1,0.0f);
-    }
-    // */
 
 
     struct timeval tim;
@@ -464,11 +479,11 @@ void World::update() {
 
     int divisor = 5; //(int)(0.00005f/m_timestep);
     if(divisor==0) divisor=1;
-    if(everyother%7==0){
+    if(everyother%5==0){
       for(int i = 0; i<5; ++i)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.4f,5.0f)));
-        particles.back().addVelocity(Vec3(0.0f,-50.0f));
+        particles.push_back(Particle(Vec3(-3.0f+i*0.4f,4.4f)));
+        particles.back().addVelocity(Vec3(0.0f,-30.0f));
       }
     }
     //*/
@@ -490,7 +505,7 @@ void World::update() {
       int ploo = 0;
       for(auto& i : k)
       {
-        std::vector<Particle *> surroundingParticles = getSurroundingParticles(choo);
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(choo,1);
         int cloo = 0;
         for(auto& j : surroundingParticles)
         {
@@ -529,20 +544,20 @@ void World::update() {
     for(auto& i : particles)
     {
       i.updatePrevPosition();
-      i.updatePosition(m_timestep);
+      if(!(i.getDrag())) i.updatePosition(m_timestep);
     }
     hashParticles();
 
     //--------------------------------------SPRINGS-----------------------------------------------
 
-    /*
 
+    /*
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
       {
         //std::cout<<"not now"<<std::endl;
-        std::vector<Particle *> surroundingParticles = getSurroundingParticles(k);
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,1);
         // std::cout<<(int)surroundingParticles.size()<<std::endl;
 
         //std::cout<<"START";
@@ -673,7 +688,7 @@ void World::update() {
 
     for(auto& list : grid)
     {
-      std::vector<Particle *> neighbours=getSurroundingParticles(count);
+      std::vector<Particle *> neighbours=getSurroundingParticles(count,1);
       for(auto& i : list)
       {
         float density =0;
@@ -747,7 +762,7 @@ void World::update() {
             //std::cout<<"ooohy"<<std::endl;
           }
         }
-        std::list<Particle>::iterator it = particles.begin();
+        std::list<Particle>::iterator it = particles.begin(); //EAGLE
         advance(it, count);
         particles.erase(it);
       }
@@ -759,6 +774,12 @@ void World::update() {
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f));
+        it.addVelocity(Vec3(0.0f,-1.1f*it.getVelocity()[1]));
+      }
+
+      if(it.getPosition()[1]+0.5f>halfheight)
+      {
+        it.setPosition(Vec3(it.getPosition()[0],halfheight-0.5f));
         it.addVelocity(Vec3(0.0f,-1.1f*it.getVelocity()[1]));
       }
 
@@ -777,6 +798,7 @@ void World::update() {
     }
     //----------------------------------CLEANUP ------------------------------------------------
 
+    /*
     gettimeofday(&tim, NULL);
     static double now = tim.tv_sec+(tim.tv_usec * 1e-6);
     static double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
@@ -799,6 +821,8 @@ void World::update() {
       max=0;
       particles.clear();
     }
+    // */
+
 }
 
 void World::hashParticles()
@@ -820,7 +844,7 @@ void World::hashParticles()
   }
 }
 
-std::vector<Particle *> World::getSurroundingParticles(int thiscell) const
+std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur) const
 {
   int numSurrounding=1;
   std::vector<Particle *> surroundingParticles;
@@ -872,4 +896,95 @@ Vec3 World::getRenderGridxyfromIndex(int k) //wrong
   //std::cout<<"k:"<<k<<std::endl;
   Vec3 temp= getRenderGridColumnRow(k);
   return getRenderGridxy(temp[1],temp[0]); // wrong
+}
+
+void World::mouseDraw(int x, int y)
+{
+  //if(x%2==0 && y%2==0)
+  //{
+    //std::cout<<"yoo"<<std::endl;
+    float currentx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
+    float currenty = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
+    //std::cout<<"x"<<x<<"y"<<y<<std::endl;
+    //particles.push_back(Particle(Vec3(currentx,currenty)));
+    particles.push_back(Particle(Vec3(currentx,currenty)));
+  //}
+
+}
+
+void World::vectorvslist()
+{
+  std::vector<Particle> vectorparticles;
+  for(int i = 0 ; i<800 ; ++i)
+  {
+    vectorparticles.push_back(Particle(Vec3()));
+  }
+
+  std::list<Particle> listparticles;
+  for(int i = 0 ; i<800 ; ++i)
+  {
+    listparticles.push_back(Particle(Vec3()));
+  }
+
+  struct timeval tim;
+  gettimeofday(&tim, NULL);
+  double now = tim.tv_sec+(tim.tv_usec * 1e-6);
+
+  for(auto& i : vectorparticles)
+  {
+    i.addPosition(Vec3(-0.5f,2.0f));
+  }
+
+  gettimeofday(&tim, NULL);
+  double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
+  std::cout<<now2-now<<std::endl;
+}
+
+void World::mouseDrag(int x, int y)
+{
+  if(previousmousex>0 && previousmousey>0)
+  {
+    float toaddx = (x-previousmousex)*((halfwidth*2)/(float)pixelwidth);
+    float toaddy = (y-previousmousey)*((halfwidth*2)/(float)pixelwidth);
+    std::cout<<toaddx<<std::endl;
+    for(auto& i : draggedParticles)
+    {
+      i->addPosition(Vec3(toaddx,-toaddy));
+      getbackhere(&(*i));
+    }
+    hashParticles();
+  }
+  previousmousex=x;
+  previousmousey=y;
+}
+
+void World::selectDraggedParticles(int x, int y)
+{
+  float worldx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
+  float worldy = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
+  int grid_cell=floor((worldx+halfwidth)/squaresize)+floor((worldy+halfheight)/squaresize)*gridwidth;
+  draggedParticles = getSurroundingParticles(grid_cell,2);
+  for(auto& i : draggedParticles)
+  {
+    i->setDrag(true);
+  }
+}
+
+void World::getbackhere(Particle * p)
+{
+  if(p->getPosition()[0]>halfwidth-0.5f) p->getPosition()[0]=halfwidth-0.5f;
+  else if(p->getPosition()[0]<-halfwidth+0.5f) p->getPosition()[0]=-halfwidth+0.5f;
+  if(p->getPosition()[1]>halfheight-0.5f) p->getPosition()[1]=halfheight-0.5f;
+  else if(p->getPosition()[1]<-halfheight+0.5f) p->getPosition()[1]=-halfheight+0.5f;
+}
+
+void World::clearDraggedParticles()
+{
+  previousmousex=-10;
+  previousmousey=-10;
+  for(auto& i : draggedParticles)
+  {
+    i->setDrag(false);
+  }
+  draggedParticles.clear();
 }
