@@ -50,7 +50,7 @@ void Particle::clearForces()
 
 void Particle::applyGravity(float m_timestep)
 {
-  velocity+=Vec3(0.0f,-200000.0f*m_timestep);
+  velocity+=Vec3(0.0f,-0.008*m_timestep);
 }
 
 void Particle::setForce(Vec3 newforce)

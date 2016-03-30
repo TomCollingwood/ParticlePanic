@@ -20,7 +20,7 @@ World::World() :
   m_elapsedTime(0.0),
   interactionradius(0.5f),
   squaresize(0.5f),
-  m_timestep(0.0002),
+  m_timestep(1.0f),
   pointsize(10.0f),
   renderthreshold(2000.0f),
   renderresolution(10),
@@ -626,6 +626,7 @@ void World::update() {
                 if(rijmag>L+d)
                 {
                   springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
+                  //std::cout<<"checkinG!!"<<std::endl;
                 }
                 else if(rijmag<L-d)
                 {
@@ -651,18 +652,18 @@ void World::update() {
       Vec3 rij = (*(i.indexj)).getPosition() - (*(i.indexi)).getPosition();
       float rijmag = rij.length();
 
-      //f(rijmag>interactionradius*8)
-      //{
-       // deleteSpring(count);
-      //}
+      if(rijmag>interactionradius)
+      {
+        deleteSpring(count);
+      }
 
-      //else{
+      else{
         rij.normalize();
-        Vec3 D = rij*m_timestep*1000.f*(1-(i.L/interactionradius))*(i.L-rijmag);
+        Vec3 D = rij*m_timestep*(1-(i.L/interactionradius))*(i.L-rijmag);
         //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
         i.indexi->addPosition(-D/2);
         i.indexj->addPosition(D/2);
-      //}
+      }
       count++;
     }
     // */
@@ -939,12 +940,12 @@ void World::getbackhere(Particle * p)
 
 void World::mouseDragEnd(int x, int y)
 {
-  Vec3 newVelocity = Vec3(x-previousmousex,y-previousmousey);
+  Vec3 newVelocity = Vec3(x-previousmousex,previousmousey-y);
 
   for(auto& i : draggedParticles)
   {
       i->setDrag(false);
-      i->addVelocity(Vec3(0.0f,2.0f));
+      i->addVelocity(newVelocity*0.05f);
   }
   draggedParticles.clear();
   previousmousex=-10;
