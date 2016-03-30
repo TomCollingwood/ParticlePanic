@@ -3,10 +3,17 @@
 void Particle::drawParticle()
 {
   glBegin(GL_POINTS);
-  float fast=velocity.length()*0.005;
-  if(fast>1.0f) fast=1.0f;
-  //glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
-  glColor3f(fast,fast,1.0f);
+  if(!wall)
+  {
+    float fast=velocity.length()*0.005;
+    if(fast>1.0f) fast=1.0f;
+    //glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
+    glColor3f(fast,fast,1.0f);
+  }
+  else
+  {
+    glColor3f(1.0f,0.0f,0.0f);
+  }
   glVertex3f(position[0],position[1],-2.0f);
   glEnd();
 }
@@ -43,7 +50,7 @@ void Particle::clearForces()
 
 void Particle::applyGravity(float m_timestep)
 {
-  velocity+=Vec3(0.0f,-30000.0f*m_timestep);
+  velocity+=Vec3(0.0f,-200000.0f*m_timestep);
 }
 
 void Particle::setForce(Vec3 newforce)
@@ -136,4 +143,12 @@ bool Particle::getDrag() const
   return dragged;
 }
 
+bool Particle::getWall() const
+{
+  return wall;
+}
 
+void Particle::setWall(bool newwall)
+{
+  wall=newwall;
+}

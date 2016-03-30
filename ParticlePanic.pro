@@ -1,6 +1,5 @@
 TEMPLATE = app
 TARGET = ParticlePanic
-CONFIG += debug
 CONFIG += c++11
 CONFIG += opengl
 INCLUDEPATH += .
@@ -16,8 +15,7 @@ HEADERS +== \
     include/Particle.h \
     include/Vec3.h \
     include/Mat3.h \
-    include/World.h \
-    include/Spring.h
+    include/World.h
 
 LIBS += -L/usr/local/lib
 
@@ -30,9 +28,7 @@ macx: {
   QMAKE_LFLAGS += -F/Library/Frameworks
   LIBS += -framework SDL2
   LIBS += -framework SDL2_image
-  LIBS += -framework SDL2_mixer
   INCLUDEPATH += /Library/Frameworks/SLD2_image.framework
-  INCLUDEPATH += /Library/Frameworks/SLD2_mixer.framework
   INCLUDEPATH += /Library/Frameworks/SDL2.framework/Headers
   INCLUDEPATH += /usr/local/include
 

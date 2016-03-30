@@ -157,9 +157,7 @@ int main( int argc, char* args[] ) {
             }
             //Handle keypress with current mouse position
             else if( e.type == SDL_TEXTINPUT ) { //on mouse press?
-                int x = 0, y = 0;
-                SDL_GetMouseState( &x, &y );
-                //handleKeys( e.text.text[ 0 ], x, y );
+                world->handleKeys( e.text.text[ 0 ] );
             }
             else if( e.type == SDL_MOUSEBUTTONDOWN) { //on mouse press?
               //std::cout<<e.button<<std::endl;
@@ -171,9 +169,11 @@ int main( int argc, char* args[] ) {
             else if( e.type == SDL_MOUSEBUTTONUP) { //on mouse press?
               if (e.button.button == SDL_BUTTON_LEFT)
               {
+                int x = 0, y = 0;
+                SDL_GetMouseState( &x, &y );
                 leftMouseButton=false;
                 leftMouseButtonPrevious=false;
-                world->clearDraggedParticles();
+                world->mouseDragEnd(x,y);
               }
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 rightMouseButton=false;
@@ -198,18 +198,14 @@ int main( int argc, char* args[] ) {
           std::cout<<"heyboos"<<std::endl;
           world->mouseDraw( x, y );
         }
+
         world->update();
         //Render the World
         world->draw();
+        //world->drawMenu();
 
         //Update screen
         SDL_GL_SwapWindow( gWindow );
-
-        if(pookd==false)
-        {
-          world->vectorvslist();
-          pookd=true;
-        }
     }
 
     //Disable text input

@@ -7,6 +7,9 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <SDL.h>
+#include <SDL_image.h>
+//#include <SDL2_image>
 
 /**
  * @brief World::World
@@ -17,11 +20,15 @@ World::World() :
   m_elapsedTime(0.0),
   interactionradius(0.5f),
   squaresize(0.5f),
-  m_timestep(0.001),
-  pointsize(20.0f),
-  renderthreshold(3000.0f),
+  m_timestep(0.0002),
+  pointsize(10.0f),
+  renderthreshold(2000.0f),
   renderresolution(10),
-  renderoption(1)
+  renderoption(1),
+  rain(false),
+  drawwall(false),
+  gravity(true),
+  springsize(10000)
 {
 }
 
@@ -39,7 +46,7 @@ void World::init() {
     if (m_isInit) return;
 
     // Disable texturing
-    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_TEXTURE_2D);
 
     // Enable counter clockwise face ordering
     glFrontFace(GL_CCW); // front face - determines normal in order you specify vertices
@@ -67,31 +74,35 @@ void World::init() {
     particles.clear();
     springs.clear();
 
+
     // create start two blocks of particles
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
         particles.push_back(Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f)));
     }
-    //for(int a=0; a<10*10; ++a)
-    //{
-      //particles[a].setVelocity(Vec3(-8.0f,0.0f));
-      //particles[a].addVelocity(Vec3(0.0f,(float)(rand() % 100 - 50)*0.01f));
-      //particles[a].setVelocity(Vec3(((float)(rand() % 100 - 50)),((float)(rand() % 10000 - 50))));
-    //}
 
-
+/*
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
         particles.push_back(Particle(Vec3(3.0f+i*0.2f,3.0f-j*0.2f)));
     }
-
     for(auto& i : particles)
       i.addVelocity(Vec3(((float)(rand() % 100 - 50)*0.001f),((float)(rand() % 10000 - 50))*0.001f));
+*/
+
 
     previousmousex=-10;
     previousmousey=-10;
+
+    Particle::Spring defaultspring;
+    defaultspring.alive=false;
+    springs.resize(springsize,defaultspring);
+    firstFreeSpring=0;
+
+
+    //Any other glTex* stuff here
 
     m_isInit = true;
 }
@@ -141,6 +152,15 @@ void World::resize(int w, int h) {
     i.resize(renderwidth+1,0.0f);
   }
 
+  // TEST WALL PARTICLE
+
+  /*
+  for(int i =0; i<160*4; i++)
+  {
+    particles.push_back(Particle(Vec3(-halfwidth+(float)i/40,-halfheight+1.0f)));
+    particles.back().setWall(true);
+  }
+  // */
   std::cout<<"HELLO THERE"<<std::endl;
 }
 
@@ -159,8 +179,6 @@ void World::draw() {
 
     else if(renderoption==2)
     {
-
-
       for(auto& i : particles)
       {
         Vec3 heightwidth = getGridColumnRow(i.getGridPosition())*renderresolution;
@@ -171,8 +189,8 @@ void World::draw() {
             int currentcolumn=heightwidth[0]+x;
             int currentrow=heightwidth[1]+y;
 
-            if(currentcolumn<renderwidth+1 && currentcolumn>0 &&
-               currentrow<renderheight+1 && currentrow>0)
+            if(currentcolumn<renderwidth && currentcolumn>0 &&
+               currentrow<renderheight && currentrow>0)
             {
               float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
               float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
@@ -438,21 +456,6 @@ void World::draw() {
 
     }
 
-
-    struct timeval tim;
-    gettimeofday(&tim, NULL);
-    static double now = tim.tv_sec+(tim.tv_usec * 1e-6);
-    static double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
-
-    now2=now;
-    now=tim.tv_sec+(tim.tv_usec * 1e-6);
-
-    double calcTimeStep = now-now2;
-    //if(calcTimeStep==0) calcTimeStep=0.03;
-
-    static double max = calcTimeStep;
-    if(calcTimeStep>max) max=calcTimeStep;
-    //std::cout<<"o"<<max<<std::endl;
 }
 
 
@@ -474,24 +477,31 @@ void World::update() {
 
     //make it rain
 
+
     static int everyother = 0;
     everyother++;
 
-    int divisor = 5; //(int)(0.00005f/m_timestep);
-    if(divisor==0) divisor=1;
-    if(everyother%5==0){
-      for(int i = 0; i<5; ++i)
-      {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.4f,4.4f)));
-        particles.back().addVelocity(Vec3(0.0f,-30.0f));
+    if(rain)
+    {
+      int divisor = 5; //(int)(0.00005f/m_timestep);
+      if(divisor==0) divisor=1;
+      if(everyother%5==0){
+        for(int i = 0; i<5; ++i)
+        {
+          particles.push_back(Particle(Vec3(-3.0f+i*0.4f,4.4f)));
+          particles.back().addVelocity(Vec3(0.0f,-30.0f));
+        }
       }
     }
     //*/
 
     // ------------------------------GRAVITY --------------------------------------------
-    for(auto& i : particles)
+    if(gravity)
     {
-      i.applyGravity(m_timestep);
+      for(auto& i : particles)
+      {
+        i.applyGravity(m_timestep);
+      }
     }
 
     // ------------------------------VISCOSITY--------------------------------------------
@@ -505,11 +515,13 @@ void World::update() {
       int ploo = 0;
       for(auto& i : k)
       {
-        std::vector<Particle *> surroundingParticles = getSurroundingParticles(choo,1);
+        if(!(i->getWall()))
+        {
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(choo,1,false);
         int cloo = 0;
         for(auto& j : surroundingParticles)
         {
-          if(cloo>ploo)
+          if(cloo>ploo && !(j->getWall()))
           {
             Vec3 rij=(j->getPosition()-i->getPosition());
             float q = rij.length()/interactionradius;
@@ -534,6 +546,8 @@ void World::update() {
           cloo++;
         }
         ploo++;
+
+        }
       }
       choo++;
     }
@@ -544,20 +558,20 @@ void World::update() {
     for(auto& i : particles)
     {
       i.updatePrevPosition();
-      if(!(i.getDrag())) i.updatePosition(m_timestep);
+      if(!(i.getDrag())&&!(i.getWall())) i.updatePosition(m_timestep);
     }
     hashParticles();
 
     //--------------------------------------SPRINGS-----------------------------------------------
 
 
-    /*
+
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
       {
         //std::cout<<"not now"<<std::endl;
-        std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,1);
+        std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,3,false);
         // std::cout<<(int)surroundingParticles.size()<<std::endl;
 
         //std::cout<<"START";
@@ -568,27 +582,24 @@ void World::update() {
           {
             Vec3 rij=(j->getPosition()-i->getPosition());
             float rijmag = rij.length();
-            //std::cout<<rijmag<<std::endl;
             float q = rijmag/interactionradius;
 
             if(q<1 && q!=0)
             {
+              // FINDING / CREATING THE SPRING
               bool quiter = false;
-              Particle::Spring *thisspring;
+              int thisspring;
 
               for(auto& spring : i->particleSprings)
               {
-                if(((spring->indexi==i) && (spring->indexj==j)) ||
-                   ((spring->indexi==j) && (spring->indexj==i)))
+                if(((springs[spring].indexi==i) && (springs[spring].indexj==j)) ||
+                   ((springs[spring].indexi==j) && (springs[spring].indexj==i)))
                 {
-                  thisspring=(spring);
-                  quiter=true;
-                  //std::cout<<"FUCK"<<std::endl;
+                  thisspring=spring;
+                  quiter=true; // FOUND EXISTING SPRING
                   break;
                 }
-
               }
-
 
               if(!quiter)
               {
@@ -596,99 +607,72 @@ void World::update() {
                 newspring.indexi=i;
                 newspring.indexj=j;
                 newspring.count=everyother-1;
+                newspring.alive=true;
                 newspring.L = interactionradius; // maybe change this to sum of radius of two particles
 
-                springs.push_back(newspring);
-                thisspring = &(springs.back());
+                thisspring = insertSpring(newspring);
 
                 i->particleSprings.push_back(thisspring);
                 j->particleSprings.push_back(thisspring);
-
-                //thisspring = &newspring; // delete this
               }
 
-              if(thisspring->count!=everyother)
+              // MAKING SURE EACH SPRING IS ONLY UPDATED ONCE PER FRAME
+              if(springs[thisspring].count!=everyother)
               {
-                GLfloat L = thisspring->L;
+                GLfloat L = springs[thisspring].L;
                 GLfloat d= L*i->gam();
                 GLfloat alpha = i->alp();
 
                 if(rijmag>L+d)
                 {
-                  thisspring->L=L+m_timestep*alpha*(rijmag-L-d);
-                  //std::cout<<"Heyboss"<<std::endl;
+                  springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
                 }
                 else if(rijmag<L-d)
                 {
-                  thisspring->L=L-m_timestep*alpha*(L-d-rijmag);
-                  //std::cout<<"Heyboss"<<std::endl;
+                  springs[thisspring].L=L-m_timestep*alpha*(L-d-rijmag);
                 }
-                thisspring->count++;
+                springs[thisspring].count++;
               }
             }
-            //
           }
         }
       }
     }
-    //
 
-    std::cout<<"s"<<(int)springs.size()<<"p"<<(int)particles.size()<<std::endl;
     // delete springs if over rest length?
 
 
-    choo=0;
-    for(auto& i : springs)
-    {
-      if(i.L>interactionradius)
-      {
-        std::list<Particle::Spring>::iterator it;
-        it = springs.begin();
-        advance(it,choo);
-        int hoho=0;
-        for(auto& a : (*it).indexi->particleSprings)
-        {
-          if(a==&i)
-            (*it).indexi->particleSprings.erase((*it).indexj->particleSprings.begin()+hoho);
-          hoho++;
-        }
-        hoho=0;
-        for(auto& b : (*it).indexj->particleSprings)
-        {
-          if(b==&i)
-            (*it).indexj->particleSprings.erase((*it).indexj->particleSprings.begin()+hoho);
-          hoho++;
-        }
-        springs.erase(it);
-      }
-      else{choo++;}
-    }
 
-    //
     //spring displacements
 
-
+    int count=0;
     for(auto& i : springs)
     {
       Vec3 rij = (*(i.indexj)).getPosition() - (*(i.indexi)).getPosition();
       float rijmag = rij.length();
 
-      rij.normalize();
-      Vec3 D = rij*m_timestep*1000.f*(1-(i.L/interactionradius))*(i.L-rijmag);
-      //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
-      i.indexi->addPosition(-D/2);
-      i.indexj->addPosition(D/2);
+      //f(rijmag>interactionradius*8)
+      //{
+       // deleteSpring(count);
+      //}
+
+      //else{
+        rij.normalize();
+        Vec3 D = rij*m_timestep*1000.f*(1-(i.L/interactionradius))*(i.L-rijmag);
+        //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
+        i.indexi->addPosition(-D/2);
+        i.indexj->addPosition(D/2);
+      //}
+      count++;
     }
     // */
 
     //----------------------------------DOUBLEDENSITY------------------------------------------
 
-
-    int count =0;
-
+    count =0;
     for(auto& list : grid)
     {
-      std::vector<Particle *> neighbours=getSurroundingParticles(count,1);
+      std::vector<Particle *> neighbours=getSurroundingParticles(count,1,false);
       for(auto& i : list)
       {
         float density =0;
@@ -707,7 +691,7 @@ void World::update() {
         }
         float p0 = 10.0f;
         float k = 0.004f;
-        float knear = 0.05f;
+        float knear = 0.5f;
         float P = k*(density -p0);
         float Pnear = knear * neardensity;
         Vec3 dx = Vec3();
@@ -720,11 +704,11 @@ void World::update() {
           {
             rij.normalize();
             Vec3 D = rij*(m_timestep*m_timestep*(P*(1.0f-q))+Pnear*(1.0f-q)*(1.0f-q));
-            j->addPosition(D/2);
+            if(!(j->getWall())) j->addPosition(D/2);
             dx-=(D/2);
           }
         }
-        i->addPosition(dx);
+        if(!(i->getWall())) i->addPosition(dx);
       }
       count++;
     }
@@ -739,60 +723,32 @@ void World::update() {
       }
     }
 
-
     //----------------------------------BOUNDARIES --------------------------------------------
-    count = 0;
+
     for (auto& it : particles)
     {
-      if(std::abs(it.getPosition()[0])>halfwidth )//|| it.getPosition()[1]-0.5f<-halfheight)
-      {
-        //here we iterate though particle springs TODO
-        int count2 =0;
-        for(auto& it2 : springs)
-        {
-          if(it2.indexi==&it || it2.indexj==&it)
-          {
-            std::list<Particle::Spring>::iterator it = springs.begin();
-            advance(it, count2);
-            springs.erase(it);
-          }
-          else
-          {
-            ++count2;
-            //std::cout<<"ooohy"<<std::endl;
-          }
-        }
-        std::list<Particle>::iterator it = particles.begin(); //EAGLE
-        advance(it, count);
-        particles.erase(it);
-      }
-      else
-        ++count;
-      // */
-
-
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f));
-        it.addVelocity(Vec3(0.0f,-1.1f*it.getVelocity()[1]));
+        it.setVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1]));
       }
 
       if(it.getPosition()[1]+0.5f>halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],halfheight-0.5f));
-        it.addVelocity(Vec3(0.0f,-1.1f*it.getVelocity()[1]));
+        it.addVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1]));
       }
 
       if(it.getPosition()[0]>halfwidth-0.5f)
       {
         it.setPosition(Vec3(halfwidth-0.5f,it.getPosition()[1]));
-        it.addVelocity(Vec3(-1.1f*it.getVelocity()[0],0.0f));
+        it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
       }
 
       if(it.getPosition()[0]<-halfwidth+0.5f)
       {
         it.setPosition(Vec3(-halfwidth+0.5f,it.getPosition()[1]));
-        it.addVelocity(Vec3(-1.1f*it.getVelocity()[0],0.0f));
+        it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
       }
       //*/
     }
@@ -844,7 +800,7 @@ void World::hashParticles()
   }
 }
 
-std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur) const
+std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur, bool withwalls) const
 {
   int numSurrounding=1;
   std::vector<Particle *> surroundingParticles;
@@ -857,7 +813,7 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur)
       {
         for(auto& p : grid[grid_cell])
         {
-          surroundingParticles.push_back(p);
+          if(withwalls && !p->getWall() || !withwalls) surroundingParticles.push_back(p);
         }
       }
     }
@@ -908,6 +864,7 @@ void World::mouseDraw(int x, int y)
     //std::cout<<"x"<<x<<"y"<<y<<std::endl;
     //particles.push_back(Particle(Vec3(currentx,currenty)));
     particles.push_back(Particle(Vec3(currentx,currenty)));
+    if(drawwall) particles.back().setWall(true);
   //}
 
 }
@@ -946,7 +903,7 @@ void World::mouseDrag(int x, int y)
   {
     float toaddx = (x-previousmousex)*((halfwidth*2)/(float)pixelwidth);
     float toaddy = (y-previousmousey)*((halfwidth*2)/(float)pixelwidth);
-    std::cout<<toaddx<<std::endl;
+    //std::cout<<toaddx<<std::endl;
     for(auto& i : draggedParticles)
     {
       i->addPosition(Vec3(toaddx,-toaddy));
@@ -963,7 +920,9 @@ void World::selectDraggedParticles(int x, int y)
   float worldx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
   float worldy = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
   int grid_cell=floor((worldx+halfwidth)/squaresize)+floor((worldy+halfheight)/squaresize)*gridwidth;
-  draggedParticles = getSurroundingParticles(grid_cell,2);
+  draggedParticles = getSurroundingParticles(grid_cell,2,true);
+
+  int count = 0;
   for(auto& i : draggedParticles)
   {
     i->setDrag(true);
@@ -978,13 +937,94 @@ void World::getbackhere(Particle * p)
   else if(p->getPosition()[1]<-halfheight+0.5f) p->getPosition()[1]=-halfheight+0.5f;
 }
 
-void World::clearDraggedParticles()
+void World::mouseDragEnd(int x, int y)
 {
-  previousmousex=-10;
-  previousmousey=-10;
+  Vec3 newVelocity = Vec3(x-previousmousex,y-previousmousey);
+
   for(auto& i : draggedParticles)
   {
-    i->setDrag(false);
+      i->setDrag(false);
+      i->addVelocity(Vec3(0.0f,2.0f));
   }
   draggedParticles.clear();
+  previousmousex=-10;
+  previousmousey=-10;
+}
+
+void World::handleKeys(char i)
+{
+  if(i=='i') // inflow
+  {
+    if(rain) rain=false;
+    else rain=true;
+  }
+  else if (i=='w')
+  {
+    if(drawwall) drawwall=false;
+    else drawwall=true;
+  }
+  else if (i=='g')
+  {
+    if(gravity) gravity=false;
+    else gravity=true;
+  }
+}
+
+void World::drawMenu()
+{
+  // You should probably use CSurface::OnLoad ... ;)
+  //-- and make sure the Surface pointer is good!
+  GLuint TextureID = 0;
+  SDL_Surface* Surface = IMG_Load("test.bmp");
+  if(!Surface)
+    {
+      printf("IMG_Load: %s\n", IMG_GetError());
+      std::cout<<"error"<<std::endl;
+    }
+
+  glGenTextures(1, &TextureID);
+  glBindTexture(GL_TEXTURE_2D, TextureID);
+
+  int Mode = GL_RGB;
+
+  if(Surface->format->BytesPerPixel == 4) {
+      Mode = GL_RGBA;
+  }
+
+  glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  int X = 0;
+  int Y = 0;
+  int Width = 5;
+  int Height = 5;
+
+  glBegin(GL_QUADS);
+      glTexCoord2f(0, 0); glVertex3f(X, Y, -2);
+      glTexCoord2f(1, 0); glVertex3f(X + Width, Y, -2);
+      glTexCoord2f(1, 1); glVertex3f(X + Width, Y + Height, -2);
+      glTexCoord2f(0, 1); glVertex3f(X, Y + Height, -2);
+  glEnd();
+
+}
+
+int World::insertSpring(Particle::Spring spring)
+{
+  for(int i = firstFreeSpring; i< springsize; ++i)
+  {
+    if(!(springs[i].alive))
+    {
+      springs[i] = spring;
+      firstFreeSpring=i+1;
+      return i;
+    }
+  }
+}
+
+void World::deleteSpring(int s)
+{
+  springs[s].alive=false;
+  if(s+1<firstFreeSpring) firstFreeSpring=s+1;
 }

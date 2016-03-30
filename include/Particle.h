@@ -18,7 +18,7 @@
 class Particle
 {
 public:
-  typedef struct spring{Particle *indexi, *indexj; GLfloat L; int count;} Spring;
+  typedef struct spring{Particle *indexi, *indexj; GLfloat L; int count; bool alive;} Spring;
   //Particle();
   Particle(const Particle &_p) = default;
   Particle(Vec3 pos=Vec3() /*,ParticleProperties prop*/) :
@@ -26,11 +26,12 @@ public:
     velocity(Vec3()),
     force(Vec3()),
     mass(1.0f),
-    sigma(0.0f),
+    sigma(0.5f),
     beta(0.2f), //above 0.4 explodes
-    gamma(0.0001f),
+    gamma(0.0004f),
     alpha(0.7f),
-    dragged(false)
+    dragged(false),
+    wall(false)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -68,12 +69,15 @@ public:
   int getGridPosition() const;
   void setGridPosition(int p);
 
-  std::vector<Spring *> particleSprings;
+  std::vector<int> particleSprings;
 
   bool collision(Particle p) const;
 
   void setDrag(bool drag);
   bool getDrag() const;
+
+  bool getWall() const;
+  void setWall(bool newwall);
 
 //  void updateDeathTime();
 //  void setColour(Colour newcolour);
@@ -89,6 +93,8 @@ private:
   GLfloat beta;
   GLfloat gamma;
   GLfloat alpha;
+
+  bool wall;
 
   bool dragged;
 

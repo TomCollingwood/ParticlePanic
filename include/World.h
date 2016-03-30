@@ -63,14 +63,21 @@ public:
     void mouseDraw(int x, int y);
     void mouseDrag(int x, int y);
 
-    std::vector<Particle *> getSurroundingParticles(int thiscell,int numsur) const;
+    std::vector<Particle *> getSurroundingParticles(int thiscell,int numsur, bool withwalls) const;
 
-    void clearDraggedParticles();
+    void mouseDragEnd(int x, int y);
     void selectDraggedParticles(int x, int y);
 
     void getbackhere(Particle * p);
 
+    void handleKeys(char i);
+
     void vectorvslist();
+
+    void drawMenu();
+
+    void deleteSpring(int s);
+    int insertSpring(Particle::Spring spring);
 
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
@@ -85,7 +92,7 @@ protected: // Protected means that it is accessible to derived classes
     double m_timestep;
 
     std::list<Particle> particles; //using double ended queue to avoid grid having dangling pointers
-    std::list<Particle::Spring> springs;
+    std::vector<Particle::Spring> springs;
     std::vector<std::vector<Particle *>> grid; //we initialize this on resize
     std::vector<bool> cellsContainingParticles;
     std::vector<std::vector<float>> renderGrid;
@@ -103,11 +110,16 @@ protected: // Protected means that it is accessible to derived classes
     int renderwidth, renderheight;
     int gridheight, gridwidth;
 
-    int pixelwidth;
-    int pixelheight;
+    int pixelwidth, pixelheight;
     int renderoption;
+    int firstFreeSpring;
+    int springsize;
 
     std::vector<Particle *> draggedParticles;
+
+    bool rain;
+    bool drawwall;
+    bool gravity;
 
     int previousmousex, previousmousey;
 };
