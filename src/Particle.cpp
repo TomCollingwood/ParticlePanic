@@ -5,10 +5,11 @@ void Particle::drawParticle()
   glBegin(GL_POINTS);
   if(!wall)
   {
-    float fast=velocity.length()*0.005;
+    float fast=velocity.length()*5;
     if(fast>1.0f) fast=1.0f;
-    //glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
-    glColor3f(fast,fast,1.0f);
+    glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
+    //glColor3f(fast,fast,1.0f);
+    //glColor3f(0.8f,0.5f,0.2f);
   }
   else
   {

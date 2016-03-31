@@ -26,10 +26,10 @@ public:
     velocity(Vec3()),
     force(Vec3()),
     mass(1.0f),
-    sigma(0.5f),
+    sigma(0.0f),
     beta(0.2f), //above 0.4 explodes
-    gamma(0.0004f),
-    alpha(0.7f),
+    gamma(0.004f),
+    alpha(0.3f),
     dragged(false),
     wall(false)
 /*  system(prop),

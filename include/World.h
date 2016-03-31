@@ -79,6 +79,9 @@ public:
     void deleteSpring(int s);
     int insertSpring(Particle::Spring spring);
 
+    float getHalfHeight() const;
+    float getHalfWidth() const;
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;

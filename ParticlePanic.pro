@@ -9,13 +9,15 @@ SOURCES += src/main.cpp \
     src/Vec3.cpp \
     src/Mat3.cpp \
     src/Particle.cpp \
-    src/World.cpp
+    src/World.cpp \
+    src/Toolbar.cpp
 
 HEADERS +== \
     include/Particle.h \
     include/Vec3.h \
     include/Mat3.h \
-    include/World.h
+    include/World.h \
+    include/Toolbar.h
 
 LIBS += -L/usr/local/lib
 

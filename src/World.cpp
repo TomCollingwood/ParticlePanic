@@ -18,17 +18,17 @@ World::World() :
   m_isInit(false),
   m_startTime(0.0),
   m_elapsedTime(0.0),
-  interactionradius(0.5f),
-  squaresize(0.5f),
+  interactionradius(1.0f),
+  squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  renderthreshold(2000.0f),
+  renderthreshold(10000.0f),
   renderresolution(10),
-  renderoption(1),
+  renderoption(2),
   rain(false),
   drawwall(false),
   gravity(true),
-  springsize(10000)
+  springsize(50000)
 {
 }
 
@@ -485,10 +485,10 @@ void World::update() {
     {
       int divisor = 5; //(int)(0.00005f/m_timestep);
       if(divisor==0) divisor=1;
-      if(everyother%5==0){
+      if(everyother%3==0){
         for(int i = 0; i<5; ++i)
         {
-          particles.push_back(Particle(Vec3(-3.0f+i*0.4f,4.4f)));
+          particles.push_back(Particle(Vec3(-3.0f+i*0.2f,4.4f)));
           particles.back().addVelocity(Vec3(0.0f,-30.0f));
         }
       }
@@ -562,7 +562,7 @@ void World::update() {
     }
     hashParticles();
 
-    //--------------------------------------SPRINGS-----------------------------------------------
+    //--------------------------------------SHIT ALGORITMNS-----------------------------------------------
 
 
 
@@ -595,6 +595,7 @@ void World::update() {
                 if(((springs[spring].indexi==i) && (springs[spring].indexj==j)) ||
                    ((springs[spring].indexi==j) && (springs[spring].indexj==i)))
                 {
+                  springs[spring].alive=true;
                   thisspring=spring;
                   quiter=true; // FOUND EXISTING SPRING
                   break;
@@ -642,27 +643,30 @@ void World::update() {
 
     // delete springs if over rest length?
 
-
+    std::cout<<firstFreeSpring<<std::endl;
 
     //spring displacements
 
     int count=0;
     for(auto& i : springs)
     {
-      Vec3 rij = (*(i.indexj)).getPosition() - (*(i.indexi)).getPosition();
-      float rijmag = rij.length();
+      if(i.alive){
+        Vec3 rij = (*(i.indexj)).getPosition() - (*(i.indexi)).getPosition();
+        float rijmag = rij.length();
 
-      if(rijmag>interactionradius)
-      {
-        deleteSpring(count);
-      }
+        if(rijmag>interactionradius)
+        {
+          deleteSpring(count);
+        }
 
-      else{
-        rij.normalize();
-        Vec3 D = rij*m_timestep*(1-(i.L/interactionradius))*(i.L-rijmag);
-        //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
-        i.indexi->addPosition(-D/2);
-        i.indexj->addPosition(D/2);
+        else{
+          rij.normalize();
+          Vec3 D = rij*m_timestep*m_timestep*0.3*(1-(i.L/interactionradius))*(i.L-rijmag);
+          //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
+          i.indexi->addPosition(-D/2);
+          i.indexj->addPosition(D/2);
+        }
+
       }
       count++;
     }
@@ -692,7 +696,7 @@ void World::update() {
         }
         float p0 = 10.0f;
         float k = 0.004f;
-        float knear = 0.5f;
+        float knear = 0.01f;
         float P = k*(density -p0);
         float Pnear = knear * neardensity;
         Vec3 dx = Vec3();
@@ -713,7 +717,7 @@ void World::update() {
       }
       count++;
     }
-
+    // */
     //----------------------------------MAKE NEW VELOCITY-------------------------------------
 
     for(auto& list : grid)
@@ -731,12 +735,12 @@ void World::update() {
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f));
-        it.setVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1]));
+        it.setVelocity(Vec3(0.5f*it.getVelocity()[0],-0.5f*it.getVelocity()[1]));
       }
 
-      if(it.getPosition()[1]+0.5f>halfheight)
+      if(it.getPosition()[1]+1.5f>halfheight)
       {
-        it.setPosition(Vec3(it.getPosition()[0],halfheight-0.5f));
+        it.setPosition(Vec3(it.getPosition()[0],halfheight-1.5f));
         it.addVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1]));
       }
 
@@ -969,22 +973,28 @@ void World::handleKeys(char i)
     if(gravity) gravity=false;
     else gravity=true;
   }
+  else if(i=='r')
+  {
+    if(renderoption==1) renderoption=2;
+    else renderoption=1;
+  }
 }
 
 void World::drawMenu()
 {
+  glEnable(GL_TEXTURE_2D);
   // You should probably use CSurface::OnLoad ... ;)
   //-- and make sure the Surface pointer is good!
-  GLuint TextureID = 0;
-  SDL_Surface* Surface = IMG_Load("test.bmp");
+  GLuint titleTextureID = 0;
+  SDL_Surface* Surface = IMG_Load("textures/title.png");
   if(!Surface)
     {
       printf("IMG_Load: %s\n", IMG_GetError());
       std::cout<<"error"<<std::endl;
     }
 
-  glGenTextures(1, &TextureID);
-  glBindTexture(GL_TEXTURE_2D, TextureID);
+  glGenTextures(1, &titleTextureID);
+  glBindTexture(GL_TEXTURE_2D, titleTextureID);
 
   int Mode = GL_RGB;
 
@@ -997,17 +1007,7 @@ void World::drawMenu()
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  int X = 0;
-  int Y = 0;
-  int Width = 5;
-  int Height = 5;
 
-  glBegin(GL_QUADS);
-      glTexCoord2f(0, 0); glVertex3f(X, Y, -2);
-      glTexCoord2f(1, 0); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(1, 1); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(0, 1); glVertex3f(X, Y + Height, -2);
-  glEnd();
 
 }
 
@@ -1028,4 +1028,14 @@ void World::deleteSpring(int s)
 {
   springs[s].alive=false;
   if(s+1<firstFreeSpring) firstFreeSpring=s+1;
+}
+
+float World::getHalfHeight() const
+{
+  return halfheight;
+}
+
+float World::getHalfWidth() const
+{
+  return halfwidth;
 }

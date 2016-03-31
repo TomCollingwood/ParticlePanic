@@ -22,6 +22,7 @@
 #include "include/Vec3.h"
 #include "include/Particle.h"
 #include "include/World.h"
+#include "include/Toolbar.h"
 
 // Change this if you want something different.
 #define WINDOW_TITLE "ParticlePanic"
@@ -32,6 +33,7 @@
 
 // Our World, which will store all the GL stuff
 World *world = NULL;
+Toolbar *toolbar = NULL;
 
 //The window we'll be rendering to
 SDL_Window* gWindow = NULL;
@@ -116,6 +118,8 @@ int main( int argc, char* args[] ) {
     // We should now be ready to use OpenGL
     // This object holds our World. It needs to be initialised before it can be drawn.
     world = new World();
+
+    toolbar = new Toolbar();
 
     // Initialise the World
     world->init();
@@ -202,7 +206,9 @@ int main( int argc, char* args[] ) {
         world->update();
         //Render the World
         world->draw();
-        //world->drawMenu();
+        toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
+        toolbar->drawToolbar(world->getHalfHeight(), world->getHalfWidth());
+
 
         //Update screen
         SDL_GL_SwapWindow( gWindow );
