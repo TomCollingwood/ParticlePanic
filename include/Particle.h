@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <cstdlib>
 
+#include "ParticleProperties.h"
+
 
 class Particle
 {
@@ -21,17 +23,14 @@ public:
   typedef struct spring{Particle *indexi, *indexj; GLfloat L; int count; bool alive;} Spring;
   //Particle();
   Particle(const Particle &_p) = default;
-  Particle(Vec3 pos=Vec3() /*,ParticleProperties prop*/) :
+  Particle(Vec3 pos=Vec3(), ParticleProperties *_properties=NULL) :
     position(pos),
     velocity(Vec3()),
     force(Vec3()),
     mass(1.0f),
-    sigma(0.0f),
-    beta(0.2f), //above 0.4 explodes
-    gamma(0.004f),
-    alpha(0.3f),
-    dragged(false),
-    wall(false)
+    m_properties(_properties),
+    wall(false),
+    dragged(false)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -59,11 +58,6 @@ public:
   void updateVelocity(double elapsedtime);
   void updatePosition(double elapsedtime);
 
-  GLfloat sig() const;
-  GLfloat bet() const;
-  GLfloat gam() const;
-  GLfloat alp() const;
-
   bool operator ==(const Particle &_rhs) const;
 
   int getGridPosition() const;
@@ -79,6 +73,8 @@ public:
   bool getWall() const;
   void setWall(bool newwall);
 
+  ParticleProperties *getProperties() const;
+
 //  void updateDeathTime();
 //  void setColour(Colour newcolour);
 
@@ -89,10 +85,7 @@ private:
   Vec3 velocity;
   Vec3 force;
   GLfloat mass;
-  GLfloat sigma;
-  GLfloat beta;
-  GLfloat gamma;
-  GLfloat alpha;
+  ParticleProperties *m_properties;
 
   bool wall;
 

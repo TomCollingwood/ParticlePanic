@@ -53,13 +53,15 @@ SOURCES       = src/main.cpp \
 		src/Mat3.cpp \
 		src/Particle.cpp \
 		src/World.cpp \
-		src/Toolbar.cpp 
+		src/Toolbar.cpp \
+		src/ParticleProperties.cpp 
 OBJECTS       = obj/main.o \
 		obj/Vec3.o \
 		obj/Mat3.o \
 		obj/Particle.o \
 		obj/World.o \
-		obj/Toolbar.o
+		obj/Toolbar.o \
+		obj/ParticleProperties.o
 DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		../../../Qt/5.5/clang_64/mkspecs/qdevice.pri \
 		../../../Qt/5.5/clang_64/mkspecs/features/device_config.prf \
@@ -207,12 +209,14 @@ DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		include/Vec3.h \
 		include/Mat3.h \
 		include/World.h \
-		include/Toolbar.h src/main.cpp \
+		include/Toolbar.h \
+		include/ParticleProperties.h src/main.cpp \
 		src/Vec3.cpp \
 		src/Mat3.cpp \
 		src/Particle.cpp \
 		src/World.cpp \
-		src/Toolbar.cpp
+		src/Toolbar.cpp \
+		src/ParticleProperties.cpp
 QMAKE_TARGET  = ParticlePanic
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = ParticlePanic.app/Contents/MacOS/ParticlePanic
@@ -576,8 +580,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents = include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents = include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/main.cpp src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -666,6 +670,7 @@ obj/main.o: src/main.cpp /Library/Frameworks/SDL2.framework/Headers/SDL.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h \
 		include/Vec3.h \
 		include/Particle.h \
+		include/ParticleProperties.h \
 		include/World.h \
 		include/Toolbar.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o src/main.cpp
@@ -677,12 +682,14 @@ obj/Mat3.o: src/Mat3.cpp include/Mat3.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Mat3.o src/Mat3.cpp
 
 obj/Particle.o: src/Particle.cpp include/Particle.h \
-		include/Vec3.h
+		include/Vec3.h \
+		include/ParticleProperties.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Particle.o src/Particle.cpp
 
 obj/World.o: src/World.cpp include/World.h \
 		include/Particle.h \
 		include/Vec3.h \
+		include/ParticleProperties.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_main.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_stdinc.h \
@@ -775,8 +782,15 @@ obj/Toolbar.o: src/Toolbar.cpp include/Toolbar.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_system.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_timer.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_version.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h
+		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h \
+		include/World.h \
+		include/Particle.h \
+		include/Vec3.h \
+		include/ParticleProperties.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Toolbar.o src/Toolbar.cpp
+
+obj/ParticleProperties.o: src/ParticleProperties.cpp include/ParticleProperties.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/ParticleProperties.o src/ParticleProperties.cpp
 
 ####### Install
 

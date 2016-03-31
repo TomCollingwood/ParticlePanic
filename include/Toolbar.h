@@ -13,6 +13,9 @@
 #include <SDL_image.h>
 #include <iostream>
 
+#include <include/World.h>
+
+
 class Toolbar
 {
 public:
@@ -21,14 +24,23 @@ public:
     drag(false),
     tap(false),
     clear(false),
-    help(false){}
+    help(false),
+    gravity(true),
+    erase(false){}
 
   void drawTitle(float halfheight, float halfwidth) const;
   void drawToolbar(float halfheight, float halfwidth) const;
+  void handleClickDown(World *world, int WIDTH, int x);
+  void handleClickUp();
+  void toggleBool(bool *toggleme);
+  bool getDrag();
+  bool getDraw();
+  bool getHelp();
 
 private:
-  bool draw, drag, tap, clear, help;
+  bool draw, erase, drag, tap, gravity, clear, help;
   GLuint iconsTexture, titleTexture;
+  int clickdownbutton;
 
 };
 

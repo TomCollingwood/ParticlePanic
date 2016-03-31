@@ -28,8 +28,8 @@
 #define WINDOW_TITLE "ParticlePanic"
 
 // These defines are for the initial window size (it can be changed in the resize function)
-#define WIDTH 640
-#define HEIGHT 400
+int WIDTH = 640;
+int HEIGHT = 400;
 
 // Our World, which will store all the GL stuff
 World *world = NULL;
@@ -41,8 +41,9 @@ SDL_Window* gWindow = NULL;
 //OpenGL context
 SDL_GLContext gContext;
 
-bool leftMouseButton = false;
-bool leftMouseButtonPrevious=false;
+bool leftMouseOnWorld = false;
+bool leftMouseOnToolbar = false;
+bool leftMouseOnWorldPrevious=false;
 bool rightMouseButton = false;
 bool pookd = false;
 
@@ -153,6 +154,8 @@ int main( int argc, char* args[] ) {
                     (e.window.event == SDL_WINDOWEVENT_RESIZED)) {
                 SDL_SetWindowSize(gWindow, e.window.data1, e.window.data2);
                 world->resize(e.window.data1, e.window.data2);
+                WIDTH=e.window.data1;
+                HEIGHT=e.window.data2;
                 //world->hashParticles();
             }
             //User requests quit
@@ -166,35 +169,68 @@ int main( int argc, char* args[] ) {
             else if( e.type == SDL_MOUSEBUTTONDOWN) { //on mouse press?
               //std::cout<<e.button<<std::endl;
               if (e.button.button == SDL_BUTTON_LEFT)
-                leftMouseButton=true;
+              {
+                int x = 0, y = 0;
+                SDL_GetMouseState( &x, &y );
+
+                if(y<(float)(3.0f/20.0f)*HEIGHT)
+                {
+                  std::cout<<"yoooo"<<std::endl;
+                  toolbar->handleClickDown(world, WIDTH, x);
+                  leftMouseOnToolbar=true;
+                }
+                else
+                  leftMouseOnWorld=true;
+              }
+
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 rightMouseButton=true;
             }
             else if( e.type == SDL_MOUSEBUTTONUP) { //on mouse press?
               if (e.button.button == SDL_BUTTON_LEFT)
               {
-                int x = 0, y = 0;
-                SDL_GetMouseState( &x, &y );
-                leftMouseButton=false;
-                leftMouseButtonPrevious=false;
-                world->mouseDragEnd(x,y);
+                if(leftMouseOnWorld)
+                {
+                  leftMouseOnWorld=false;
+                  leftMouseOnWorldPrevious=false;
+                  if(toolbar->getDrag())
+                  {
+                    int x = 0, y = 0;
+                    SDL_GetMouseState( &x, &y );
+                    world->mouseDragEnd(x,y);
+                  }
+                }
+                else if(leftMouseOnToolbar)
+                {
+                  toolbar->handleClickUp();
+                  leftMouseOnToolbar=false;
+                }
               }
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 rightMouseButton=false;
             }
         }
 
-        if(leftMouseButton)
+
+        if(leftMouseOnWorld)
         {
           int x = 0, y = 0;
           SDL_GetMouseState(&x, &y);
-          if(!leftMouseButtonPrevious)
+          if(toolbar->getDrag())
           {
-            world->selectDraggedParticles(x,y);
-            leftMouseButtonPrevious=true;
+            if(!leftMouseOnWorldPrevious)
+            {
+              world->selectDraggedParticles(x,y);
+              leftMouseOnWorldPrevious=true;
+            }
+            world->mouseDrag( x, y);
           }
-          world->mouseDrag( x, y);
+          else if(toolbar->getDraw())
+          {
+            world->mouseDraw( x, y );
+          }
         }
+
         else if(rightMouseButton)
         {
           int x = 0, y = 0;
@@ -202,6 +238,7 @@ int main( int argc, char* args[] ) {
           std::cout<<"heyboos"<<std::endl;
           world->mouseDraw( x, y );
         }
+
 
         world->update();
         //Render the World

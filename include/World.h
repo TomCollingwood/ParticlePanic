@@ -23,15 +23,6 @@
 class World
 {
 public:
-    /// A struct to hold vertices
-    typedef struct {GLfloat x,y,z;} Vertex;
-
-    /// A struct to hold triangles
-    typedef struct {GLuint idx[3];} Triangle;
-
-
-
-public:
     /// A constructor, called when this class is instanced in the form of an object
     World();
 
@@ -82,6 +73,12 @@ public:
     float getHalfHeight() const;
     float getHalfWidth() const;
 
+    void toggleRain();
+    void toggleGravity();
+    void clearWorld();
+
+    void drawWith(int type);
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -94,37 +91,45 @@ protected: // Protected means that it is accessible to derived classes
 
     double m_timestep;
 
-    std::list<Particle> particles; //using double ended queue to avoid grid having dangling pointers
-    std::vector<Particle::Spring> springs;
-    std::vector<std::vector<Particle *>> grid; //we initialize this on resize
+    std::list<Particle> particles; // std::list keeps it's pointers when reallocated
+
+    std::vector<std::vector<Particle *>> grid;
     std::vector<bool> cellsContainingParticles;
     std::vector<std::vector<float>> renderGrid;
-    std::vector<std::vector<float>> renderGrid2;
-    //std::vector<float> renderGridColour;
 
+    // WORLD SIZE ATTRIBUTES
     float halfwidth, halfheight;
     float interactionradius;
     float squaresize;
+    int gridheight, gridwidth;
+    int pixelwidth, pixelheight;
+
+    // RENDERING ATTRIBUTES
     float pointsize;
     float renderthreshold;
-
     int renderresolution;
-
     int renderwidth, renderheight;
-    int gridheight, gridwidth;
-
-    int pixelwidth, pixelheight;
     int renderoption;
+
+    // SPRING ATTRIBUTES
+    std::vector<Particle::Spring> springs;
     int firstFreeSpring;
     int springsize;
 
     std::vector<Particle *> draggedParticles;
 
+    // Some input options
     bool rain;
     bool drawwall;
     bool gravity;
 
     int previousmousex, previousmousey;
+
+    // FUN PARTICLE TYPES
+    ParticleProperties water, poo, goo, oil, random;
+    ParticleProperties *todraw;
+
+    int howmanytimesrandomized;
 };
 
 #endif // WORLD_H

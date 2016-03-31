@@ -7,8 +7,13 @@ void Particle::drawParticle()
   {
     float fast=velocity.length()*5;
     if(fast>1.0f) fast=1.0f;
-    glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
-    //glColor3f(fast,fast,1.0f);
+    //glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
+    if(m_properties->getColourEffect())
+      glColor3f(m_properties->getRed()+fast,m_properties->getGreen()+fast,m_properties->getBlue()+fast);
+    else
+      glColor3f(m_properties->getRed(),m_properties->getGreen(),m_properties->getBlue());
+
+
     //glColor3f(0.8f,0.5f,0.2f);
   }
   else
@@ -78,30 +83,11 @@ bool Particle::collision(Particle p) const
   else return false;
 }
 
-GLfloat Particle::sig() const
-{
-  return sigma;
-}
-
-GLfloat Particle::bet() const
-{
-  return beta;
-}
-
 void Particle::addVelocity(Vec3 addedvel)
 {
   velocity+=addedvel;
 }
 
-GLfloat Particle::alp() const
-{
-  return alpha;
-}
-
-GLfloat Particle::gam() const
-{
-  return gamma;
-}
 
 void Particle::addPosition(Vec3 pos)
 {
@@ -152,4 +138,9 @@ bool Particle::getWall() const
 void Particle::setWall(bool newwall)
 {
   wall=newwall;
+}
+
+ParticleProperties *Particle::getProperties() const
+{
+  return m_properties;
 }
