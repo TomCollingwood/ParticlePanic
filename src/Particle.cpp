@@ -13,14 +13,13 @@ void Particle::drawParticle()
     else
       glColor3f(m_properties->getRed(),m_properties->getGreen(),m_properties->getBlue());
 
-
     //glColor3f(0.8f,0.5f,0.2f);
   }
   else
   {
     glColor3f(1.0f,0.0f,0.0f);
   }
-  glVertex3f(position[0],position[1],-2.0f);
+  glVertex3f(position[0],position[1],position[2]);
   glEnd();
 }
 
@@ -56,7 +55,7 @@ void Particle::clearForces()
 
 void Particle::applyGravity(float m_timestep)
 {
-  velocity+=Vec3(0.0f,-0.008*m_timestep);
+  velocity+=Vec3(0.0f,-0.008*m_timestep,0.0f);
 }
 
 void Particle::setForce(Vec3 newforce)
@@ -96,7 +95,7 @@ void Particle::addPosition(Vec3 pos)
 
 void Particle::updatePrevPosition()
 {
-  prevPosition=Vec3(position[0],position[1]);
+  prevPosition=Vec3(position[0],position[1],position[2]);
 }
 
 Vec3 Particle::getPrevPosition() const
@@ -163,4 +162,14 @@ bool Particle::isInit()
 bool Particle::isObject()
 {
   return m_isPartOfObject;
+}
+
+void Particle::setDead()
+{
+  dead=true;
+}
+
+bool Particle::isDead()
+{
+  return dead;
 }

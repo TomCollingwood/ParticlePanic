@@ -21,9 +21,9 @@
   #include <GL/glu.h>
 #endif
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/glm.hpp>
+//#include <glm/gtc/type_ptr.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
 
 
 // Include the header file for our current World
@@ -100,7 +100,7 @@ int initSDL()
 Uint32 timerCallback(Uint32 interval, void *) {
     if (world != NULL)
     {
-        //world->update();
+
     }
     return interval;
 }
@@ -219,6 +219,11 @@ int main( int argc, char* args[] ) {
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 rightMouseButton=false;
             }
+            else if (e.type == SDL_MOUSEMOTION) {
+              int x = 0, y = 0;
+                SDL_GetMouseState( &x, &y );
+                world->mouseMove(x, y, leftMouseOnWorld, rightMouseButton);
+            }
         }
 
 
@@ -239,6 +244,10 @@ int main( int argc, char* args[] ) {
           {
             world->mouseDraw( x, y );
           }
+          else if(toolbar->getErase())
+          {
+            world->mouseErase(x, y);
+          }
         }
 
         else if(rightMouseButton)
@@ -253,6 +262,8 @@ int main( int argc, char* args[] ) {
         {
           world->update();
         }
+
+        world->draw();
         //Render the World
         world->draw();
         toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());

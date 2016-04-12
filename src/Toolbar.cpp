@@ -273,5 +273,9 @@ bool Toolbar::getHelp()
   return help;
 }
 
+bool Toolbar::getErase()
+{
+  return erase;
+}
 
 

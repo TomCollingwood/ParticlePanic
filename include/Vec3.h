@@ -14,7 +14,7 @@ public:
   Vec3(const Vec3 &_rhs)=default;
   Vec3(GLfloat _x=0.0f,
        GLfloat _y=0.0f,
-       GLfloat _z=1.0f) :
+       GLfloat _z=0.0f) :
     m_x(_x),
     m_y(_y),
     m_z(_z){}

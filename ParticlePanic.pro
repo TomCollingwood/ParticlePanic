@@ -25,7 +25,7 @@ LIBS += -L/usr/local/lib
 
 linux: {
   LIBS+=$$system(sdl2-config --libs)
-  LIBS += -lSDL2 -lglut -lGLU -lGL -lSDL2_image -lGLEW -L/usr/local/lib/
+  LIBS += -lSDL2  -lGLU -lGL -lSDL2_image  -L/usr/local/lib/ #-lGLEW -lglut
 }
 
 macx: {

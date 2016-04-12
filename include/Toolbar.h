@@ -39,6 +39,7 @@ public:
   bool getDrag();
   bool getDraw();
   bool getHelp();
+  bool getErase();
 
 private:
   bool draw, erase, drag, tap, gravity, clear, help;

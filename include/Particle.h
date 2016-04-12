@@ -25,14 +25,15 @@ public:
   Particle(const Particle &_p) = default;
   Particle(Vec3 pos=Vec3(), ParticleProperties *_properties=NULL) :
     position(pos),
-    velocity(Vec3()),
+    velocity(Vec3(0.0f,0.0f,0.0f)),
     force(Vec3()),
     mass(1.0f),
     m_properties(_properties),
     wall(false),
     dragged(false),
     m_isPartOfObject(false),
-    m_init(false)
+    m_init(false),
+    dead(false)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -74,6 +75,8 @@ public:
 
   bool getWall() const;
   void setWall(bool newwall);
+  void setDead();
+  bool isDead();
 
   void setIsObject();
   bool isObject();
@@ -99,6 +102,7 @@ private:
   bool m_isPartOfObject;
   bool m_init;
   bool dragged;
+  bool dead;
 
   //std::vector<Spring *> particleSprings;
 

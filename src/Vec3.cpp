@@ -4,17 +4,17 @@
 
 float Vec3::dot(const Vec3 &_rhs) const
 {
-  return m_x*_rhs.m_x + m_y*_rhs.m_y;
+  return m_x*_rhs.m_x + m_y*_rhs.m_y + m_z*_rhs.m_z;
 }
 
 float Vec3::length() const
 {
-  return sqrt(m_x*m_x + m_y*m_y);
+  return sqrt(m_x*m_x + m_y*m_y + m_z*m_z);
 }
 
 float Vec3::lengthSquared() const
 {
-  return m_x*m_x + m_y*m_y;
+  return m_x*m_x + m_y*m_y + m_z*m_z;
 }
 
 void Vec3::normalize()
@@ -25,12 +25,13 @@ void Vec3::normalize()
   {
     m_x/=l;
     m_y/=l;
+    m_z/=l;
   }
 }
 
 Vec3 Vec3::perpendicular()
 {
-  return Vec3(-m_y, m_x);
+  //return Vec3(-m_y, m_x); //<=== need to implement 3d version
 }
 
 //void Vec3::operator *(const Mat3 &_r) const
@@ -42,62 +43,70 @@ Vec3 Vec3::operator *(GLfloat _rhs) const
 {
   return Vec3(m_x * _rhs,
               m_y * _rhs,
-              m_z);
+              m_z * _rhs
+              );
 }
 
 void Vec3::operator *=(GLfloat _rhs)
 {
   m_x *= _rhs;
   m_y *= _rhs;
+  m_z *= _rhs;
 }
 
 Vec3 Vec3::operator /(GLfloat _rhs) const
 {
   return Vec3(m_x / _rhs,
               m_y / _rhs,
-              m_z);
+              m_z / _rhs
+              );
 }
 
 void Vec3::operator /=(GLfloat _rhs)
 {
   m_x /= _rhs;
   m_y /= _rhs;
+  m_z /= _rhs;
 }
 
 Vec3 Vec3::operator +(const Vec3 &_r) const
 {
   return Vec3(m_x+_r.m_x,
               m_y+_r.m_y,
-              m_z);
+              m_z+_r.m_z
+              );
 }
 
 void Vec3::operator +=(const Vec3 &_r)
 {
   m_x += _r.m_x;
   m_y += _r.m_y;
+  m_z += _r.m_z;
 }
 
 Vec3 Vec3::operator -(const Vec3 &_rhs) const
 {
   return Vec3(m_x-_rhs.m_x,
               m_y-_rhs.m_y,
-              m_z);
+              m_z-_rhs.m_z
+              );
 }
 
 Vec3 Vec3::operator -()
 {
-  return Vec3(-m_x,-m_y);
+  return Vec3(-m_x,-m_y,-m_z);
 }
 
 void Vec3::operator -=(const Vec3 &_r)
 {
   m_x -= _r.m_x;
   m_y -= _r.m_y;
+  //m_z -= _r.m_z;
 }
 
 bool Vec3::operator ==(const Vec3 &_rhs) const
 {
-  if(m_x==_rhs.m_x && m_y==_rhs.m_y) return true;
+  if(m_x==_rhs.m_x && m_y==_rhs.m_y && m_z==_rhs.m_z) return true;
   else return false;
 }
 
@@ -116,6 +125,6 @@ void Vec3::set(GLfloat _x, GLfloat _y, GLfloat _z)
 
 void Vec3::vertexGL() const
 {
-  glVertex3f(m_x,m_y,0.0f);
+  glVertex3f(m_x,m_y,m_z);
 }
 

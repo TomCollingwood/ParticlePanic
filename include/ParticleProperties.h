@@ -16,7 +16,7 @@
 class ParticleProperties
 {
 public:
-
+  /*
   ParticleProperties(bool spring=true,
                      GLfloat _sigma=0.0f,
                      GLfloat _beta=0.1f,
@@ -32,8 +32,8 @@ public:
                      bool _coloureffect=true):
 
 
-    //water
-    /*
+    //water */
+
     ParticleProperties(bool spring=false,
                        GLfloat _sigma=0.0f,
                        GLfloat _beta=0.1f,

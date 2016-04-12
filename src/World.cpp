@@ -32,14 +32,15 @@ World::World() :
   interactionradius(1.0f),
   squaresize(1.0f),
   m_timestep(1.0f),
-  pointsize(20.0f),
+  pointsize(5.0f),
   renderthreshold(800.0f),
   renderresolution(10),
-  renderoption(2),
+  renderoption(1),
   rain(false),
   drawwall(false),
   gravity(true),
-  springsize(200000)
+  springsize(200000),
+  m_3d(false)
 {
 }
 
@@ -99,8 +100,8 @@ void World::init() {
     {
       for(int j=0; j<10; ++j)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f),todraw));
-        particles.back().setIsObject();
+        particles.push_back(Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),todraw));
+        //particles.back().setIsObject();
       }
     }
 
@@ -115,8 +116,8 @@ void World::init() {
 */
 
 
-    previousmousex=-10;
-    previousmousey=-10;
+    m_previousmousex=-10;
+    m_previousmousey=-10;
 
     Particle::Spring defaultspring;
     defaultspring.alive=false;
@@ -150,7 +151,7 @@ void World::resize(int w, int h) {
 
   float i = 5;
   float ara = float(w)/float(h);
-  glOrtho(-i*ara,i*ara,-i,i,0.1, 10.0);
+  glOrtho(-i*ara,i*ara,-i,i,0.1, 10000000000.0);
 
   halfheight=i;
   halfwidth=i*ara;
@@ -161,16 +162,27 @@ void World::resize(int w, int h) {
 
   gridwidth=ceil((halfwidth*2)/squaresize);
   gridheight=ceil((halfheight*2)/squaresize);
+  griddepth=gridwidth;
+
+  cellsContainingParticles.clear();
+  grid.clear();
+  if(!m_3d)
+  {
+    grid.resize(gridheight*gridwidth);
+    cellsContainingParticles.resize(gridheight*gridwidth,false);
+  }
+  else
+  {
+    grid.resize(gridheight*gridwidth*griddepth);
+    cellsContainingParticles.resize(gridheight*gridwidth*griddepth,false);
+  }
+
+  hashParticles();
+
+  //-------------MARCHING SQUARES NONSENSE-----------------------------
 
   renderwidth=gridwidth*renderresolution;
   renderheight=gridheight*renderresolution;
-
-  grid.resize(gridheight*gridwidth);
-
-  cellsContainingParticles.clear();
-  cellsContainingParticles.resize(gridheight*gridwidth,false);
-
-  hashParticles();
 
   renderGrid.clear();
   renderGrid.resize(renderheight+1);
@@ -178,17 +190,6 @@ void World::resize(int w, int h) {
   {
     i.resize(renderwidth+1,0.0f);
   }
-
-  // TEST WALL PARTICLE
-
-  /*
-  for(int i =0; i<160*4; i++)
-  {
-    particles.push_back(Particle(Vec3(-halfwidth+(float)i/40,-halfheight+1.0f)));
-    particles.back().setWall(true);
-  }
-  // */
-  std::cout<<"HELLO THERE"<<std::endl;
 }
 
 /**
@@ -196,6 +197,10 @@ void World::resize(int w, int h) {
  */
 void World::draw() {
     if (!m_isInit) return;
+
+    glMatrixMode(GL_MODELVIEW);
+    //glRotatef(1.0f, 1.f, 0.f, 0.f);
+
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     if(renderoption==1){
@@ -497,17 +502,28 @@ void World::update() {
 
     if(rain)
     {
-      int divisor = 5; //(int)(0.00005f/m_timestep);
-      if(divisor==0) divisor=1;
-      //if(everyother%2==0){
-        for(int i = 0; i<10; ++i)
+      if(everyother%4==0){
+        if(!m_3d)
         {
-          particles.push_back(Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5),todraw));
-          particles.back().addVelocity(Vec3(0.0f,20.0f));
+          for(int i = 0; i<5; ++i)
+          {
+            particles.push_back(Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-2.0f),todraw));
+            particles.back().addVelocity(Vec3(0.0f,-50.0f,0.0f));
+          }
         }
-      //}
+        else
+        {
+          for(int j = 0; j< 5; ++j)
+          {
+            for(int i = 0; i<5; ++i)
+            {
+              particles.push_back(Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-3.0f+j*0.2f),todraw));
+              particles.back().addVelocity(Vec3(0.0f,-50.0f,0.0f));
+            }
+          }
+        }
+      }
     }
-    //*/
 
     // ------------------------------GRAVITY --------------------------------------------
     if(gravity)
@@ -537,12 +553,13 @@ void World::update() {
         {
           if(cloo>ploo && !(j->getWall()))
           {
-            Vec3 rij=(j->getPosition()-i->getPosition());
+            Vec3 rij=(j->getPosition()-i->getPosition()); //THFP
+            //std::cout<<rij[2]<<std::endl;
             float q = rij.length()/interactionradius;
             if(q<1 && q!=0)
             {
               rij.normalize();
-              float u = (i->getVelocity()-j->getVelocity()).dot(rij);
+              float u = (i->getVelocity()-j->getVelocity()).dot(rij); //THFP
               if(u>0)
               {
                 ParticleProperties *thisproperties = i->getProperties(); // fiddle with this!!!
@@ -700,7 +717,7 @@ void World::update() {
         float neardensity=0;
         for(auto& j : neighbours)
         {
-          Vec3 rij = j->getPosition()-i->getPosition();
+          Vec3 rij = j->getPosition()-i->getPosition(); // THFP
           float rijmag = rij.length();
           float q = rijmag/interactionradius;
           if(q<1 && q!=0)
@@ -719,7 +736,7 @@ void World::update() {
         Vec3 dx = Vec3();
         for(auto& j : neighbours)
         {
-          Vec3 rij = j->getPosition()-i->getPosition();
+          Vec3 rij = j->getPosition()-i->getPosition(); // THFP
           float rijmag = rij.length();
           float q = rijmag/interactionradius;
           if(q<1 && q!=0)
@@ -742,6 +759,7 @@ void World::update() {
       for(auto& i : list)
       {
         i->setVelocity((i->getPosition()-i->getPrevPosition())/m_timestep);
+        std::cout<<i->getVelocity()[2]<<std::endl;
       }
     }
 
@@ -753,34 +771,46 @@ void World::update() {
     {
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
-        it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f));
-        it.setVelocity(Vec3(0.5f*it.getVelocity()[0],-0.5f*it.getVelocity()[1]));
+        it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f,it.getPosition()[2]));
+        it.setVelocity(Vec3(0.5f*it.getVelocity()[0],-0.5f*it.getVelocity()[1],0.0f));
       }
 
       if(it.getPosition()[1]+1.5f>halfheight)
       {
-        it.setPosition(Vec3(it.getPosition()[0],halfheight-1.5f));
-        it.addVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1]));
+        it.setPosition(Vec3(it.getPosition()[0],halfheight-1.5f,it.getPosition()[2]));
+        it.addVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1],0.0f));
       }
 
       if(it.getPosition()[0]>halfwidth-0.5f)
       {
-        it.setPosition(Vec3(halfwidth-0.5f,it.getPosition()[1]));
+        it.setPosition(Vec3(halfwidth-0.5f,it.getPosition()[1],it.getPosition()[2]));
         it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
       }
 
       if(it.getPosition()[0]<-halfwidth+0.5f)
       {
-        it.setPosition(Vec3(-halfwidth+0.5f,it.getPosition()[1]));
+        it.setPosition(Vec3(-halfwidth+0.5f,it.getPosition()[1],it.getPosition()[2]));
         it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
       }
-      //*/
+
+
+      if(it.getPosition()[2]<-2-halfwidth+0.5f)
+      {
+        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2-halfwidth+0.5));
+        it.addVelocity(Vec3(0.0f,0.0f,-0.8f*it.getVelocity()[2]));
+      }
+
+      if(it.getPosition()[2]>-2+halfwidth-0.5f)
+      {
+        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2+halfwidth-0.5f));
+        it.addVelocity(Vec3(0.0f,0.0f,-0.8f*it.getVelocity()[2]));
+      }
     }
     //----------------------------------CLEANUP ------------------------------------------------
 
     if(everyother%30==0)
     {
-      std::cout<<"Numebr:"<<particles.size()<<std::endl;
+      //std::cout<<"Numebr:"<<particles.size()<<std::endl;
     }
 
     /*
@@ -810,45 +840,83 @@ void World::update() {
 
 }
 
+//---------------------------------HASH FUNCTIONS--------------------------------------------------------
+
 void World::hashParticles()
 {
-  cellsContainingParticles.assign(gridwidth*gridheight,false);
+  int gridSize;
+  if(!m_3d) gridSize = gridwidth*gridheight;
+  else gridSize = gridwidth*gridheight*griddepth;
+
+  cellsContainingParticles.assign(gridSize,false);
   std::vector<Particle *> newvector;
-  grid.assign(gridheight*gridwidth,newvector);
+  grid.assign(gridSize,newvector);
   int grid_cell;
   for(auto& i : particles)
   {
-    grid_cell=floor((i.getPosition()[0]+halfwidth)/squaresize)+floor((i.getPosition()[1]+halfheight)/squaresize)*gridwidth;
+    grid_cell=
+        floor((i.getPosition()[0]+halfwidth)/squaresize)+
+        floor((i.getPosition()[1]+halfheight)/squaresize)*gridwidth;
+
+    if(m_3d) grid_cell+=floor((i.getPosition()[2]+halfwidth)/squaresize)*gridwidth*gridheight;
+
     i.setGridPosition(grid_cell);
-    if(grid_cell>=0 && grid_cell<gridheight*gridwidth)
+
+    if(grid_cell>=0 && grid_cell<gridSize)
     {
       cellsContainingParticles[grid_cell]=true;
-      //std::cout<<"THIS ONE!"<<(&i)->getPosition()[1]<<std::endl;
       grid[grid_cell].push_back(&i);
     }
   }
 }
 
-std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur, bool withwalls) const
+std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur, bool dragselect) const
 {
   int numSurrounding=1;
   std::vector<Particle *> surroundingParticles;
-  for(int i = -numSurrounding; i <= numSurrounding; ++i)
+  if(!m_3d)
   {
-    for(int j = -numSurrounding; j <= numSurrounding; ++j)
+    for(int i = -numSurrounding; i <= numSurrounding; ++i)
     {
-      int grid_cell = thiscell+ i + j*gridwidth;
-      if(grid_cell<(gridwidth*gridheight) && grid_cell>=0)
+      for(int j = -numSurrounding; j <= numSurrounding; ++j)
       {
-        for(auto& p : grid[grid_cell])
+        int grid_cell = thiscell+ i + j*gridwidth;
+        if(grid_cell<(gridwidth*gridheight) && grid_cell>=0)
         {
-          if(withwalls && !p->getWall() || !withwalls) surroundingParticles.push_back(p);
+          for(auto& p : grid[grid_cell])
+          {
+            if(dragselect && !p->getWall() || !dragselect) surroundingParticles.push_back(p);
+          }
         }
       }
     }
   }
+  else
+  {
+    for(int i = -numSurrounding; i <= numSurrounding; ++i)
+    {
+      for(int j = -numSurrounding; j <= numSurrounding; ++j)
+      {
+        for(int k = -numSurrounding; k <= numSurrounding; ++k)
+        {
+          int grid_cell = thiscell+ i + j*gridwidth + k*gridwidth*gridheight;
+
+          if(grid_cell<(gridwidth*gridheight*griddepth) && grid_cell>=0)
+          {
+            for(auto& p : grid[grid_cell])
+            {
+              if(dragselect && !p->getWall() || !dragselect) surroundingParticles.push_back(p);
+            }
+          }
+        }
+      }
+    }
+  }
+
   return surroundingParticles;
 }
+
+//---------------------------------GRID FUNCTIONS--------------------------------------------------------
 
 
 Vec3 World::getGridColumnRow(int k)
@@ -860,32 +928,17 @@ Vec3 World::getGridColumnRow(int k)
 
 Vec3 World::getRenderGridColumnRow(int k)
 {
-  //std::cout<<"k:"<<k<<std::endl;
-  //std::cout<<"gridwidth:"<<gridwidth<<std::endl;
-  //std::cout<<"gridheight:"<<gridheight<<std::endl;
   int row = floor(k/((gridwidth+1)*2));
   int column = k - row*((gridwidth+1)*2);
-  //std::cout<<"row:"<<row<<std::endl;
   return Vec3(column, row);
 }
 
-Vec3 World::getRenderGridxy(int h, int w) //wrong
-{
-  float x = w*(squaresize/2) - halfwidth;
-  float y = h*(squaresize/2) - halfheight;
-  return Vec3(x,y);
-}
-
-Vec3 World::getRenderGridxyfromIndex(int k) //wrong
-{
-  //std::cout<<"k:"<<k<<std::endl;
-  Vec3 temp= getRenderGridColumnRow(k);
-  return getRenderGridxy(temp[1],temp[0]); // wrong
-}
+//--------------------------------INPUT FUNCTIONS---------------------------------------------------
 
 void World::mouseDraw(int x, int y)
 {
     float objectdensity=0.1f;
+    if(drawwall) objectdensity=0.05f;
 
     float currentx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
     float currenty = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
@@ -909,19 +962,18 @@ void World::mouseDraw(int x, int y)
 
     if(drawparticle)
     {
-      particles.push_back(Particle(Vec3(correctedx,correctedy),&water));
+      particles.push_back(Particle(Vec3(correctedx,correctedy,-2.0f),&water));
       if(drawwall) particles.back().setWall(true);
-      particles.back().setIsObject();
       hashParticles();
     }
 }
 
 void World::mouseDrag(int x, int y)
 {
-  if(previousmousex>0 && previousmousey>0)
+  if(m_previousmousex>0 && m_previousmousey>0)
   {
-    float toaddx = (x-previousmousex)*((halfwidth*2)/(float)pixelwidth);
-    float toaddy = (y-previousmousey)*((halfwidth*2)/(float)pixelwidth);
+    float toaddx = (x-m_previousmousex)*((halfwidth*2)/(float)pixelwidth);
+    float toaddy = (y-m_previousmousey)*((halfwidth*2)/(float)pixelwidth);
     //std::cout<<toaddx<<std::endl;
     for(auto& i : draggedParticles)
     {
@@ -930,8 +982,8 @@ void World::mouseDrag(int x, int y)
     }
     hashParticles();
   }
-  previousmousex=x;
-  previousmousey=y;
+  m_previousmousex=x;
+  m_previousmousey=y;
 }
 
 void World::selectDraggedParticles(int x, int y)
@@ -946,6 +998,8 @@ void World::selectDraggedParticles(int x, int y)
   {
     i->setDrag(true);
   }
+  m_previousmousex=x;
+  m_previousmousey=y;
 }
 
 void World::getbackhere(Particle * p)
@@ -958,7 +1012,7 @@ void World::getbackhere(Particle * p)
 
 void World::mouseDragEnd(int x, int y)
 {
-  Vec3 newVelocity = Vec3(x-previousmousex,previousmousey-y);
+  Vec3 newVelocity = Vec3(x-m_previousmousex,m_previousmousey-y);
 
   for(auto& i : draggedParticles)
   {
@@ -966,8 +1020,8 @@ void World::mouseDragEnd(int x, int y)
       i->addVelocity(newVelocity*0.05f);
   }
   draggedParticles.clear();
-  previousmousex=-10;
-  previousmousey=-10;
+  m_previousmousex=-10;
+  m_previousmousey=-10;
 }
 
 void World::handleKeys(char i)
@@ -977,61 +1031,82 @@ void World::handleKeys(char i)
     if(rain) rain=false;
     else rain=true;
   }
-  else if (i=='w')
-  {
-    if(drawwall) drawwall=false;
-    else drawwall=true;
-  }
-  else if (i=='g')
+  else if(i=='g')
   {
     if(gravity) gravity=false;
     else gravity=true;
   }
-  else if(i=='r')
-  {
-    if(renderoption==1) renderoption=2;
-    else renderoption=1;
-  }
-  else if(i=='0')
-  {
-    drawWith(0);
-  }
-  else if(i=='1')
-  {
-    drawWith(1);
-  }
-}
 
-void World::drawMenu()
-{
-  glEnable(GL_TEXTURE_2D);
-  // You should probably use CSurface::OnLoad ... ;)
-  //-- and make sure the Surface pointer is good!
-  GLuint titleTextureID = 0;
-  SDL_Surface* Surface = IMG_Load("textures/title.png");
-  if(!Surface)
+  if(!m_3d)
+  {
+     if (i=='w')
     {
-      printf("IMG_Load: %s\n", IMG_GetError());
-      std::cout<<"error"<<std::endl;
+      if(drawwall) drawwall=false;
+      else drawwall=true;
+    }
+    else if(i=='r')
+    {
+      if(renderoption==1) renderoption=2;
+      else renderoption=1;
+    }
+    else if(i=='0')
+    {
+      drawWith(0);
+    }
+    else if(i=='1')
+    {
+      drawWith(1);
     }
 
-  glGenTextures(1, &titleTextureID);
-  glBindTexture(GL_TEXTURE_2D, titleTextureID);
-
-  int Mode = GL_RGB;
-
-  if(Surface->format->BytesPerPixel == 4) {
-      Mode = GL_RGBA;
+    else if(i=='p')
+    {
+      clearWorld();
+      m_3d = true;
+      resize(pixelwidth,pixelheight);
+      if(renderoption==2) renderoption=1;
+    }
+  }
+  else if(i=='o')
+  {
+    clearWorld();
+    m_3d = false;
+    resize(pixelwidth,pixelheight);
   }
 
-  glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-
-
 }
+
+void World::mouseErase(int x, int y)
+{
+  float worldx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
+  float worldy = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
+  int grid_cell=floor((worldx+halfwidth)/squaresize)+floor((worldy+halfheight)/squaresize)*gridwidth;
+  if (cellsContainingParticles[grid_cell])
+  {
+    bool thereisanobject=false;
+    for(auto& i : grid[grid_cell])
+    {
+      if(!(i->isObject())) i->setDead();
+      thereisanobject=true;
+    }
+    std::list<Particle>::iterator i = particles.begin();
+    while (i != particles.end())
+    {
+      if (i->isDead())
+      {
+        particles.erase(i++);  // alternatively, i = items.erase(i);
+      }
+      else
+      {
+        ++i;
+      }
+    }
+    hashParticles();
+  }
+  m_previousmousex=x;
+  m_previousmousey=y;
+}
+
+//-------------------------SPRING FUNCTIONS----------------------------------------
 
 int World::insertSpring(Particle::Spring spring)
 {
@@ -1051,6 +1126,8 @@ void World::deleteSpring(int s)
   springs[s].alive=false;
   if(s+1<firstFreeSpring) firstFreeSpring=s+1;
 }
+
+//-------------------------GETTERS------------------------------
 
 float World::getHalfHeight() const
 {
@@ -1099,6 +1176,29 @@ void World::drawWith(int type)
     random.randomize();
     todraw=&random;
     howmanytimesrandomized++;
-
   }
+}
+
+//--------------------------3D STUFF ------------------------------------------------
+
+void World::mouseMove(const int &x, const int &y, bool leftclick, bool rightclick) {
+  // only called when clicked
+  float dx = (float)(x - m_previousmousex);
+  float dy = (float)(y - m_previousmousey);
+
+  if(leftclick)
+  {
+    glMatrixMode(GL_MODELVIEW);
+    if(abs(dx)>abs(dy)) glRotatef(dx * 0.1f, 0.f, -2.f, 0.f); // rotate left right
+    else glRotatef(dy * 0.1f, 1.f, 0.f, 0.f); // rotate up down
+  }
+
+  else if(rightclick)
+  {
+    glMatrixMode(GL_PROJECTION);
+    glTranslatef(0.0f,0.0f,dy*0.1);
+  }
+
+  m_previousmousex=x;
+  m_previousmousey=y;
 }

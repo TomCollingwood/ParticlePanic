@@ -53,6 +53,7 @@ public:
 
     void mouseDraw(int x, int y);
     void mouseDrag(int x, int y);
+    void mouseErase(int x, int y);
 
     std::vector<Particle *> getSurroundingParticles(int thiscell,int numsur, bool withwalls) const;
 
@@ -79,6 +80,8 @@ public:
 
     void drawWith(int type);
 
+    void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -101,7 +104,7 @@ protected: // Protected means that it is accessible to derived classes
     float halfwidth, halfheight;
     float interactionradius;
     float squaresize;
-    int gridheight, gridwidth;
+    int gridheight, gridwidth, griddepth;
     int pixelwidth, pixelheight;
 
     // RENDERING ATTRIBUTES
@@ -123,13 +126,14 @@ protected: // Protected means that it is accessible to derived classes
     bool drawwall;
     bool gravity;
 
-    int previousmousex, previousmousey;
+    int m_previousmousex, m_previousmousey;
 
     // FUN PARTICLE TYPES
     ParticleProperties water, poo, goo, oil, random;
     ParticleProperties *todraw;
 
     int howmanytimesrandomized;
+    bool m_3d;
 };
 
 #endif // WORLD_H
