@@ -30,7 +30,9 @@ public:
     mass(1.0f),
     m_properties(_properties),
     wall(false),
-    dragged(false)
+    dragged(false),
+    m_isPartOfObject(false),
+    m_init(false)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -73,6 +75,11 @@ public:
   bool getWall() const;
   void setWall(bool newwall);
 
+  void setIsObject();
+  bool isObject();
+  void setInit();
+  bool isInit();
+
   ParticleProperties *getProperties() const;
 
 //  void updateDeathTime();
@@ -89,6 +96,8 @@ private:
 
   bool wall;
 
+  bool m_isPartOfObject;
+  bool m_init;
   bool dragged;
 
   //std::vector<Spring *> particleSprings;

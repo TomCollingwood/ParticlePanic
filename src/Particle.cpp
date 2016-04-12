@@ -144,3 +144,23 @@ ParticleProperties *Particle::getProperties() const
 {
   return m_properties;
 }
+
+void Particle::setIsObject()
+{
+  m_isPartOfObject=true;
+}
+
+void Particle::setInit()
+{
+  m_init=true;
+}
+
+bool Particle::isInit()
+{
+  return m_init;
+}
+
+bool Particle::isObject()
+{
+  return m_isPartOfObject;
+}

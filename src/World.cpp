@@ -21,8 +21,8 @@ World::World() :
   interactionradius(1.0f),
   squaresize(1.0f),
   m_timestep(1.0f),
-  pointsize(10.0f),
-  renderthreshold(7000.0f),
+  pointsize(20.0f),
+  renderthreshold(800.0f),
   renderresolution(10),
   renderoption(2),
   rain(false),
@@ -74,22 +74,23 @@ void World::init() {
     particles.clear();
     springs.clear();
 
-
+    // DEFAULT PARTICLE PROPERTIES
     water=ParticleProperties();
+    //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
+    //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
     poo=ParticleProperties(false,0.3f,0.2f,0.004f,0.3f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false);
-
-    // RANDOMIZE:
     random=ParticleProperties();
     random.randomize();
-
-    todraw=&water;
-
+    todraw=&water; // This is the liquid to draw (tap or mouse)
 
     // create start two blocks of particles
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
+      {
         particles.push_back(Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f),todraw));
+        particles.back().setIsObject();
+      }
     }
 
 /*
@@ -213,14 +214,9 @@ void World::draw() {
               float metaballx = currentx-i.getPosition()[0];
               float metabally = currenty-i.getPosition()[1];
 
-              float metaballfloat = 40.f/(metaballx*metaballx + metabally*metabally);
+              float metaballfloat = 2.0f/(metaballx*metaballx + metabally*metabally);
 
               renderGrid[currentrow][currentcolumn]+=metaballfloat;
-
-              //            glBegin(GL_POINTS);
-              //            glColor3f(1.0f,1.0f,1.0f);
-              //            glVertex3f(currentx,currenty,-2.0f);
-              //            glEnd();
             }
           }
         }
@@ -239,238 +235,229 @@ void World::draw() {
           //3---7---4
 
 
-
-          float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
-          float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
-
-          float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
-          float p2y = p1y;
-
-          float p3x = p1x;
-          float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
-
-          float p4x = p2x;
-          float p4y = p3y;
-
-          float p5x = (p1x+p2x)/2.0f;
-          float p5y = p1y;
-
-          float p6x = p2x;
-          float p6y = (p2y+p4y)/2.0f;
-
-          float p7x = p5x;
-          float p7y = p3y;
-
-          float p8x = p1x;
-          float p8y = p6y;
-
-
           std::vector<bool> boolpoints;
           boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
           boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
           boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
           boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
 
-          //std::cout<<"p1x:"<<p1x<<std::endl;
-          //std::cout<<"p1y:"<<p1y<<std::endl;
+          bool empty=false;
 
-          //        glBegin(GL_POINTS);
-          //        glColor3f(1.0f,1.0f,1.0f);
-          //        glVertex3f(p1x,p1y,-2.0f);
-          //        glEnd();
+          if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3])
+          {
+            empty=true;
+          }
 
+          if(!empty)
+          {
+            float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
+            float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
 
-          if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001
-          {
-            //std::cout<<"hi mom";
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p6x,p6y,-2.0f);
-            glVertex3f(p7x,p7y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010
-          {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p8x,p8y,-2.0f);
-            glVertex3f(p7x,p7y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p8x,p8y,-2.0f);
-            glVertex3f(p6x,p6y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100
-          {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p5x,p5y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p6x,p6y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p5x,p5y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p7x,p7y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110
-          {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p5x,p5y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p6x,p6y,-2.0f);
-            glVertex3f(p8x,p8y,-2.0f);
-            glVertex3f(p7x,p7y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-          }
-          else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.0f,0.0f,0.0f);
-            glVertex3f(p1x,p1y,-1.5f);
-            glVertex3f(p5x,p5y,-1.5f);
-            glVertex3f(p8x,p8y,-1.5f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000
-          {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-1.5f);
-            glVertex3f(p5x,p5y,-1.5f);
-            glVertex3f(p8x,p8y,-1.5f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001
-          {
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-1.5f);
-            glVertex3f(p5x,p5y,-1.5f);
-            glVertex3f(p8x,p8y,-1.5f);
-            glVertex3f(p7x,p7y,-1.5f);
-            glVertex3f(p6x,p6y,-1.5f);
-            glVertex3f(p4x,p4y,-1.5f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p5x,p5y,-2.0f);
-            glVertex3f(p7x,p7y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.0f,0.0f,0.0f);
-            glVertex3f(p2x,p2y,-1.5f);
-            glVertex3f(p6x,p6y,-1.5f);
-            glVertex3f(p5x,p5y,-1.5f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p6x,p6y,-2.0f);
-            glVertex3f(p8x,p8y,-2.0f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.0f,0.0f,0.0f);
-            glVertex3f(p3x,p3y,-1.5f);
-            glVertex3f(p8x,p8y,-1.5f);
-            glVertex3f(p7x,p7y,-1.5f);
-            glEnd();
-          }
-          else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
-          {
-            glBegin(GL_QUADS);
-            glColor3f(0.5f,1.0f,0.831f);
-            glVertex3f(p1x,p1y,-2.0f);
-            glVertex3f(p2x,p2y,-2.0f);
-            glVertex3f(p4x,p4y,-2.0f);
-            glVertex3f(p3x,p3y,-2.0f);
-            glEnd();
-            glBegin(GL_TRIANGLES);
-            glColor3f(0.0f,0.0f,0.0f);
-            glVertex3f(p6x,p6y,-1.5f);
-            glVertex3f(p4x,p4y,-1.5f);
-            glVertex3f(p7x,p7y,-1.5f);
-            glEnd();
+            float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
+            float p2y = p1y;
+
+            float p3x = p1x;
+            float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
+
+            float p4x = p2x;
+            float p4y = p3y;
+
+            float p5x = (p1x+p2x)/2.0f;
+            float p5y = p1y;
+
+            float p6x = p2x;
+            float p6y = (p2y+p4y)/2.0f;
+
+            float p7x = p5x;
+            float p7y = p3y;
+
+            float p8x = p1x;
+            float p8y = p6y;
+
+            if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001
+            {
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p6x,p6y,-2.0f);
+              glVertex3f(p7x,p7y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010
+            {
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p8x,p8y,-2.0f);
+              glVertex3f(p7x,p7y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p8x,p8y,-2.0f);
+              glVertex3f(p6x,p6y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100
+            {
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p5x,p5y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p6x,p6y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p5x,p5y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p7x,p7y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110
+            {
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p5x,p5y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p6x,p6y,-2.0f);
+              glVertex3f(p8x,p8y,-2.0f);
+              glVertex3f(p7x,p7y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+            }
+            else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.0f,0.0f,0.0f);
+              glVertex3f(p1x,p1y,-1.5f);
+              glVertex3f(p5x,p5y,-1.5f);
+              glVertex3f(p8x,p8y,-1.5f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000
+            {
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-1.5f);
+              glVertex3f(p5x,p5y,-1.5f);
+              glVertex3f(p8x,p8y,-1.5f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001
+            {
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-1.5f);
+              glVertex3f(p5x,p5y,-1.5f);
+              glVertex3f(p8x,p8y,-1.5f);
+              glVertex3f(p7x,p7y,-1.5f);
+              glVertex3f(p6x,p6y,-1.5f);
+              glVertex3f(p4x,p4y,-1.5f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p5x,p5y,-2.0f);
+              glVertex3f(p7x,p7y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.0f,0.0f,0.0f);
+              glVertex3f(p2x,p2y,-1.5f);
+              glVertex3f(p6x,p6y,-1.5f);
+              glVertex3f(p5x,p5y,-1.5f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p6x,p6y,-2.0f);
+              glVertex3f(p8x,p8y,-2.0f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.0f,0.0f,0.0f);
+              glVertex3f(p3x,p3y,-1.5f);
+              glVertex3f(p8x,p8y,-1.5f);
+              glVertex3f(p7x,p7y,-1.5f);
+              glEnd();
+            }
+            else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
+            {
+              glBegin(GL_QUADS);
+              glColor3f(0.5f,1.0f,0.831f);
+              glVertex3f(p1x,p1y,-2.0f);
+              glVertex3f(p2x,p2y,-2.0f);
+              glVertex3f(p4x,p4y,-2.0f);
+              glVertex3f(p3x,p3y,-2.0f);
+              glEnd();
+              glBegin(GL_TRIANGLES);
+              glColor3f(0.0f,0.0f,0.0f);
+              glVertex3f(p6x,p6y,-1.5f);
+              glVertex3f(p4x,p4y,-1.5f);
+              glVertex3f(p7x,p7y,-1.5f);
+              glEnd();
+            }
           }
         }
 
       }
-      //GRID2
-
-
-      //clear render grid
 
       for(auto& i : renderGrid)
       {
         i.assign(renderwidth+1,0.0f);
       }
-      // */
-
     }
-
 }
 
 
@@ -492,6 +479,7 @@ void World::update() {
 
     //make it rain
 
+    // 2d/3d different
 
     static int everyother = 0;
     everyother++;
@@ -500,13 +488,13 @@ void World::update() {
     {
       int divisor = 5; //(int)(0.00005f/m_timestep);
       if(divisor==0) divisor=1;
-      if(everyother%3==0){
-        for(int i = 0; i<5; ++i)
+      //if(everyother%2==0){
+        for(int i = 0; i<10; ++i)
         {
-          particles.push_back(Particle(Vec3(-3.0f+i*0.2f,4.4f),todraw));
-          particles.back().addVelocity(Vec3(0.0f,-30.0f));
+          particles.push_back(Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5),todraw));
+          particles.back().addVelocity(Vec3(0.0f,20.0f));
         }
-      }
+      //}
     }
     //*/
 
@@ -577,8 +565,6 @@ void World::update() {
 
     //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
 
-
-
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
@@ -590,7 +576,7 @@ void World::update() {
         //std::cout<<"START";
         for(auto& i : grid[k])
         {
-          if(i->getProperties()->getSpring())
+          if(i->getProperties()->getSpring() && (!i->isObject() || (i->isObject() && !i->isInit()) ) && !i->getWall())
           {
             for(auto& j : surroundingParticles)
             {
@@ -654,7 +640,7 @@ void World::update() {
                 }
               }
             }
-
+            i->setInit();
           }
         }
       }
@@ -673,7 +659,7 @@ void World::update() {
         Vec3 rij = (*(i.indexj)).getPosition() - (*(i.indexi)).getPosition();
         float rijmag = rij.length();
 
-        if(rijmag>interactionradius)
+        if(rijmag>interactionradius && !i.indexi->isObject())
         {
           deleteSpring(count);
         }
@@ -749,6 +735,8 @@ void World::update() {
     }
 
     //----------------------------------BOUNDARIES --------------------------------------------
+
+    // 2d/3d different
 
     for (auto& it : particles)
     {
@@ -886,17 +874,35 @@ Vec3 World::getRenderGridxyfromIndex(int k) //wrong
 
 void World::mouseDraw(int x, int y)
 {
-  //if(x%2==0 && y%2==0)
-  //{
-    //std::cout<<"yoo"<<std::endl;
+    float objectdensity=0.1f;
+
     float currentx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
     float currenty = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
-    //std::cout<<"x"<<x<<"y"<<y<<std::endl;
-    //particles.push_back(Particle(Vec3(currentx,currenty)));
-    particles.push_back(Particle(Vec3(currentx,currenty),&water));
-    if(drawwall) particles.back().setWall(true);
-  //}
 
+    float correctedx = floor(currentx/objectdensity + 0.5f);
+    correctedx*=objectdensity;
+
+    float correctedy = floor(currenty/objectdensity + 0.5f);
+    correctedy*=objectdensity;
+
+    bool drawparticle=true;
+    int grid_cell=floor((correctedx+halfwidth)/squaresize)+floor((correctedy+halfheight)/squaresize)*gridwidth;
+    for(auto& i : grid[grid_cell])
+    {
+      if(i->getPosition()[0]==correctedx && i->getPosition()[1]==correctedy)
+      {
+        drawparticle=false;
+        break;
+      }
+    }
+
+    if(drawparticle)
+    {
+      particles.push_back(Particle(Vec3(correctedx,correctedy),&water));
+      if(drawwall) particles.back().setWall(true);
+      particles.back().setIsObject();
+      hashParticles();
+    }
 }
 
 void World::mouseDrag(int x, int y)
@@ -1054,8 +1060,13 @@ void World::toggleRain()
 void World::clearWorld()
 {
   particles.clear();
-  springs.clear();
   hashParticles();
+
+  Particle::Spring defaultspring;
+  defaultspring.alive=false;
+  springs.clear();
+  springs.resize(springsize,defaultspring);
+  firstFreeSpring=0;
 }
 
 void World::toggleGravity()

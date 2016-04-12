@@ -143,6 +143,8 @@ int main( int argc, char* args[] ) {
     //Enable text input
     SDL_StartTextInput();
 
+    bool pause=false;
+
     //While application is running
     while( !quit )
     {
@@ -239,8 +241,10 @@ int main( int argc, char* args[] ) {
           world->mouseDraw( x, y );
         }
 
-
-        world->update();
+        if(!(leftMouseOnWorld&&toolbar->getDraw()))
+        {
+          world->update();
+        }
         //Render the World
         world->draw();
         toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());

@@ -16,19 +16,38 @@
 class ParticleProperties
 {
 public:
-  ParticleProperties(bool spring=false,
+
+  ParticleProperties(bool spring=true,
                      GLfloat _sigma=0.0f,
-                     GLfloat _beta=0.2f,
-                     GLfloat _gamma=0.004f,
-                     GLfloat _alpha=0.3f,
+                     GLfloat _beta=0.1f,
+                     GLfloat _gamma=0.4f,
+                     GLfloat _alpha=3.0f,
                      GLfloat _knear=0.01f,
                      GLfloat _k=0.004f,
-                     GLfloat _kspring=0.3f,
+                     GLfloat _kspring=0.05f,
                      GLfloat _p0=10.0f,
                      GLfloat _red=0,
                      GLfloat _green=0,
                      GLfloat _blue=1.0f,
                      bool _coloureffect=true):
+
+
+    //water
+    /*
+    ParticleProperties(bool spring=false,
+                       GLfloat _sigma=0.0f,
+                       GLfloat _beta=0.1f,
+                       GLfloat _gamma=0.004f,
+                       GLfloat _alpha=0.3f,
+                       GLfloat _knear=0.01f,
+                       GLfloat _k=0.004f,
+                       GLfloat _kspring=0.3f,
+                       GLfloat _p0=10.0f,
+                       GLfloat _red=0,
+                       GLfloat _green=0,
+                       GLfloat _blue=1.0f,
+                       bool _coloureffect=true):
+                        //  */
     m_spring(spring),
     m_sigma(_sigma),
     m_beta(_beta),
