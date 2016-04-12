@@ -24,7 +24,8 @@ HEADERS +== \
 LIBS += -L/usr/local/lib
 
 linux: {
-  LIBS += -lSDL2 -lglut -lGLU -lGL
+  LIBS+=$$system(sdl2-config --libs)
+  LIBS += -lSDL2 -lglut -lGLU -lGL -lSDL2_image -lGLEW -L/usr/local/lib/
 }
 
 macx: {

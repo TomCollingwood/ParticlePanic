@@ -4,13 +4,16 @@
 #ifdef __APPLE__
   #include <OpenGL/gl.h>
   #include <OpenGL/glu.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #else
   #include <GL/gl.h>
   #include <GL/glu.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #endif
 
-#include <SDL.h>
-#include <SDL_image.h>
+
 #include <iostream>
 
 #include <include/World.h>

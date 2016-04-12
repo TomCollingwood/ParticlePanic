@@ -4,18 +4,26 @@
 #endif
 
 // Includes needed for SDL and GL
-//#include <SDL2/SDL.h>
-#include <SDL.h>
-#include <SDL_image.h>
+//
+
+
 #include <iostream>
 
 #ifdef __APPLE__
   #include <OpenGL/gl.h>
   #include <OpenGL/glu.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #else
+  #include <SDL2/SDL.h>
+  #include <SDL2/SDL_image.h>
   #include <GL/gl.h>
   #include <GL/glu.h>
 #endif
+
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 // Include the header file for our current World

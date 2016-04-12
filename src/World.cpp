@@ -7,8 +7,19 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+
+#ifdef __APPLE__
+  #include <OpenGL/gl.h>
+  #include <OpenGL/glu.h>
 #include <SDL.h>
 #include <SDL_image.h>
+#else
+  #include <SDL2/SDL.h>
+  #include <SDL2/SDL_image.h>
+  #include <GL/gl.h>
+  #include <GL/glu.h>
+#endif
+
 //#include <SDL2_image>
 
 /**
