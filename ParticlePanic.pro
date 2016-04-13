@@ -11,7 +11,8 @@ SOURCES += src/main.cpp \
     src/Particle.cpp \
     src/World.cpp \
     src/Toolbar.cpp \
-    src/ParticleProperties.cpp
+    src/ParticleProperties.cpp \
+    src/Commands.cpp
 
 HEADERS +== \
     include/Particle.h \
@@ -19,7 +20,8 @@ HEADERS +== \
     include/Mat3.h \
     include/World.h \
     include/Toolbar.h \
-    include/ParticleProperties.h
+    include/ParticleProperties.h \
+    include/Commands.h
 
 LIBS += -L/usr/local/lib
 

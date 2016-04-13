@@ -42,7 +42,7 @@ public:
                        GLfloat _knear=0.01f,
                        GLfloat _k=0.004f,
                        GLfloat _kspring=0.3f,
-                       GLfloat _p0=10.0f,
+                       GLfloat _p0=5.0f,
                        GLfloat _red=0,
                        GLfloat _green=0,
                        GLfloat _blue=1.0f,

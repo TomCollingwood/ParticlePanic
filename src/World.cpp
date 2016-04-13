@@ -33,8 +33,8 @@ World::World() :
   squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  mainrenderthreshold(70.f),
-  renderresolution(5),
+  mainrenderthreshold(80.f),
+  renderresolution(6),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -634,11 +634,23 @@ void World::hashParticles()
   {
     if(particles[i].isAlive())
     {
-      grid_cell=
-          floor((particles[i].getPosition()[0]+halfwidth)/squaresize)+
-          floor((particles[i].getPosition()[1]+halfheight)/squaresize)*gridwidth;
+      float positionx = particles[i].getPosition()[0];
+      float positiony = particles[i].getPosition()[1];
+      float positionz = particles[i].getPosition()[2];
+      if(positionx<-halfwidth) positionx=halfwidth;
+      else if (positionx>halfwidth) positionx=halfwidth;
+      if(positiony<-halfheight) positiony=halfheight;
+      else if (positiony>halfheight) positiony=halfheight;
+      if(positionz<-2-halfwidth) positionz=-2-halfwidth;
+      else if (positionz>-2+halfwidth) positionz=-2+halfwidth;
 
-      if(m_3d) grid_cell+=floor((particles[i].getPosition()[2]+halfwidth)/squaresize)*gridwidth*gridheight;
+
+      grid_cell=
+          floor((positionx+halfwidth)/squaresize)+
+          floor((positiony+halfheight)/squaresize)*gridwidth;
+
+
+      if(m_3d) grid_cell+=floor((positionz+halfwidth)/squaresize)*gridwidth*gridheight;
 
       particles[i].setGridPosition(grid_cell);
 
@@ -1229,19 +1241,29 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
         }
         else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110 COULD CHANGE TO SEE
         {
-          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-          p6y=p4y+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-          p8y=p1y-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+          p5x=p1x+(p2x-p1x)*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          p6y=p4y+(p2y-p4y)*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          p7x=p4x+(p3x-p4x)*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+          p8y=p1y+(p3y-p1y)*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
 
           glBegin(GL_TRIANGLES);
           glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
           glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
+
+          glVertex3f(p5x,p5y,-2.0f);
           glVertex3f(p6x,p6y,-2.0f);
           glVertex3f(p8x,p8y,-2.0f);
+
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
           glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
+
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p3x,p2y,-2.0f);
+
           glEnd();
         }
         else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111 TICK
@@ -1269,27 +1291,38 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
 
           glBegin(GL_TRIANGLES);
           glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-1.5f);
-          glVertex3f(p5x,p5y,-1.5f);
-          glVertex3f(p8x,p8y,-1.5f);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
           glEnd();
         }
         else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001 COULD CHANGE TO SEE
         {
-          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-          p6y=p2y-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-          p8y=p3y+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+          p5x=p2x+(p1x-p2x)*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          p6y=p2y+(p4y-p2y)*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+          p7x=p3x+(p4x-p3x)*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+          p8y=p3y+(p1y-p3y)*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
 
 
           glBegin(GL_TRIANGLES);
           glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-1.5f);
-          glVertex3f(p5x,p5y,-1.5f);
-          glVertex3f(p8x,p8y,-1.5f);
-          glVertex3f(p7x,p7y,-1.5f);
-          glVertex3f(p6x,p6y,-1.5f);
-          glVertex3f(p4x,p4y,-1.5f);
+          //glColor3f(1.0f,1.0f,1.0f);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+
           glEnd();
         }
         else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK
