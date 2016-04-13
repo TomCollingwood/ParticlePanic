@@ -258,7 +258,7 @@ int main( int argc, char* args[] ) {
           world->mouseDraw( x, y );
         }
 
-        if(!(leftMouseOnWorld&&toolbar->getDraw()))
+        if(!(leftMouseOnWorld&&toolbar->getDraw())) //|| toolbar->getDrag())
         {
           world->update();
         }

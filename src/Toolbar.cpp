@@ -2,6 +2,7 @@
 
 void Toolbar::drawTitle(float halfheight, float halfwidth) const
 {
+  glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
   // You should probably use CSurface::OnLoad ... ;)
   //-- and make sure the Surface pointer is good!
@@ -40,13 +41,12 @@ void Toolbar::drawTitle(float halfheight, float halfwidth) const
   glEnd();
 
   glDisable(GL_TEXTURE_2D);
+  glEnable(GL_LIGHTING);
 }
 
 void Toolbar::drawToolbar(float halfheight, float halfwidth) const
 {
-
-
-
+  glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
   // You should probably use CSurface::OnLoad ... ;)
   //-- and make sure the Surface pointer is good!
@@ -193,6 +193,7 @@ void Toolbar::drawToolbar(float halfheight, float halfwidth) const
 
 
   glDisable(GL_TEXTURE_2D);
+  glEnable(GL_LIGHTING);
 }
 
 void Toolbar::handleClickDown(World *world, int WIDTH, int x)

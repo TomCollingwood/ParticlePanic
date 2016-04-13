@@ -1,5 +1,6 @@
 #ifndef MAT3_H__
 #define MAT3_H__
+
 #ifdef __linux__
   #include <GL/gl.h>
 #endif
@@ -7,15 +8,20 @@
   #include <OpenGL/gl.h>
 #endif
 
+#include <cassert>
+
 class Mat3{
   public:
     Mat3();
     Mat3(GLfloat _s=1.0f);
+    Mat3(float input[9]);
     Mat3(const Mat3 &_r)=default;
-    void operator *=(const Mat3 &_rhs);
-    Mat3 operator *(const Mat3 &_rhs) const;
-    void identity();
-    const Mat3& transpose();
+    //void operator *=(const Mat3 &_rhs);
+    //Vec3 operator *(Vec3 &_rhs) const;
+    //Mat3 operator *(const Mat3 &_rhs) const;
+    //void identity();
+    //const Mat3& transpose();
+    GLfloat & operator [](int _i);
   union
   {
     float m_m[3][3];

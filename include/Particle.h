@@ -21,6 +21,7 @@ class Particle
 {
 public:
   typedef struct spring{Particle *indexi, *indexj; GLfloat L; int count; bool alive;} Spring;
+
   //Particle();
   Particle(const Particle &_p) = default;
   Particle(Vec3 pos=Vec3(), ParticleProperties *_properties=NULL) :

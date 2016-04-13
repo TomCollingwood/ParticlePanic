@@ -1,6 +1,4 @@
 #include "include/Vec3.h"
-#include <cmath>
-#include <cassert>
 
 float Vec3::dot(const Vec3 &_rhs) const
 {
@@ -127,4 +125,23 @@ void Vec3::vertexGL() const
 {
   glVertex3f(m_x,m_y,m_z);
 }
+
+Vec3 Vec3::operator *(Mat3 &_rhs)
+{
+  return Vec3(_rhs[0]*m_x+_rhs[1]*m_y+_rhs[2]*m_z,
+              _rhs[3]*m_x+_rhs[4]*m_y+_rhs[5]*m_z,
+              _rhs[6]*m_x+_rhs[7]*m_y+_rhs[8]*m_z);
+}
+
+void Vec3::rotateAroundXAxisf(float degrees)
+{
+    float matrixcontents[9] = {1.0f,0.0f,0.0f,0.0f,cos(degrees),-sin(degrees),0.0f,sin(degrees),cos(degrees)};
+    Mat3 matrix = Mat3(matrixcontents);
+    Vec3 result = Vec3(m_x,m_y,m_z);
+    result=result*matrix;
+    m_x=result[0];
+    m_y=result[1];
+    m_z=result[2];
+}
+
 

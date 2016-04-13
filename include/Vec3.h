@@ -8,6 +8,11 @@
   #include <OpenGL/gl.h>
 #endif
 
+#include <cmath>
+#include <cassert>
+
+#include"include/Mat3.h"
+
 class Vec3
 {
 public:
@@ -27,8 +32,9 @@ public:
   void normalize();
   Vec3 perpendicular();
 
+  void rotateAroundXAxisf(float degrees);
 
-  //Vec3 operator *(const Mat3 &_r) const;
+  Vec3 operator *(Mat3 &_rhs);
   Vec3 operator *(GLfloat _rhs) const;
   void operator *=(GLfloat _rhs);
   Vec3 operator /(GLfloat _rhs) const;

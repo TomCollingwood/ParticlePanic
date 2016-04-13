@@ -2,7 +2,7 @@
 
 void Particle::drawParticle()
 {
-  glBegin(GL_POINTS);
+  //glBegin(GL_POINTS);
   if(!wall)
   {
     float fast=velocity.length()*5;
@@ -19,8 +19,22 @@ void Particle::drawParticle()
   {
     glColor3f(1.0f,0.0f,0.0f);
   }
-  glVertex3f(position[0],position[1],position[2]);
-  glEnd();
+
+  glMatrixMode(GL_MODELVIEW);
+
+  glPushMatrix();
+  glTranslatef(position[0], position[1], position[2]); // move back to focus of gluLookAt
+
+  GLUquadricObj *quadric;
+  quadric = gluNewQuadric();
+  gluQuadricDrawStyle(quadric, GLU_FILL );
+  gluSphere( quadric , 0.25 , 16 , 16 );
+  gluDeleteQuadric(quadric);
+
+  glPopMatrix();
+
+  //glVertex3f(position[0],position[1],position[2]);
+  //glEnd();
 }
 
 void Particle::updatePosition(double elapsedtime)

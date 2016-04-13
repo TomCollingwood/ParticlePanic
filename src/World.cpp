@@ -32,14 +32,15 @@ World::World() :
   interactionradius(1.0f),
   squaresize(1.0f),
   m_timestep(1.0f),
-  pointsize(5.0f),
+  pointsize(20.0f),
   renderthreshold(800.0f),
   renderresolution(10),
   renderoption(1),
   rain(false),
   drawwall(false),
   gravity(true),
-  springsize(200000),
+  springsize(500000),
+  particlesPoolSize(3000),
   m_3d(false)
 {
 }
@@ -64,14 +65,20 @@ void World::init() {
     glFrontFace(GL_CCW); // front face - determines normal in order you specify vertices
 
     //glEnable(GL_LIGHTING);
-    glDisable(GL_LIGHTING); // no longer need normals or lights
+    glEnable(GL_LIGHTING); // no longer need normals or lights
     glEnable(GL_NORMALIZE);
+    glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT_MODEL_AMBIENT);
+
+    GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
+    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 
     // Make our points lovely and smooth
     glEnable( GL_POINT_SMOOTH );
     glEnable( GL_MULTISAMPLE_ARB);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_POINT_SIZE);
+    glEnable(GL_COLOR_MATERIAL);
     glPointSize(pointsize);
 
     // Set the background colour
@@ -119,6 +126,9 @@ void World::init() {
     m_previousmousex=-10;
     m_previousmousey=-10;
 
+    m_camerarotatey=0.0f;
+    m_camerarotatex=0.0f;
+
     Particle::Spring defaultspring;
     defaultspring.alive=false;
     springs.resize(springsize,defaultspring);
@@ -151,7 +161,8 @@ void World::resize(int w, int h) {
 
   float i = 5;
   float ara = float(w)/float(h);
-  glOrtho(-i*ara,i*ara,-i,i,0.1, 10000000000.0);
+
+  glOrtho(-i*ara,i*ara,-i,i,0.1, 5000.0);
 
   halfheight=i;
   halfwidth=i*ara;
@@ -199,8 +210,16 @@ void World::draw() {
     if (!m_isInit) return;
 
     glMatrixMode(GL_MODELVIEW);
-    //glRotatef(1.0f, 1.f, 0.f, 0.f);
 
+    if(m_3d)
+    {
+      glPushMatrix();
+      glTranslatef(0.0f,2.0f,-10.0f);
+      glTranslatef(0.0f, 0.0f, -2.0f); // move back to focus of gluLookAt
+      glRotatef(m_camerarotatex,0.0f,1.0f,0.0f); //  rotate around center
+      glRotatef(m_camerarotatey,1.0f,0.0f,0.0f); //  rotate around center
+      glTranslatef(0.0f, 0.0f, 2.0f); //move object to center
+    }
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     if(renderoption==1){
@@ -474,6 +493,8 @@ void World::draw() {
         i.assign(renderwidth+1,0.0f);
       }
     }
+
+    if(m_3d) glPopMatrix();
 }
 
 
@@ -528,9 +549,12 @@ void World::update() {
     // ------------------------------GRAVITY --------------------------------------------
     if(gravity)
     {
+      Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
+      gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
+
       for(auto& i : particles)
       {
-        i.applyGravity(m_timestep);
+        i.addVelocity(gravityvel);
       }
     }
 
@@ -597,11 +621,8 @@ void World::update() {
     {
       if(cellsContainingParticles[k])
       {
-        //std::cout<<"not now"<<std::endl;
         std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,3,false);
-        // std::cout<<(int)surroundingParticles.size()<<std::endl;
 
-        //std::cout<<"START";
         for(auto& i : grid[k])
         {
           if(i->getProperties()->getSpring() && (!i->isObject() || (i->isObject() && !i->isInit()) ) && !i->getWall())
@@ -657,7 +678,6 @@ void World::update() {
                     if(rijmag>L+d)
                     {
                       springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
-                      //std::cout<<"checkinG!!"<<std::endl;
                     }
                     else if(rijmag<L-d)
                     {
@@ -676,7 +696,6 @@ void World::update() {
 
     // delete springs if over rest length?
 
-    //std::cout<<firstFreeSpring<<std::endl;
 
     //spring displacements
 
@@ -695,7 +714,6 @@ void World::update() {
         else{
           rij.normalize();
           Vec3 D = rij*m_timestep*m_timestep*i.indexi->getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
-          //if((1-(springs[i].L/interactionradius))!=0) std::cout<<(1-(springs[i].L/interactionradius))<<"<---"<<std::endl;
           i.indexi->addPosition(-D/2);
           i.indexj->addPosition(D/2);
         }
@@ -759,7 +777,6 @@ void World::update() {
       for(auto& i : list)
       {
         i->setVelocity((i->getPosition()-i->getPrevPosition())/m_timestep);
-        std::cout<<i->getVelocity()[2]<<std::endl;
       }
     }
 
@@ -767,8 +784,12 @@ void World::update() {
 
     // 2d/3d different
 
+    float smallen = 0.4f;
+    if(!m_3d) smallen=1.0f;
+
     for (auto& it : particles)
     {
+
       if(it.getPosition()[1]-0.5f<-halfheight)
       {
         it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f,it.getPosition()[2]));
@@ -781,28 +802,27 @@ void World::update() {
         it.addVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1],0.0f));
       }
 
-      if(it.getPosition()[0]>halfwidth-0.5f)
+      if(it.getPosition()[0]>(halfwidth-0.5f)*smallen)
       {
-        it.setPosition(Vec3(halfwidth-0.5f,it.getPosition()[1],it.getPosition()[2]));
+        it.setPosition(Vec3(smallen*(halfwidth-0.5f),it.getPosition()[1],it.getPosition()[2]));
         it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
       }
 
-      if(it.getPosition()[0]<-halfwidth+0.5f)
+      if(it.getPosition()[0]<(-halfwidth+0.5f)*smallen)
       {
-        it.setPosition(Vec3(-halfwidth+0.5f,it.getPosition()[1],it.getPosition()[2]));
+        it.setPosition(Vec3(smallen*(-halfwidth+0.5f),it.getPosition()[1],it.getPosition()[2]));
         it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
       }
 
-
-      if(it.getPosition()[2]<-2-halfwidth+0.5f)
+      if(it.getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
       {
-        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2-halfwidth+0.5));
+        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2-(halfwidth+0.5)*smallen));
         it.addVelocity(Vec3(0.0f,0.0f,-0.8f*it.getVelocity()[2]));
       }
 
-      if(it.getPosition()[2]>-2+halfwidth-0.5f)
+      if(it.getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
       {
-        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2+halfwidth-0.5f));
+        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2+(halfwidth-0.5f)*smallen));
         it.addVelocity(Vec3(0.0f,0.0f,-0.8f*it.getVelocity()[2]));
       }
     }
@@ -810,7 +830,7 @@ void World::update() {
 
     if(everyother%30==0)
     {
-      //std::cout<<"Numebr:"<<particles.size()<<std::endl;
+      std::cout<<"Numebr:"<<particles.size()<<std::endl;
     }
 
     /*
@@ -837,6 +857,8 @@ void World::update() {
       particles.clear();
     }
     // */
+
+
 
 }
 
@@ -970,14 +992,15 @@ void World::mouseDraw(int x, int y)
 
 void World::mouseDrag(int x, int y)
 {
+  std::cout<<x<<std::endl;
   if(m_previousmousex>0 && m_previousmousey>0)
   {
     float toaddx = (x-m_previousmousex)*((halfwidth*2)/(float)pixelwidth);
     float toaddy = (y-m_previousmousey)*((halfwidth*2)/(float)pixelwidth);
-    //std::cout<<toaddx<<std::endl;
+
     for(auto& i : draggedParticles)
     {
-      i->addPosition(Vec3(toaddx,-toaddy));
+      i->addPosition(Vec3(toaddx,-toaddy,0.0f));
       getbackhere(&(*i));
     }
     hashParticles();
@@ -1036,6 +1059,14 @@ void World::handleKeys(char i)
     if(gravity) gravity=false;
     else gravity=true;
   }
+  else if(i=='0')
+  {
+    drawWith(0);
+  }
+  else if(i=='1')
+  {
+    drawWith(1);
+  }
 
   if(!m_3d)
   {
@@ -1049,14 +1080,6 @@ void World::handleKeys(char i)
       if(renderoption==1) renderoption=2;
       else renderoption=1;
     }
-    else if(i=='0')
-    {
-      drawWith(0);
-    }
-    else if(i=='1')
-    {
-      drawWith(1);
-    }
 
     else if(i=='p')
     {
@@ -1064,6 +1087,8 @@ void World::handleKeys(char i)
       m_3d = true;
       resize(pixelwidth,pixelheight);
       if(renderoption==2) renderoption=1;
+      m_camerarotatex=0.0f;
+      m_camerarotatey=0.0f;
     }
   }
   else if(i=='o')
@@ -1171,8 +1196,6 @@ void World::drawWith(int type)
   }
   else if(type==1)
   {
-    std::cout<<std::endl<<std::endl;
-    std::cout<<"RANDOMIZED NO."<<howmanytimesrandomized<<"###################"<<std::endl;
     random.randomize();
     todraw=&random;
     howmanytimesrandomized++;
@@ -1182,23 +1205,27 @@ void World::drawWith(int type)
 //--------------------------3D STUFF ------------------------------------------------
 
 void World::mouseMove(const int &x, const int &y, bool leftclick, bool rightclick) {
-  // only called when clicked
-  float dx = (float)(x - m_previousmousex);
-  float dy = (float)(y - m_previousmousey);
-
-  if(leftclick)
+  if(m_3d)
   {
-    glMatrixMode(GL_MODELVIEW);
-    if(abs(dx)>abs(dy)) glRotatef(dx * 0.1f, 0.f, -2.f, 0.f); // rotate left right
-    else glRotatef(dy * 0.1f, 1.f, 0.f, 0.f); // rotate up down
-  }
+    // only called when clicked
+    float dx = (float)(x - m_previousmousex);
+    float dy = (float)(y - m_previousmousey);
 
-  else if(rightclick)
-  {
-    glMatrixMode(GL_PROJECTION);
-    glTranslatef(0.0f,0.0f,dy*0.1);
-  }
+    if(leftclick)
+    {
+      m_camerarotatex+=dx*0.1f;
+      m_camerarotatey+=dy*0.1f;
+      std::cout<<m_camerarotatey<<std::endl;
+    }
 
-  m_previousmousex=x;
-  m_previousmousey=y;
+    else if(rightclick)
+    {
+      m_camerazoom+=dx*0.1f;
+      //std::cout<<m_camerazoom<<std::endl;
+    }
+
+    m_previousmousex=x;
+    m_previousmousey=y;
+
+  }
 }

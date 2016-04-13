@@ -94,7 +94,11 @@ protected: // Protected means that it is accessible to derived classes
 
     double m_timestep;
 
+    // PARTICLES
     std::list<Particle> particles; // std::list keeps it's pointers when reallocated
+    int particlesPoolSize;
+    int firstFreeParticle;
+    int lastTakenParticle;
 
     std::vector<std::vector<Particle *>> grid;
     std::vector<bool> cellsContainingParticles;
@@ -134,6 +138,9 @@ protected: // Protected means that it is accessible to derived classes
 
     int howmanytimesrandomized;
     bool m_3d;
+
+    float m_camerarotatey, m_camerarotatex, m_camerazoom;
+
 };
 
 #endif // WORLD_H
