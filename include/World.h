@@ -145,7 +145,6 @@ protected: // Protected means that it is accessible to derived classes
     bool m_3d;
 
     float m_camerarotatey, m_camerarotatex, m_camerazoom;
-
 };
 
 #endif // WORLD_H
