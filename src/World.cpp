@@ -32,9 +32,9 @@ World::World() :
   interactionradius(1.0f),
   squaresize(1.0f),
   m_timestep(1.0f),
-  pointsize(20.0f),
-  renderthreshold(200.0f),
-  renderresolution(6),
+  pointsize(10.0f),
+  mainrenderthreshold(70.f),
+  renderresolution(5),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -191,13 +191,6 @@ void World::resize(int w, int h) {
 
   renderwidth=gridwidth*renderresolution;
   renderheight=gridheight*renderresolution;
-
-  renderGrid.clear();
-  renderGrid.resize(renderheight+1);
-  for(auto& i : renderGrid)
-  {
-    i.resize(renderwidth+1,0.0f);
-  }
 }
 
 /**
@@ -229,321 +222,15 @@ void World::draw() {
     else if(renderoption==2)
     {
       glDisable(GL_LIGHTING);
-      float rendersquare=squaresize/renderresolution;
-      for(int i=0; i<lastTakenParticle+1; ++i)
-      {
-        if(particles[i].isAlive())
-        {
-          Vec3 heightwidth = getGridColumnRow(particles[i].getGridPosition())*renderresolution;
-          for(int x = -1*renderresolution; x<=2*renderresolution; ++x)
-          {
-            for(int y = -1*renderresolution; y<=2*renderresolution ; ++y)
-            {
-              int currentcolumn=heightwidth[0]+x;
-              int currentrow=heightwidth[1]+y;
 
-              if(currentcolumn<renderwidth && currentcolumn>0 &&
-                 currentrow<renderheight && currentrow>0)
-              {
-                float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
-                float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
+      std::vector<std::vector<float>> waterRenderGrid = renderGrid(&water);
+      drawMarchingSquares(waterRenderGrid,water,false);
+      drawMarchingSquares(waterRenderGrid,water,true);
 
-                float metaballx = currentx-particles[i].getPosition()[0];
-                float metabally = currenty-particles[i].getPosition()[1];
+      std::vector<std::vector<float>> randomRenderGrid = renderGrid(&random);
+      drawMarchingSquares(randomRenderGrid,random,false);
+      drawMarchingSquares(randomRenderGrid,random,true);
 
-                float metaballfloat = 2.0f/(metaballx*metaballx + metabally*metabally);
-
-                renderGrid[currentrow][currentcolumn]+=metaballfloat;
-              }
-            }
-          }
-        }
-      }
-
-      for(int currentrow=0; currentrow<renderheight; ++currentrow)
-      {
-        for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
-        {
-
-
-          //1---5---2
-          //|       |
-          //8       6
-          //|       |
-          //3---7---4
-
-
-          std::vector<bool> boolpoints;
-          boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
-          boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
-          boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
-          boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
-
-          bool empty=false;
-
-          if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3])
-          {
-            empty=true;
-          }
-
-          if(!empty)
-          {
-            float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
-            float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
-
-            float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
-            float p2y = p1y;
-
-            float p3x = p1x;
-            float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
-
-            float p4x = p2x;
-            float p4y = p3y;
-
-            float p5x = (p1x+p2x)/2.0f;
-            float p5y = p1y;
-
-            float p6x = p2x;
-            float p6y = (p2y+p4y)/2.0f;
-
-            float p7x = p5x;
-            float p7y = p3y;
-
-            float p8x = p1x;
-            float p8y = p6y;
-
-            //p=p+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-
-
-            if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111 TICK
-            {
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001 TICK
-            {
-              p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-              p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p6x,p6y,-2.0f);
-              glVertex3f(p7x,p7y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010 TICK
-            {
-              p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-              p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.5f,1.0f,0.831f);   
-              glVertex3f(p8x,p8y,-2.0f);
-              glVertex3f(p7x,p7y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011 TICK
-            {
-              p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-              p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p8x,p8y,-2.0f);
-              glVertex3f(p6x,p6y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100 TICK
-            {
-              p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-              p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p5x,p5y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p6x,p6y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101 TICK
-            {
-              p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-              p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p5x,p5y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p7x,p7y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110 COULD CHANGE TO SEE
-            {
-              p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-              p6y=p4y+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-              p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-              p8y=p1y-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p5x,p5y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p6x,p6y,-2.0f);
-              glVertex3f(p8x,p8y,-2.0f);
-              glVertex3f(p7x,p7y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-            }
-            else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111 TICK
-            {
-              p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-              p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.0f,0.0f,0.0f);
-              glVertex3f(p1x,p1y,-1.5f);
-              glVertex3f(p5x,p5y,-1.5f);
-              glVertex3f(p8x,p8y,-1.5f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000 TICK
-            {
-              p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-              p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-1.5f);
-              glVertex3f(p5x,p5y,-1.5f);
-              glVertex3f(p8x,p8y,-1.5f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001 COULD CHANGE TO SEE
-            {
-              p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-              p6y=p2y-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-              p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-              p8y=p3y+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-1.5f);
-              glVertex3f(p5x,p5y,-1.5f);
-              glVertex3f(p8x,p8y,-1.5f);
-              glVertex3f(p7x,p7y,-1.5f);
-              glVertex3f(p6x,p6y,-1.5f);
-              glVertex3f(p4x,p4y,-1.5f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK
-            {
-              p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-              p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p5x,p5y,-2.0f);
-              glVertex3f(p7x,p7y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011 TICK
-            {
-              p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-              p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.0f,0.0f,0.0f);
-              glVertex3f(p2x,p2y,-1.5f);
-              glVertex3f(p6x,p6y,-1.5f);
-              glVertex3f(p5x,p5y,-1.5f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100 TICK
-            {
-              p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-              p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p6x,p6y,-2.0f);
-              glVertex3f(p8x,p8y,-2.0f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101 TICK
-            {
-              p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-              p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.0f,0.0f,0.0f);
-              glVertex3f(p3x,p3y,-1.5f);
-              glVertex3f(p8x,p8y,-1.5f);
-              glVertex3f(p7x,p7y,-1.5f);
-              glEnd();
-            }
-            else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
-            {
-              p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-              p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-
-              glBegin(GL_QUADS);
-              glColor3f(0.5f,1.0f,0.831f);
-              glVertex3f(p1x,p1y,-2.0f);
-              glVertex3f(p2x,p2y,-2.0f);
-              glVertex3f(p4x,p4y,-2.0f);
-              glVertex3f(p3x,p3y,-2.0f);
-              glEnd();
-              glBegin(GL_TRIANGLES);
-              glColor3f(0.0f,0.0f,0.0f);
-              glVertex3f(p6x,p6y,-1.5f);
-              glVertex3f(p4x,p4y,-1.5f);
-              glVertex3f(p7x,p7y,-1.5f);
-              glEnd();
-            }
-          }
-        }
-
-      }
-
-      for(auto& i : renderGrid)
-      {
-        i.assign(renderwidth+1,0.0f);
-      }
       glEnable(GL_LIGHTING);
     }
 
@@ -580,10 +267,10 @@ void World::update() {
       if(everyother%4==0){
         if(!m_3d)
         {
-          for(int i = 0; i<5; ++i)
+          for(int i = 0; i<10; ++i)
           {
             Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-2.0f),todraw);
-            newParticle.addVelocity(Vec3(0.0f,-50.0f,0.0f));
+            newParticle.addVelocity(Vec3(0.0f,-60.0f,0.0f));
             insertParticle(newParticle);
           }
         }
@@ -593,7 +280,7 @@ void World::update() {
           {
             for(int i = 0; i<5; ++i)
             {
-              Particle newParticle =Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-3.0f+j*0.2f),todraw);
+              Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),todraw);
               newParticle.addVelocity(Vec3(0.0f,-50.0f,0.0f));
               insertParticle(newParticle);
             }
@@ -606,7 +293,7 @@ void World::update() {
     if(gravity)
     {
       Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
-      gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
+      //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
 
       for(int i=0; i<lastTakenParticle+1; ++i)
       {
@@ -1355,6 +1042,342 @@ void World::mouseMove(const int &x, const int &y, bool leftclick, bool rightclic
 
     m_previousmousex=x;
     m_previousmousey=y;
-
   }
 }
+
+std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
+{
+  std::vector<std::vector<float>> rendergrid;
+  rendergrid.clear();
+  rendergrid.resize(renderheight+1);
+  for(auto& i : rendergrid)
+  {
+    i.resize(renderwidth+1,0.0f);
+  }
+
+  float rendersquare=squaresize/renderresolution;
+  for(int i=0; i<lastTakenParticle+1; ++i)
+  {
+    if(particles[i].isAlive()&&(particles[i].getProperties()==p))
+    {
+      Vec3 heightwidth = getGridColumnRow(particles[i].getGridPosition())*renderresolution;
+      for(int x = -2*renderresolution; x<=4*renderresolution; ++x)
+      {
+        for(int y = -2*renderresolution; y<=4*renderresolution ; ++y)
+        {
+          int currentcolumn=heightwidth[0]+x;
+          int currentrow=heightwidth[1]+y;
+
+          if(currentcolumn<renderwidth && currentcolumn>0 &&
+             currentrow<renderheight && currentrow>0)
+          {
+            float currentx = rendersquare*(float)currentcolumn - halfwidth;
+            float currenty = rendersquare*(float)currentrow - halfheight;
+
+            float metaballx = currentx-particles[i].getPosition()[0];
+            float metabally = currenty-particles[i].getPosition()[1];
+
+            float metaballfloat = (interactionradius*interactionradius)/(metaballx*metaballx + metabally*metabally);
+
+            rendergrid[currentrow][currentcolumn]+=metaballfloat;
+          }
+        }
+      }
+    }
+  }
+  return rendergrid;
+}
+
+void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner)
+{
+  float red = p.getRed();
+  float green = p.getGreen();
+  float blue = p.getBlue();
+
+  float renderthreshold = mainrenderthreshold;
+  if(inner)
+  {
+    renderthreshold=0.7f*renderthreshold;
+    red+=0.4;
+    green+=0.4;
+    blue+=0.4;
+  }
+
+  float rendersquare=squaresize/renderresolution;
+
+  for(int currentrow=0; currentrow<renderheight; ++currentrow)
+  {
+    for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
+    {
+
+      //1---5---2
+      //|       |
+      //8       6
+      //|       |
+      //3---7---4
+
+
+      std::vector<bool> boolpoints;
+      boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
+      boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
+      boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
+      boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
+
+      bool empty=false;
+
+      if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3])
+      {
+        empty=true;
+      }
+
+      if(!empty)
+      {
+        float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
+        float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
+
+        float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
+        float p2y = p1y;
+
+        float p3x = p1x;
+        float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
+
+        float p4x = p2x;
+        float p4y = p3y;
+
+        float p5x = (p1x+p2x)/2.0f;
+        float p5y = p1y;
+
+        float p6x = p2x;
+        float p6y = (p2y+p4y)/2.0f;
+
+        float p7x = p5x;
+        float p7y = p3y;
+
+        float p8x = p1x;
+        float p8y = p6y;
+
+        if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111 TICK
+        {
+          glBegin(GL_QUADS);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001 TICK
+        {
+          p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010 TICK
+        {
+          p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011 TICK
+        {
+          p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+          p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+          glBegin(GL_QUADS);
+          glColor3f(red,green,blue);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100 TICK
+        {
+          p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101 TICK
+        {
+          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+
+          glBegin(GL_QUADS);
+          glColor3f(red,green,blue);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110 COULD CHANGE TO SEE
+        {
+          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          p6y=p4y+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+          p8y=p1y-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glEnd();
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111 TICK
+        {
+          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000 TICK
+        {
+          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-1.5f);
+          glVertex3f(p5x,p5y,-1.5f);
+          glVertex3f(p8x,p8y,-1.5f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001 COULD CHANGE TO SEE
+        {
+          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          p6y=p2y-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+          p8y=p3y+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-1.5f);
+          glVertex3f(p5x,p5y,-1.5f);
+          glVertex3f(p8x,p8y,-1.5f);
+          glVertex3f(p7x,p7y,-1.5f);
+          glVertex3f(p6x,p6y,-1.5f);
+          glVertex3f(p4x,p4y,-1.5f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK
+        {
+          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+
+          glBegin(GL_QUADS);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011 TICK
+        {
+          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100 TICK
+        {
+          p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+          glBegin(GL_QUADS);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101 TICK
+        {
+          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+          p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p8x,p8y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p4x,p4y,-2.0f);
+          glEnd();
+        }
+        else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
+        {
+          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+          p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+
+          glBegin(GL_TRIANGLES);
+          glColor3f(red,green,blue);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p1x,p1y,-2.0f);
+          glVertex3f(p7x,p7y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
+
+          glEnd();
+        }
+      }
+    }
+
+  }
+
+
+}
+

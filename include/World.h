@@ -83,6 +83,9 @@ public:
 
     void drawWith(int type);
 
+    std::vector<std::vector<float>> renderGrid(ParticleProperties *p);
+    void drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner);
+
     void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
 
 protected: // Protected means that it is accessible to derived classes
@@ -106,7 +109,8 @@ protected: // Protected means that it is accessible to derived classes
 
     std::vector<std::vector<Particle *>> grid;
     std::vector<bool> cellsContainingParticles;
-    std::vector<std::vector<float>> renderGrid;
+
+    //std::vector<std::vector<float>> renderGrid;
 
     // WORLD SIZE ATTRIBUTES
     float halfwidth, halfheight;
@@ -117,7 +121,7 @@ protected: // Protected means that it is accessible to derived classes
 
     // RENDERING ATTRIBUTES
     float pointsize;
-    float renderthreshold;
+    float mainrenderthreshold;
     int renderresolution;
     int renderwidth, renderheight;
     int renderoption;

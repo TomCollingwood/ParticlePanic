@@ -135,7 +135,7 @@ Vec3 Vec3::operator *(Mat3 &_rhs)
 
 void Vec3::rotateAroundXAxisf(float degrees)
 {
-    float matrixcontents[9] = {1.0f,0.0f,0.0f,0.0f,cos(degrees),-sin(degrees),0.0f,sin(degrees),cos(degrees)};
+    float matrixcontents[9] = {1.0f,0.0f,0.0f,0.0f,(float)cos(degrees),(float)-sin(degrees),0.0f,(float)sin(degrees),(float)cos(degrees)};
     Mat3 matrix = Mat3(matrixcontents);
     Vec3 result = Vec3(m_x,m_y,m_z);
     result=result*matrix;
