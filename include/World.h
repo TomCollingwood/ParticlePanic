@@ -71,6 +71,9 @@ public:
     void deleteSpring(int s);
     int insertSpring(Particle::Spring spring);
 
+    void deleteParticle(int p);
+    void insertParticle(Particle particle);
+
     float getHalfHeight() const;
     float getHalfWidth() const;
 
@@ -95,10 +98,11 @@ protected: // Protected means that it is accessible to derived classes
     double m_timestep;
 
     // PARTICLES
-    std::list<Particle> particles; // std::list keeps it's pointers when reallocated
+    std::vector<Particle> particles; // std::list keeps it's pointers when reallocated
     int particlesPoolSize;
     int firstFreeParticle;
     int lastTakenParticle;
+    int howManyAliveParticles;
 
     std::vector<std::vector<Particle *>> grid;
     std::vector<bool> cellsContainingParticles;
@@ -121,6 +125,7 @@ protected: // Protected means that it is accessible to derived classes
     // SPRING ATTRIBUTES
     std::vector<Particle::Spring> springs;
     int firstFreeSpring;
+    int lastTakenSpring;
     int springsize;
 
     std::vector<Particle *> draggedParticles;

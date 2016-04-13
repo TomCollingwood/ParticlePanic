@@ -266,7 +266,7 @@ int main( int argc, char* args[] ) {
         world->draw();
         //Render the World
         world->draw();
-        toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
+        //toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
         toolbar->drawToolbar(world->getHalfHeight(), world->getHalfWidth());
 
 

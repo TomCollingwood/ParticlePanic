@@ -93,6 +93,18 @@ void World::init() {
     particles.clear();
     springs.clear();
 
+    Particle defaultparticle;
+    defaultparticle.setAlive(false);
+    particles.resize(particlesPoolSize,defaultparticle);
+    firstFreeParticle=0;
+    lastTakenParticle=-1;
+    howManyAliveParticles=0;
+
+    Particle::Spring defaultspring;
+    defaultspring.alive=false;
+    springs.resize(springsize,defaultspring);
+    firstFreeSpring=0;
+
     // DEFAULT PARTICLE PROPERTIES
     water=ParticleProperties();
     //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
@@ -101,6 +113,12 @@ void World::init() {
     random=ParticleProperties();
     random.randomize();
     todraw=&water; // This is the liquid to draw (tap or mouse)
+
+    m_previousmousex=-10;
+    m_previousmousey=-10;
+
+    m_camerarotatey=0.0f;
+    m_camerarotatex=0.0f;
 
     // create start two blocks of particles
     for(int i = 0; i<10; ++i)
@@ -121,25 +139,6 @@ void World::init() {
     for(auto& i : particles)
       i.addVelocity(Vec3(((float)(rand() % 100 - 50)*0.001f),((float)(rand() % 10000 - 50))*0.001f));
 */
-
-
-    m_previousmousex=-10;
-    m_previousmousey=-10;
-
-    m_camerarotatey=0.0f;
-    m_camerarotatex=0.0f;
-
-    Particle::Spring defaultspring;
-    defaultspring.alive=false;
-    springs.resize(springsize,defaultspring);
-    firstFreeSpring=0;
-
-
-    // FUN PARTICLE TYPES
-
-
-
-    //Any other glTex* stuff here
 
     m_isInit = true;
 }
@@ -223,35 +222,38 @@ void World::draw() {
 
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     if(renderoption==1){
-      for(auto& i : particles){
-        i.drawParticle();
+      for(int i=0; i<lastTakenParticle+1; ++i){
+        if(particles[i].isAlive()) particles[i].drawParticle();
       }
     }
 
     else if(renderoption==2)
     {
-      for(auto& i : particles)
+      for(int i=0; i<lastTakenParticle+1; ++i)
       {
-        Vec3 heightwidth = getGridColumnRow(i.getGridPosition())*renderresolution;
-        for(int x = -1*renderresolution; x<=2*renderresolution; ++x)
+        if(particles[i].isAlive())
         {
-          for(int y = -1*renderresolution; y<=2*renderresolution ; ++y)
+          Vec3 heightwidth = getGridColumnRow(particles[i].getGridPosition())*renderresolution;
+          for(int x = -1*renderresolution; x<=2*renderresolution; ++x)
           {
-            int currentcolumn=heightwidth[0]+x;
-            int currentrow=heightwidth[1]+y;
-
-            if(currentcolumn<renderwidth && currentcolumn>0 &&
-               currentrow<renderheight && currentrow>0)
+            for(int y = -1*renderresolution; y<=2*renderresolution ; ++y)
             {
-              float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
-              float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
+              int currentcolumn=heightwidth[0]+x;
+              int currentrow=heightwidth[1]+y;
 
-              float metaballx = currentx-i.getPosition()[0];
-              float metabally = currenty-i.getPosition()[1];
+              if(currentcolumn<renderwidth && currentcolumn>0 &&
+                 currentrow<renderheight && currentrow>0)
+              {
+                float currentx = squaresize/renderresolution*(float)currentcolumn - halfwidth;
+                float currenty = squaresize/renderresolution*(float)currentrow - halfheight;
 
-              float metaballfloat = 2.0f/(metaballx*metaballx + metabally*metabally);
+                float metaballx = currentx-particles[i].getPosition()[0];
+                float metabally = currenty-particles[i].getPosition()[1];
 
-              renderGrid[currentrow][currentcolumn]+=metaballfloat;
+                float metaballfloat = 2.0f/(metaballx*metaballx + metabally*metabally);
+
+                renderGrid[currentrow][currentcolumn]+=metaballfloat;
+              }
             }
           }
         }
@@ -528,8 +530,9 @@ void World::update() {
         {
           for(int i = 0; i<5; ++i)
           {
-            particles.push_back(Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-2.0f),todraw));
-            particles.back().addVelocity(Vec3(0.0f,-50.0f,0.0f));
+            Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-2.0f),todraw);
+            newParticle.addVelocity(Vec3(0.0f,-50.0f,0.0f));
+            insertParticle(newParticle);
           }
         }
         else
@@ -538,8 +541,9 @@ void World::update() {
           {
             for(int i = 0; i<5; ++i)
             {
-              particles.push_back(Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-3.0f+j*0.2f),todraw));
-              particles.back().addVelocity(Vec3(0.0f,-50.0f,0.0f));
+              Particle newParticle =Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-3.0f+j*0.2f),todraw);
+              newParticle.addVelocity(Vec3(0.0f,-50.0f,0.0f));
+              insertParticle(newParticle);
             }
           }
         }
@@ -552,9 +556,9 @@ void World::update() {
       Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
       gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
 
-      for(auto& i : particles)
+      for(int i=0; i<lastTakenParticle+1; ++i)
       {
-        i.addVelocity(gravityvel);
+        if(particles[i].isAlive()) particles[i].addVelocity(gravityvel);
       }
     }
 
@@ -608,10 +612,14 @@ void World::update() {
 
     //------------------------------------------POSITION----------------------------------------
 
-    for(auto& i : particles)
+    for(int i=0; i<lastTakenParticle+1; ++i)
     {
-      i.updatePrevPosition();
-      if(!(i.getDrag())&&!(i.getWall())) i.updatePosition(m_timestep);
+      if(particles[i].isAlive())
+      {
+        particles[i].updatePrevPosition();
+        if(!(particles[i].getDrag())&&!(particles[i].getWall()))
+          particles[i].updatePosition(m_timestep);
+      }
     }
     hashParticles();
 
@@ -643,8 +651,8 @@ void World::update() {
 
                   for(auto& spring : i->particleSprings)
                   {
-                    if(((springs[spring].indexi==i) && (springs[spring].indexj==j)) ||
-                       ((springs[spring].indexi==j) && (springs[spring].indexj==i)))
+                    if(((springs[spring].indexi==i->getIndex()) && (springs[spring].indexj==j->getIndex())) ||
+                       ((springs[spring].indexi==j->getIndex()) && (springs[spring].indexj==i->getIndex())))
                     {
                       springs[spring].alive=true;
                       thisspring=spring;
@@ -656,8 +664,8 @@ void World::update() {
                   if(!quiter)
                   {
                     Particle::Spring newspring;
-                    newspring.indexi=i;
-                    newspring.indexj=j;
+                    newspring.indexi=i->getIndex();
+                    newspring.indexj=j->getIndex();
                     newspring.count=everyother-1;
                     newspring.alive=true;
                     newspring.L = interactionradius; // maybe change this to sum of radius of two particles
@@ -703,19 +711,19 @@ void World::update() {
     for(auto& i : springs)
     {
       if(i.alive){
-        Vec3 rij = (*(i.indexj)).getPosition() - (*(i.indexi)).getPosition();
+        Vec3 rij = (particles[i.indexj].getPosition() - particles[i.indexi].getPosition());
         float rijmag = rij.length();
 
-        if(rijmag>interactionradius && !i.indexi->isObject())
+        if(rijmag>interactionradius && !particles[i.indexi].isObject())
         {
           deleteSpring(count);
         }
 
         else{
           rij.normalize();
-          Vec3 D = rij*m_timestep*m_timestep*i.indexi->getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
-          i.indexi->addPosition(-D/2);
-          i.indexj->addPosition(D/2);
+          Vec3 D = rij*m_timestep*m_timestep*particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
+          particles[i.indexi].addPosition(-D/2);
+          particles[i.indexj].addPosition(D/2);
         }
 
       }
@@ -787,50 +795,59 @@ void World::update() {
     float smallen = 0.4f;
     if(!m_3d) smallen=1.0f;
 
-    for (auto& it : particles)
+    for(int i=0; i<lastTakenParticle+1; ++i)
     {
-
-      if(it.getPosition()[1]-0.5f<-halfheight)
+      if(particles[i].isAlive())
       {
-        it.setPosition(Vec3(it.getPosition()[0],-halfheight+0.5f,it.getPosition()[2]));
-        it.setVelocity(Vec3(0.5f*it.getVelocity()[0],-0.5f*it.getVelocity()[1],0.0f));
-      }
+        if(particles[i].getPosition()[1]-0.5f<-halfheight)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
+          particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
+        }
 
-      if(it.getPosition()[1]+1.5f>halfheight)
-      {
-        it.setPosition(Vec3(it.getPosition()[0],halfheight-1.5f,it.getPosition()[2]));
-        it.addVelocity(Vec3(0.0f,-0.8f*it.getVelocity()[1],0.0f));
-      }
+        if(particles[i].getPosition()[1]+1.5f>halfheight)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],halfheight-1.5f,particles[i].getPosition()[2]));
+          particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
+        }
 
-      if(it.getPosition()[0]>(halfwidth-0.5f)*smallen)
-      {
-        it.setPosition(Vec3(smallen*(halfwidth-0.5f),it.getPosition()[1],it.getPosition()[2]));
-        it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
-      }
+        if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
+          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+        }
 
-      if(it.getPosition()[0]<(-halfwidth+0.5f)*smallen)
-      {
-        it.setPosition(Vec3(smallen*(-halfwidth+0.5f),it.getPosition()[1],it.getPosition()[2]));
-        it.addVelocity(Vec3(-0.8f*it.getVelocity()[0],0.0f));
-      }
+        if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
+          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+        }
 
-      if(it.getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
-      {
-        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2-(halfwidth+0.5)*smallen));
-        it.addVelocity(Vec3(0.0f,0.0f,-0.8f*it.getVelocity()[2]));
-      }
+        if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+        }
 
-      if(it.getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
-      {
-        it.setPosition(Vec3(it.getPosition()[0],it.getPosition()[1],-2+(halfwidth-0.5f)*smallen));
-        it.addVelocity(Vec3(0.0f,0.0f,-0.8f*it.getVelocity()[2]));
+        if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+        }
       }
     }
     //----------------------------------CLEANUP ------------------------------------------------
 
     if(everyother%30==0)
     {
-      std::cout<<"Numebr:"<<particles.size()<<std::endl;
+      std::cout<<"Numebr:"<<howManyAliveParticles<<std::endl;
+    }
+
+    int howmany=howManyAliveParticles;
+    if(howmany==0) howmany=1;
+    if((lastTakenParticle-firstFreeParticle)/howmany >0.5)
+    {
+      std::cout<<"\a"<<std::endl;
     }
 
     /*
@@ -874,20 +891,23 @@ void World::hashParticles()
   std::vector<Particle *> newvector;
   grid.assign(gridSize,newvector);
   int grid_cell;
-  for(auto& i : particles)
+  for(int i=0; i<lastTakenParticle+1; ++i)
   {
-    grid_cell=
-        floor((i.getPosition()[0]+halfwidth)/squaresize)+
-        floor((i.getPosition()[1]+halfheight)/squaresize)*gridwidth;
-
-    if(m_3d) grid_cell+=floor((i.getPosition()[2]+halfwidth)/squaresize)*gridwidth*gridheight;
-
-    i.setGridPosition(grid_cell);
-
-    if(grid_cell>=0 && grid_cell<gridSize)
+    if(particles[i].isAlive())
     {
-      cellsContainingParticles[grid_cell]=true;
-      grid[grid_cell].push_back(&i);
+      grid_cell=
+          floor((particles[i].getPosition()[0]+halfwidth)/squaresize)+
+          floor((particles[i].getPosition()[1]+halfheight)/squaresize)*gridwidth;
+
+      if(m_3d) grid_cell+=floor((particles[i].getPosition()[2]+halfwidth)/squaresize)*gridwidth*gridheight;
+
+      particles[i].setGridPosition(grid_cell);
+
+      if(grid_cell>=0 && grid_cell<gridSize)
+      {
+        cellsContainingParticles[grid_cell]=true;
+        grid[grid_cell].push_back(&particles[i]);
+      }
     }
   }
 }
@@ -984,8 +1004,9 @@ void World::mouseDraw(int x, int y)
 
     if(drawparticle)
     {
-      particles.push_back(Particle(Vec3(correctedx,correctedy,-2.0f),&water));
-      if(drawwall) particles.back().setWall(true);
+      Particle newparticle = Particle(Vec3(correctedx,correctedy,-2.0f),&water);
+      if(drawwall) newparticle.setWall(true);
+      insertParticle(newparticle);
       hashParticles();
     }
 }
@@ -1110,20 +1131,8 @@ void World::mouseErase(int x, int y)
     bool thereisanobject=false;
     for(auto& i : grid[grid_cell])
     {
-      if(!(i->isObject())) i->setDead();
+      if(!(i->isObject())) deleteParticle(i->getIndex());
       thereisanobject=true;
-    }
-    std::list<Particle>::iterator i = particles.begin();
-    while (i != particles.end())
-    {
-      if (i->isDead())
-      {
-        particles.erase(i++);  // alternatively, i = items.erase(i);
-      }
-      else
-      {
-        ++i;
-      }
     }
     hashParticles();
   }
@@ -1131,8 +1140,63 @@ void World::mouseErase(int x, int y)
   m_previousmousey=y;
 }
 
+//------------------------PARTICLES FUNCTIONS-------------------------------------
+
+void World::insertParticle(Particle particle)
+{
+  particles[firstFreeParticle]=particle;
+  particles[firstFreeParticle].setIndex(firstFreeParticle);
+  if(lastTakenParticle<firstFreeParticle)
+  {
+    ++lastTakenParticle;
+    ++firstFreeParticle;
+  }
+  else{
+    while(particles[firstFreeParticle].isAlive()==true)
+    {
+      ++firstFreeParticle;
+    }
+  }
+  ++howManyAliveParticles;
+}
+
+void World::deleteParticle(int p)
+{
+  particles[p].setAlive(false);
+  if(lastTakenParticle==p)
+  {
+    while(particles[lastTakenParticle].isAlive()==false && lastTakenParticle>-1)
+    {
+      --lastTakenParticle;
+    }
+  }
+  if(firstFreeParticle>p) firstFreeParticle=p;
+  --howManyAliveParticles;
+}
+
+
+
 //-------------------------SPRING FUNCTIONS----------------------------------------
 
+int World::insertSpring(Particle::Spring spring)
+{
+  int result = firstFreeSpring;
+  springs[firstFreeSpring]=spring;
+  if(lastTakenParticle<firstFreeSpring)
+  {
+    ++lastTakenSpring;
+    ++firstFreeSpring;
+  }
+  else{
+    while(springs[firstFreeSpring].alive==true)
+    {
+      ++firstFreeSpring;
+    }
+  }
+  return result;
+}
+
+/*
 int World::insertSpring(Particle::Spring spring)
 {
   for(int i = firstFreeSpring; i< springsize; ++i)
@@ -1145,11 +1209,18 @@ int World::insertSpring(Particle::Spring spring)
     }
   }
 }
-
+// */
 void World::deleteSpring(int s)
 {
   springs[s].alive=false;
-  if(s+1<firstFreeSpring) firstFreeSpring=s+1;
+  if(lastTakenSpring==s)
+  {
+    while(springs[lastTakenSpring].alive==false)
+    {
+      --lastTakenSpring;
+    }
+  }
+  if(firstFreeSpring>s) firstFreeSpring=s;
 }
 
 //-------------------------GETTERS------------------------------
@@ -1173,6 +1244,12 @@ void World::toggleRain()
 void World::clearWorld()
 {
   particles.clear();
+  Particle defaultparticle;
+  defaultparticle.setAlive(false);
+  particles.resize(particlesPoolSize,defaultparticle);
+  firstFreeParticle=0;
+  lastTakenParticle=-1;
+
   hashParticles();
 
   Particle::Spring defaultspring;

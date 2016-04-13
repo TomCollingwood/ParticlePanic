@@ -178,12 +178,22 @@ bool Particle::isObject()
   return m_isPartOfObject;
 }
 
-void Particle::setDead()
+void Particle::setAlive(bool i)
 {
-  dead=true;
+  m_alive=i;
 }
 
-bool Particle::isDead()
+bool Particle::isAlive()
 {
-  return dead;
+  return m_alive;
+}
+
+void Particle::setIndex(int i)
+{
+  m_index=i;
+}
+
+int Particle::getIndex()
+{
+  return m_index;
 }

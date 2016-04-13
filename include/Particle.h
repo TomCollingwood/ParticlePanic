@@ -20,7 +20,7 @@
 class Particle
 {
 public:
-  typedef struct spring{Particle *indexi, *indexj; GLfloat L; int count; bool alive;} Spring;
+  typedef struct spring{int indexi, indexj; GLfloat L; int count; bool alive;} Spring;
 
   //Particle();
   Particle(const Particle &_p) = default;
@@ -34,7 +34,7 @@ public:
     dragged(false),
     m_isPartOfObject(false),
     m_init(false),
-    dead(false)
+    m_alive(true)
 /*  system(prop),
     rotation(0.0f),
     timeToDeath(-1),
@@ -76,13 +76,18 @@ public:
 
   bool getWall() const;
   void setWall(bool newwall);
-  void setDead();
-  bool isDead();
 
   void setIsObject();
   bool isObject();
   void setInit();
   bool isInit();
+
+  void setAlive(bool i);
+  bool isAlive();
+
+  void setIndex(int i);
+  int getIndex();
+
 
   ParticleProperties *getProperties() const;
 
@@ -103,7 +108,8 @@ private:
   bool m_isPartOfObject;
   bool m_init;
   bool dragged;
-  bool dead;
+  bool m_alive;
+  int m_index;
 
   //std::vector<Spring *> particleSprings;
 
