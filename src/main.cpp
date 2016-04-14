@@ -138,7 +138,7 @@ int main( int argc, char* args[] ) {
     // Use a timer to update our World. This is the best way to handle updates,
     // as the timer runs in a separate thread and is therefore not affected by the
     // rendering performance.
-    SDL_TimerID timerID = SDL_AddTimer(10, /*elapsed time in milliseconds*/
+    SDL_TimerID timerID = SDL_AddTimer(30, /*elapsed time in milliseconds*/
                                      timerCallback, /*callback function*/
                                      (void*) NULL /*parameters (none)*/);
 

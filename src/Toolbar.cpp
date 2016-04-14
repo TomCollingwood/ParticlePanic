@@ -203,54 +203,31 @@ void Toolbar::handleClickDown(World *world, int WIDTH, int x)
   float worldx = ((float)x/(float)WIDTH)*(halfwidth*2) - halfwidth;
 
   if(worldx>startx && worldx<startx+1)  // draw
-  {
-    if(!draw) draw=true;
-    clickdownbutton=0;
-    if(drag) drag=false;
-    if(erase) erase=false;
-  }
+    pressDraw(world);
+
   else if(worldx>startx+1 && worldx<startx+2.2) // erase
-  {
-    if(!erase) erase=true;
-    clickdownbutton=1;
-    if(draw) draw=false;
-    if(drag) drag=false;
-  }
+    pressErase(world);
+
   else if(worldx>startx+2.2 && worldx<startx+3.2) //drag
-  {
-    toggleBool(&drag);
-    clickdownbutton=2;
-    if(draw) draw=false;
-    if(erase) erase=false;
-  }
+    pressDrag(world);
+
   else if(worldx>startx+3.2 && worldx<startx+4.2) //tap
-  {
-    toggleBool(&tap);
-    world->toggleRain();
-    clickdownbutton=3;
-  }
+    pressTap(world);
+
   else if(worldx>startx+4.2 && worldx<startx+5.2)//gravity
-  {
-    toggleBool(&gravity);
-    world->toggleGravity();
-    clickdownbutton=4;
-  }
+    pressGravity(world);
+
   else if(worldx>startx+5.2 && worldx<startx+6.2) //clear
-  {
-    toggleBool(&clear);
-    clickdownbutton=5;
-    world->clearWorld();
-  }
+    pressClear(world);
+
   else if(worldx>startx+5.2 && worldx<startx+6.2) //help
-  {
-    toggleBool(&help);
-    clickdownbutton=5;
-  }
+    pressHelp(world);
 }
 
 void Toolbar::handleClickUp()
 {
   if (clickdownbutton==5) toggleBool(&clear);
+  if (clickdownbutton==6) toggleBool(&help);
 }
 
 void Toolbar::toggleBool(bool *toggleme)
@@ -279,4 +256,52 @@ bool Toolbar::getErase()
   return erase;
 }
 
+void Toolbar::pressDraw(World *world)
+{
+  if(!draw) draw=true;
+  if(drag) drag=false;
+  if(erase) erase=false;
+}
 
+void Toolbar::pressErase(World *world)
+{
+  if(!erase) erase=true;
+  clickdownbutton=1;
+  if(draw) draw=false;
+  if(drag) drag=false;
+}
+
+void Toolbar::pressDrag(World *world)
+{
+  toggleBool(&drag);
+  clickdownbutton=2;
+  if(draw) draw=false;
+  if(erase) erase=false;
+}
+
+void Toolbar::pressTap(World *world)
+{
+  toggleBool(&tap);
+  world->toggleRain();
+  clickdownbutton=3;
+}
+
+void Toolbar::pressGravity(World *world)
+{
+  toggleBool(&gravity);
+  world->toggleGravity();
+  clickdownbutton=4;
+}
+
+void Toolbar::pressClear(World *world)
+{
+  toggleBool(&clear);
+  clickdownbutton=5;
+  world->clearWorld();
+}
+
+void Toolbar::pressHelp(World *world)
+{
+  toggleBool(&help);
+  clickdownbutton=6;
+}

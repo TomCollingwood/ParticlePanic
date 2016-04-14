@@ -34,7 +34,7 @@ World::World() :
   m_timestep(1.0f),
   pointsize(10.0f),
   mainrenderthreshold(80.f),
-  renderresolution(6),
+  renderresolution(5),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -823,13 +823,11 @@ void World::handleKeys(char i)
 {
   if(i=='i') // inflow
   {
-    if(rain) rain=false;
-    else rain=true;
+    toggleRain();
   }
   else if(i=='g')
   {
-    if(gravity) gravity=false;
-    else gravity=true;
+    toggleGravity();
   }
   else if(i=='0')
   {
@@ -1248,9 +1246,10 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
 
           glBegin(GL_TRIANGLES);
           glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
+          //glColor3f(1.0f,0.0f,0.0f);
           glVertex3f(p5x,p5y,-2.0f);
+          glVertex3f(p2x,p2y,-2.0f);
+          glVertex3f(p6x,p6y,-2.0f);
 
           glVertex3f(p5x,p5y,-2.0f);
           glVertex3f(p6x,p6y,-2.0f);
@@ -1262,7 +1261,7 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
 
           glVertex3f(p8x,p8y,-2.0f);
           glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p3x,p2y,-2.0f);
+          glVertex3f(p3x,p3y,-2.0f);
 
           glEnd();
         }
@@ -1306,7 +1305,8 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
 
           glBegin(GL_TRIANGLES);
           glColor3f(red,green,blue);
-          //glColor3f(1.0f,1.0f,1.0f);
+
+
           glVertex3f(p1x,p1y,-2.0f);
           glVertex3f(p5x,p5y,-2.0f);
           glVertex3f(p8x,p8y,-2.0f);
@@ -1408,9 +1408,6 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
         }
       }
     }
-
   }
-
-
 }
 

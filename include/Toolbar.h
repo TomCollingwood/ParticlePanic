@@ -41,6 +41,15 @@ public:
   bool getHelp();
   bool getErase();
 
+  void pressDraw(World *world);
+  void pressDrag(World *world);
+  void pressErase(World *world);
+  void pressGravity(World *world);
+  void pressClear(World *world);
+  void pressHelp(World *world);
+  void pressTap(World *world);
+
+
 private:
   bool draw, erase, drag, tap, gravity, clear, help;
   GLuint iconsTexture, titleTexture;

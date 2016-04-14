@@ -31,7 +31,37 @@ private:
 class MouseDrag : public Command
 {
 public:
+  void execute();
+  void setxy(int _x, int _y);
+private:
+  int m_x, m_y;
+};
 
+class MouseDraw : public Command
+{
+public:
+  void execute();
+  void setxy(int _x, int _y);
+private:
+  int m_x, m_y;
+};
+
+class SelectDraggedParticles : public Command
+{
+public:
+  void execute();
+  void setxy(int _x, int _y);
+private:
+  int m_x, m_y;
+};
+
+class MouseDragEnd : public Command
+{
+public:
+  void execute();
+  void setxy(int _x, int _y);
+private:
+  int m_x, m_y;
 };
 
 #endif // COMMAND
