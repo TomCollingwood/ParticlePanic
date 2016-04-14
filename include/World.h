@@ -33,10 +33,11 @@ public:
     virtual void init();
 
     /// Called when the window size changes (for example, if the user maximises the window).
-    virtual void resize(int w, int h);
+    virtual void resizeWorld(int w, int h);
+    virtual void resizeWindow(int w, int h);
 
     /// Called frequently, used if you are using some form of animation
-    virtual void update();
+    virtual void update(bool *updateinprogress);
 
     /// Called most frequently, redraws the scene.
     virtual void draw();
@@ -149,6 +150,7 @@ protected: // Protected means that it is accessible to derived classes
     bool m_3d;
 
     float m_camerarotatey, m_camerarotatex, m_camerazoom;
+
 };
 
 #endif // WORLD_H

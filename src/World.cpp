@@ -33,8 +33,8 @@ World::World() :
   squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  mainrenderthreshold(80.f),
-  renderresolution(5),
+  mainrenderthreshold(85.f),
+  renderresolution(10),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -148,12 +148,9 @@ void World::init() {
  * @param w Width of window
  * @param h Height of window
  */
-void World::resize(int w, int h) {
-  howmanytimesrandomized=0;
-  if (!m_isInit) return;
 
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
+void World::resizeWorld(int w, int h)
+{
 
   pixelheight=h;
   pixelwidth=w;
@@ -161,14 +158,8 @@ void World::resize(int w, int h) {
   float i = 5;
   float ara = float(w)/float(h);
 
-  glOrtho(-i*ara,i*ara,-i,i,0.1, 5000.0);
-
   halfheight=i;
   halfwidth=i*ara;
-
-  glViewport(0,0,w,h);
-
-  glMatrixMode(GL_MODELVIEW);
 
   gridwidth=ceil((halfwidth*2)/squaresize);
   gridheight=ceil((halfheight*2)/squaresize);
@@ -191,6 +182,31 @@ void World::resize(int w, int h) {
 
   renderwidth=gridwidth*renderresolution;
   renderheight=gridheight*renderresolution;
+}
+
+void World::resizeWindow(int w, int h) {
+  howmanytimesrandomized=0;
+  if (!m_isInit) return;
+
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+
+  pixelheight=h;
+  pixelwidth=w;
+
+  float i = 5;
+  float ara = float(w)/float(h);
+
+  glOrtho(-i*ara,i*ara,-i,i,0.1, 5000.0);
+
+  halfheight=i;
+  halfwidth=i*ara;
+
+  glViewport(0,0,w,h);
+
+  glMatrixMode(GL_MODELVIEW);
+
+
 }
 
 /**
@@ -242,8 +258,9 @@ void World::draw() {
 /**
  * @brief World::update updates the World based on a timer. Used for animation.
  */
-void World::update() {
+void World::update(bool *updateinprogress) {
     if (!m_isInit) return;
+    *updateinprogress = true;
 
     // Some stuff we need to perform timings
     struct timeval tim;
@@ -269,8 +286,8 @@ void World::update() {
         {
           for(int i = 0; i<10; ++i)
           {
-            Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight-2.5,-2.0f),todraw);
-            newParticle.addVelocity(Vec3(0.0f,-60.0f,0.0f));
+            Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight/10,-2.0f),todraw);
+            newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
             insertParticle(newParticle);
           }
         }
@@ -281,7 +298,7 @@ void World::update() {
             for(int i = 0; i<5; ++i)
             {
               Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),todraw);
-              newParticle.addVelocity(Vec3(0.0f,-50.0f,0.0f));
+              newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
               insertParticle(newParticle);
             }
           }
@@ -615,7 +632,7 @@ void World::update() {
     // */
 
 
-
+  *updateinprogress = false;
 }
 
 //---------------------------------HASH FUNCTIONS--------------------------------------------------------
@@ -855,7 +872,8 @@ void World::handleKeys(char i)
     {
       clearWorld();
       m_3d = true;
-      resize(pixelwidth,pixelheight);
+      resizeWindow(pixelwidth,pixelheight);
+      resizeWorld(pixelwidth,pixelheight);
       if(renderoption==2) renderoption=1;
       m_camerarotatex=0.0f;
       m_camerarotatey=0.0f;
@@ -865,7 +883,8 @@ void World::handleKeys(char i)
   {
     clearWorld();
     m_3d = false;
-    resize(pixelwidth,pixelheight);
+    resizeWindow(pixelwidth,pixelheight);
+    resizeWorld(pixelwidth,pixelheight);
   }
 
 }

@@ -31,6 +31,7 @@
 #include "include/Particle.h"
 #include "include/World.h"
 #include "include/Toolbar.h"
+#include "include/Commands.h"
 
 // Change this if you want something different.
 #define WINDOW_TITLE "ParticlePanic"
@@ -54,6 +55,12 @@ bool leftMouseOnToolbar = false;
 bool leftMouseOnWorldPrevious=false;
 bool rightMouseButton = false;
 bool pookd = false;
+bool updateinprogress = false;
+
+int frame=0;
+int framedrawn=0;
+
+std::vector<Command*> commands;
 
 /**
  * @brief initSDL fires up the SDL window and readies it for OpenGL
@@ -100,7 +107,16 @@ int initSDL()
 Uint32 timerCallback(Uint32 interval, void *) {
     if (world != NULL)
     {
-      //world->update();
+      for(auto& i : commands)
+      {
+        i->execute();
+      }
+      for(auto& i : commands)
+      {
+        delete i;
+      }
+      commands.clear();
+      world->update(&updateinprogress);
     }
     return interval;
 }
@@ -133,7 +149,8 @@ int main( int argc, char* args[] ) {
     // Initialise the World
     world->init();
     // Need an initial resize to make sure the projection matrix is initialised
-    world->resize(WIDTH, HEIGHT);
+    world->resizeWindow(WIDTH, HEIGHT);
+    world->resizeWorld(WIDTH, HEIGHT);
 
     // Use a timer to update our World. This is the best way to handle updates,
     // as the timer runs in a separate thread and is therefore not affected by the
@@ -163,7 +180,13 @@ int main( int argc, char* args[] ) {
             if ((e.type == SDL_WINDOWEVENT) &&
                     (e.window.event == SDL_WINDOWEVENT_RESIZED)) {
                 SDL_SetWindowSize(gWindow, e.window.data1, e.window.data2);
-                world->resize(e.window.data1, e.window.data2);
+
+                ResizeWorld *newcommand=new ResizeWorld();
+                newcommand->setwh(e.window.data1, e.window.data2);
+                newcommand->setWorld(world);
+                commands.push_back(newcommand);
+
+                world->resizeWindow(e.window.data1, e.window.data2);
                 WIDTH=e.window.data1;
                 HEIGHT=e.window.data2;
                 //world->hashParticles();
@@ -207,7 +230,13 @@ int main( int argc, char* args[] ) {
                   {
                     int x = 0, y = 0;
                     SDL_GetMouseState( &x, &y );
-                    world->mouseDragEnd(x,y);
+
+                    MouseDragEnd *newcommand=new MouseDragEnd();
+                    newcommand->setxy(x,y);
+                    newcommand->setWorld(world);
+                    commands.push_back(newcommand);
+
+                    //world->mouseDragEnd(x,y);
                   }
                 }
                 else if(leftMouseOnToolbar)
@@ -235,18 +264,34 @@ int main( int argc, char* args[] ) {
           {
             if(!leftMouseOnWorldPrevious)
             {
-              world->selectDraggedParticles(x,y);
+              SelectDraggedParticles *newcommand=new SelectDraggedParticles();
+              newcommand->setWorld(world);
+              newcommand->setxy(x,y);
+              commands.push_back(newcommand);
+
+              //world->selectDraggedParticles(x,y);
+
               leftMouseOnWorldPrevious=true;
             }
             world->mouseDrag( x, y);
           }
           else if(toolbar->getDraw())
           {
-            world->mouseDraw( x, y );
+            MouseDraw *newcommand=new MouseDraw();
+            newcommand->setWorld(world);
+            newcommand->setxy(x,y);
+            commands.push_back(newcommand);
+
+            //world->mouseDraw( x, y );
           }
           else if(toolbar->getErase())
           {
-            world->mouseErase(x, y);
+            MouseErase *newcommand=new MouseErase();
+            newcommand->setWorld(world);
+            newcommand->setxy(x,y);
+            commands.push_back(newcommand);
+
+            //world->mouseErase(x, y);
           }
         }
 
@@ -255,16 +300,30 @@ int main( int argc, char* args[] ) {
           int x = 0, y = 0;
           SDL_GetMouseState(&x, &y);
           std::cout<<"heyboos"<<std::endl;
-          world->mouseDraw( x, y );
+
+          MouseDraw *newcommand=new MouseDraw();
+          newcommand->setWorld(world);
+          newcommand->setxy(x,y);
+          commands.push_back(newcommand);
+
+          //world->mouseDraw( x, y );
         }
 
         if(!(leftMouseOnWorld&&toolbar->getDraw())) //|| toolbar->getDrag())
         {
-          world->update();
+          //world->update(&updateinprogress);
         }
 
+
         //Render the World
-        world->draw();
+        frame++;
+        //if(!updateinprogress)
+        //{
+          world->draw();
+          //framedrawn++;
+        //}
+        float fraction = ((float)framedrawn)/((float)frame);
+        std::cout<<"Fraction: "<<fraction<<std::endl;
         //toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
         toolbar->drawToolbar(world->getHalfHeight(), world->getHalfWidth());
 
