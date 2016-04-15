@@ -76,3 +76,14 @@ void ResizeWorld::execute()
   m_world->resizeWorld(m_w,m_h);
 }
 
+void Set3D::setBool(bool b)
+{
+  m_3d=b;
+}
+
+void Set3D::execute()
+{
+  m_world->set3D(m_3d);
+}
+
+

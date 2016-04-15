@@ -33,8 +33,8 @@ World::World() :
   squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  mainrenderthreshold(85.f),
-  renderresolution(10),
+  mainrenderthreshold(90.f),  //85
+  renderresolution(5),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -130,7 +130,23 @@ void World::init() {
       }
     }
 
-/*
+    // GHOST PARTICLES
+
+    particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),todraw));
+    particles.back().setWall(true);
+
+    int density = 100;
+    float gap = halfwidth*2/(float)density;
+    for(int i = 0; i<density; ++i)
+    {
+      for(int j=0; j<5; ++j)
+      {
+        particles.push_back(Particle(Vec3(gap*i,-halfheight+3.f-j*gap,-2.0f),todraw));
+        particles.back().setWall(true);
+      }
+    }
+
+    /*
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
@@ -151,7 +167,6 @@ void World::init() {
 
 void World::resizeWorld(int w, int h)
 {
-
   pixelheight=h;
   pixelwidth=w;
 
@@ -167,6 +182,7 @@ void World::resizeWorld(int w, int h)
 
   cellsContainingParticles.clear();
   grid.clear();
+
   if(!m_3d)
   {
     grid.resize(gridheight*gridwidth);
@@ -230,7 +246,8 @@ void World::draw() {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     if(renderoption==1){
       for(int i=0; i<lastTakenParticle+1; ++i){
-        if(particles[i].isAlive()) particles[i].drawParticle();
+        if(particles[i].isAlive())
+          particles[i].drawParticle();
       }
     }
 
@@ -281,13 +298,13 @@ void World::update(bool *updateinprogress) {
 
     if(rain)
     {
-      if(everyother%4==0){
+      if(everyother%2==0){
         if(!m_3d)
         {
           for(int i = 0; i<10; ++i)
           {
-            Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight/10,-2.0f),todraw);
-            newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
+            Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight/2+0.5f,-2.0f),todraw);
+            newParticle.addVelocity(Vec3(0.0f,-0.2f,0.0f));
             insertParticle(newParticle);
           }
         }
@@ -311,7 +328,7 @@ void World::update(bool *updateinprogress) {
     {
       Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
       //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
-
+      // PARALLEL
       for(int i=0; i<lastTakenParticle+1; ++i)
       {
         if(particles[i].isAlive()) particles[i].addVelocity(gravityvel);
@@ -324,6 +341,7 @@ void World::update(bool *updateinprogress) {
 
     int choo = 0;
 
+    // PARALLEL
     for(auto& k : grid)
     {
       int ploo = 0;
@@ -502,11 +520,10 @@ void World::update(bool *updateinprogress) {
           Vec3 rij = j->getPosition()-i->getPosition(); // THFP
           float rijmag = rij.length();
           float q = rijmag/interactionradius;
-          if(q<1 && q!=0)
+          if(q<1 && q!=0) // q==0 when same particle
           {
             density+=(1.0f-q)*(1.0f-q);
             neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
-
           }
         }
         float p0 = i->getProperties()->getP0();             // PROPERTIES <--------------------------------------
@@ -555,6 +572,8 @@ void World::update(bool *updateinprogress) {
     {
       if(particles[i].isAlive())
       {
+        // OpenMP <<---
+        // MTSi parallelism for loop as prrallel as you can on an intel.
         if(particles[i].getPosition()[1]-0.5f<-halfheight)
         {
           particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
@@ -601,9 +620,10 @@ void World::update(bool *updateinprogress) {
 
     int howmany=howManyAliveParticles;
     if(howmany==0) howmany=1;
-    if((lastTakenParticle-firstFreeParticle)/howmany >0.5)
+    if(((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany) >0.5)
     {
-      std::cout<<"\a"<<std::endl;
+      std::cout<<"fraction: "<<((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany)<<std::endl;
+      std::cout<<"lasttaken: "<<lastTakenParticle<<"  firstfree: "<<firstFreeParticle<<std::endl;
     }
 
     /*
@@ -654,6 +674,7 @@ void World::hashParticles()
       float positionx = particles[i].getPosition()[0];
       float positiony = particles[i].getPosition()[1];
       float positionz = particles[i].getPosition()[2];
+
       if(positionx<-halfwidth) positionx=halfwidth;
       else if (positionx>halfwidth) positionx=halfwidth;
       if(positiony<-halfheight) positiony=halfheight;
@@ -870,10 +891,7 @@ void World::handleKeys(char i)
 
     else if(i=='p')
     {
-      clearWorld();
-      m_3d = true;
       resizeWindow(pixelwidth,pixelheight);
-      resizeWorld(pixelwidth,pixelheight);
       if(renderoption==2) renderoption=1;
       m_camerarotatex=0.0f;
       m_camerarotatey=0.0f;
@@ -881,10 +899,7 @@ void World::handleKeys(char i)
   }
   else if(i=='o')
   {
-    clearWorld();
-    m_3d = false;
     resizeWindow(pixelwidth,pixelheight);
-    resizeWorld(pixelwidth,pixelheight);
   }
 
 }
@@ -906,6 +921,7 @@ void World::mouseErase(int x, int y)
   }
   m_previousmousex=x;
   m_previousmousey=y;
+  defragParticles();
 }
 
 //------------------------PARTICLES FUNCTIONS-------------------------------------
@@ -940,6 +956,23 @@ void World::deleteParticle(int p)
   }
   if(firstFreeParticle>p) firstFreeParticle=p;
   --howManyAliveParticles;
+}
+
+void World::defragParticles()
+{
+  for(int i=lastTakenParticle; i>firstFreeParticle; --i)
+  {
+    if(particles[i].isAlive())
+    {
+      for(auto& j : particles[i].particleSprings)
+      {
+        if(springs[j].indexi==i) springs[j].indexi=firstFreeParticle;
+        else if(springs[j].indexj==i) springs[j].indexj=firstFreeParticle;
+      }
+      insertParticle(particles[i]);
+      deleteParticle(i);
+    }
+  }
 }
 
 
@@ -1011,20 +1044,19 @@ void World::toggleRain()
 
 void World::clearWorld()
 {
-  particles.clear();
-  Particle defaultparticle;
-  defaultparticle.setAlive(false);
-  particles.resize(particlesPoolSize,defaultparticle);
-  firstFreeParticle=0;
-  lastTakenParticle=-1;
+  if(lastTakenParticle<0) lastTakenParticle=0;
+  for(int i=0; i<lastTakenParticle+1; ++i)
+  {
+    deleteParticle(i);
+  }
 
   hashParticles();
 
-  Particle::Spring defaultspring;
-  defaultspring.alive=false;
-  springs.clear();
-  springs.resize(springsize,defaultspring);
-  firstFreeSpring=0;
+  if(lastTakenSpring<0) lastTakenSpring=0;
+  for(int i=0; i<lastTakenSpring+1; ++i)
+  {
+    deleteSpring(i);
+  }
 }
 
 void World::toggleGravity()
@@ -1429,4 +1461,10 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
     }
   }
 }
+
+void World::set3D(bool b)
+{
+  m_3d=b;
+}
+
 

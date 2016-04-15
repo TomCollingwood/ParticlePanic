@@ -87,5 +87,16 @@ private:
   int m_w, m_h;
 };
 
+class Set3D : public Command
+{
+public:
+  Set3D(){}
+  ~Set3D(){}
+  void execute();
+  void setBool(bool b);
+private:
+  bool m_3d;
+};
+
 #endif // COMMAND
 

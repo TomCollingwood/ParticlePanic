@@ -82,12 +82,16 @@ public:
     void toggleGravity();
     void clearWorld();
 
+    void set3D(bool b);
+
     void drawWith(int type);
 
     std::vector<std::vector<float>> renderGrid(ParticleProperties *p);
     void drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner);
 
     void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
+
+    void defragParticles();
 
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!

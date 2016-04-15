@@ -117,6 +117,7 @@ Uint32 timerCallback(Uint32 interval, void *) {
       }
       commands.clear();
       world->update(&updateinprogress);
+      //world->draw();
     }
     return interval;
 }
@@ -197,6 +198,26 @@ int main( int argc, char* args[] ) {
             }
             //Handle keypress with current mouse position
             else if( e.type == SDL_TEXTINPUT ) { //on mouse press?
+                //world->handleKeys( e.text.text[ 0 ] );
+                if(e.text.text[0]=='p' || e.text.text[0]=='o')
+                {
+                  bool toSet3D = false;
+                  if(e.text.text[0]=='p') toSet3D=true;
+
+                  ClearWorld *newcommand2=new ClearWorld();
+                  newcommand2->setWorld(world);
+                  commands.push_back(newcommand2);
+
+                  Set3D *newcommand=new Set3D();
+                  newcommand->setBool(toSet3D);
+                  newcommand->setWorld(world);
+                  commands.push_back(newcommand);
+
+                  ResizeWorld *newcommand3=new ResizeWorld();
+                  newcommand3->setwh(WIDTH,HEIGHT);
+                  newcommand3->setWorld(world);
+                  commands.push_back(newcommand3);
+                }
                 world->handleKeys( e.text.text[ 0 ] );
             }
             else if( e.type == SDL_MOUSEBUTTONDOWN) { //on mouse press?
@@ -273,7 +294,13 @@ int main( int argc, char* args[] ) {
 
               leftMouseOnWorldPrevious=true;
             }
-            world->mouseDrag( x, y);
+
+            MouseDrag *newcommand=new MouseDrag();
+            newcommand->setWorld(world);
+            newcommand->setxy(x,y);
+            commands.push_back(newcommand);
+
+            //world->mouseDrag( x, y);
           }
           else if(toolbar->getDraw())
           {
@@ -317,13 +344,9 @@ int main( int argc, char* args[] ) {
 
         //Render the World
         frame++;
-        //if(!updateinprogress)
-        //{
-          world->draw();
-          //framedrawn++;
-        //}
-        float fraction = ((float)framedrawn)/((float)frame);
-        std::cout<<"Fraction: "<<fraction<<std::endl;
+
+        world->draw();
+
         //toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
         toolbar->drawToolbar(world->getHalfHeight(), world->getHalfWidth());
 
