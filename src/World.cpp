@@ -34,7 +34,7 @@ World::World() :
   m_timestep(1.0f),
   pointsize(10.0f),
   mainrenderthreshold(90.f),  //85
-  renderresolution(5),
+  renderresolution(7),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -125,26 +125,13 @@ void World::init() {
     {
       for(int j=0; j<10; ++j)
       {
-        particles.push_back(Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),todraw));
+        Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),todraw);
         //particles.back().setIsObject();
+        insertParticle(newparticle);
       }
     }
 
-    // GHOST PARTICLES
 
-    particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),todraw));
-    particles.back().setWall(true);
-
-    int density = 100;
-    float gap = halfwidth*2/(float)density;
-    for(int i = 0; i<density; ++i)
-    {
-      for(int j=0; j<5; ++j)
-      {
-        particles.push_back(Particle(Vec3(gap*i,-halfheight+3.f-j*gap,-2.0f),todraw));
-        particles.back().setWall(true);
-      }
-    }
 
     /*
     for(int i = 0; i<10; ++i)
@@ -194,10 +181,54 @@ void World::resizeWorld(int w, int h)
     cellsContainingParticles.resize(gridheight*gridwidth*griddepth,false);
   }
 
+  renderwidth=gridwidth*renderresolution;
+  renderheight=gridheight*renderresolution;  
+
+  // GHOST PARTICLES
+
+  //particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),todraw));
+  //particles.back().setWall(true);
+
+  /*
+  int density = 90;
+  float gap = (halfwidth*2)/(float)density;
+  for(int i = 0; i<density+1; ++i)
+  {
+    for(int j=0; j<5; ++j)
+    {
+      Particle newparticle = Particle(Vec3(-halfwidth+i*gap,-halfheight+0.5f-j*gap,-2.0f),todraw);
+      newparticle.setWall(true);
+      insertParticle(newparticle);
+    }
+  }
+
+  density = 50;
+  gap = (halfheight*2)/(float)density;
+  for(int i = 0; i<density+1; ++i)
+  {
+    for(int j=0; j<5; ++j)
+    {
+      Particle newparticle = Particle(Vec3(-halfwidth-j*gap,-halfheight+i*gap,-2.0f),todraw);
+      newparticle.setWall(true);
+      insertParticle(newparticle);
+    }
+  }
+
+  density = 80;
+  gap = (halfheight*2)/(float)density;
+  for(int i = 0; i<density+1; ++i)
+  {
+    for(int j=0; j<5; ++j)
+    {
+      Particle newparticle = Particle(Vec3(halfwidth+j*gap,-halfheight+i*gap,-2.0f),todraw);
+      newparticle.setWall(true);
+      insertParticle(newparticle);
+    }
+  }
+
+  // */
   hashParticles();
 
-  renderwidth=gridwidth*renderresolution;
-  renderheight=gridheight*renderresolution;
 }
 
 void World::resizeWindow(int w, int h) {
@@ -303,7 +334,7 @@ void World::update(bool *updateinprogress) {
         {
           for(int i = 0; i<10; ++i)
           {
-            Particle newParticle = Particle(Vec3(-3.0f+i*0.2f,halfheight/2+0.5f,-2.0f),todraw);
+            Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),todraw);
             newParticle.addVelocity(Vec3(0.0f,-0.2f,0.0f));
             insertParticle(newParticle);
           }
@@ -341,7 +372,7 @@ void World::update(bool *updateinprogress) {
 
     int choo = 0;
 
-    // PARALLEL
+    #pragma omp parallel for
     for(auto& k : grid)
     {
       int ploo = 0;
@@ -568,6 +599,7 @@ void World::update(bool *updateinprogress) {
     float smallen = 0.4f;
     if(!m_3d) smallen=1.0f;
 
+
     for(int i=0; i<lastTakenParticle+1; ++i)
     {
       if(particles[i].isAlive())
@@ -611,6 +643,7 @@ void World::update(bool *updateinprogress) {
         }
       }
     }
+    // */
     //----------------------------------CLEANUP ------------------------------------------------
 
     if(everyother%30==0)
@@ -974,8 +1007,6 @@ void World::defragParticles()
     }
   }
 }
-
-
 
 //-------------------------SPRING FUNCTIONS----------------------------------------
 

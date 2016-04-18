@@ -5,6 +5,12 @@ CONFIG += opengl
 INCLUDEPATH += .
 OBJECTS_DIR = obj
 
+#QMAKE_CC = gcc
+#QMAKE_CXX = g++
+
+#QMAKE_CXXFLAGS += -fopenmp
+#LIBS += -fopenmp
+
 SOURCES += src/main.cpp \
     src/Vec3.cpp \
     src/Mat3.cpp \
@@ -14,7 +20,7 @@ SOURCES += src/main.cpp \
     src/ParticleProperties.cpp \
     src/Commands.cpp
 
-HEADERS +== \
+HEADERS += \
     include/Particle.h \
     include/Vec3.h \
     include/Mat3.h \

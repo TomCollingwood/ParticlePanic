@@ -149,6 +149,7 @@ int main( int argc, char* args[] ) {
 
     // Initialise the World
     world->init();
+
     // Need an initial resize to make sure the projection matrix is initialised
     world->resizeWindow(WIDTH, HEIGHT);
     world->resizeWorld(WIDTH, HEIGHT);

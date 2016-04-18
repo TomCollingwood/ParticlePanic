@@ -206,8 +206,7 @@ DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		../../../Qt/5.5/clang_64/mkspecs/features/exceptions.prf \
 		../../../Qt/5.5/clang_64/mkspecs/features/yacc.prf \
 		../../../Qt/5.5/clang_64/mkspecs/features/lex.prf \
-		ParticlePanic.pro = \
-		include/Particle.h \
+		ParticlePanic.pro include/Particle.h \
 		include/Vec3.h \
 		include/Mat3.h \
 		include/World.h \
@@ -584,7 +583,7 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents = include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h $(DISTDIR)/
+	$(COPY_FILE) --parents include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h $(DISTDIR)/
 	$(COPY_FILE) --parents src/main.cpp src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Commands.cpp $(DISTDIR)/
 
 
