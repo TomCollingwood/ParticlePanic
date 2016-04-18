@@ -29,31 +29,52 @@ public:
     clear(false),
     help(false),
     gravity(true),
-    erase(false){}
+    erase(false),
+    m_dropdownopen(false),
+    m_dropdownselect(0){}
 
   void drawTitle(float halfheight, float halfwidth) const;
-  void drawToolbar(float halfheight, float halfwidth) const;
-  void handleClickDown(World *world, int WIDTH, int x);
+  void drawToolbar(int h) const;
+  void handleClickDown(int x, int y, int WIDTH, int HEIGHT);
   void handleClickUp();
+
+  void handleClickDropDown(int x, int y, int WIDTH, int HEIGHT);
+
   void toggleBool(bool *toggleme);
   bool getDrag();
   bool getDraw();
   bool getHelp();
   bool getErase();
 
-  void pressDraw(World *world);
-  void pressDrag(World *world);
-  void pressErase(World *world);
-  void pressGravity(World *world);
-  void pressClear(World *world);
-  void pressHelp(World *world);
-  void pressTap(World *world);
+  bool getdropdownopen();
 
+  void setWorld(World *_world);
+
+  void pressDraw();
+  void pressDrag();
+  void pressErase();
+  void pressGravity();
+  void pressClear();
+  void pressHelp();
+  void pressTap();
+  void pressDropDownMenu();
+
+  void removeNumber();
+
+  void drawNumbers(float x, float y, int h, std::string _numbers) const;
+
+  void handleKeys(char _input);
+
+  void addNumber(char p);
 
 private:
-  bool draw, erase, drag, tap, gravity, clear, help;
+  bool draw, erase, drag, tap, gravity, clear, help, randomize;
+  bool m_dropdownopen;
+  int m_dropdownselect;
   GLuint iconsTexture, titleTexture;
   int clickdownbutton;
+  World *m_world;
+  std::string m_randomSeed;
 
 };
 

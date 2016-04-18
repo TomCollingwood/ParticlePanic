@@ -1,7 +1,9 @@
 #include "include/Particle.h"
+#include "GLUT/glut.h"
 
 void Particle::drawParticle()
 {
+  //glutBitmapCharacter(GLUT_BITMAP_9_BY_15,'a');
   //glBegin(GL_POINTS);
   if(!wall)
   {

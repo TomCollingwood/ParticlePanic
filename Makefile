@@ -36,7 +36,7 @@ DISTNAME      = ParticlePanic1.0.0
 DISTDIR = /Users/Tom/Documents/GitHubStuff/ParticlePanic/obj/ParticlePanic1.0.0
 LINK          = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 LFLAGS        = -headerpad_max_install_names -F/Library/Frameworks -Wl,-syslibroot,/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -stdlib=libc++ -mmacosx-version-min=10.7 -Wl,-rpath,/Users/Tom/Qt/5.5/clang_64/lib
-LIBS          = $(SUBLIBS) -F/Users/Tom/Qt/5.5/clang_64/lib -L/usr/local/lib -framework SDL2 -framework SDL2_image -framework OpenGL -framework AGL -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit 
+LIBS          = $(SUBLIBS) -F/Users/Tom/Qt/5.5/clang_64/lib -L/usr/local/lib -framework SDL2 -framework SDL2_image -framework OpenGL -framework GLUT -framework AGL -framework QtGui -framework QtCore -framework DiskArbitration -framework IOKit 
 AR            = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ar cq
 RANLIB        = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ranlib -s
 SED           = sed

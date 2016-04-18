@@ -63,7 +63,7 @@ public:
 
     void getbackhere(Particle * p);
 
-    void handleKeys(char i);
+    void handleKeys(char _input);
 
     void vectorvslist();
 
@@ -92,6 +92,8 @@ public:
     void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
 
     void defragParticles();
+
+    void drawchar();
 
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
@@ -147,13 +149,14 @@ protected: // Protected means that it is accessible to derived classes
     int m_previousmousex, m_previousmousey;
 
     // FUN PARTICLE TYPES
-    ParticleProperties water, poo, goo, oil, random;
-    ParticleProperties *todraw;
+    int todraw;
 
     int howmanytimesrandomized;
     bool m_3d;
 
     float m_camerarotatey, m_camerarotatex, m_camerazoom;
+
+    std::vector<ParticleProperties> m_particleTypes;
 
 };
 

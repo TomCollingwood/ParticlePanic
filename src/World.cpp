@@ -20,6 +20,8 @@
   #include <GL/glu.h>
 #endif
 
+#include <GLUT/glut.h>
+
 //#include <SDL2_image>
 
 /**
@@ -106,13 +108,13 @@ void World::init() {
     firstFreeSpring=0;
 
     // DEFAULT PARTICLE PROPERTIES
-    water=ParticleProperties();
+    m_particleTypes.push_back(ParticleProperties()); //water
     //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
     //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
-    poo=ParticleProperties(false,0.3f,0.2f,0.004f,0.3f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false);
-    random=ParticleProperties();
-    random.randomize();
-    todraw=&water; // This is the liquid to draw (tap or mouse)
+    m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.3f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false));
+    //random=ParticleProperties();
+    //random.randomize();
+    todraw=0; // This is the liquid to draw (tap or mouse)
 
     m_previousmousex=-10;
     m_previousmousey=-10;
@@ -125,7 +127,7 @@ void World::init() {
     {
       for(int j=0; j<10; ++j)
       {
-        Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),todraw);
+        Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),&m_particleTypes[todraw]);
         //particles.back().setIsObject();
         insertParticle(newparticle);
       }
@@ -287,13 +289,12 @@ void World::draw() {
     {
       glDisable(GL_LIGHTING);
 
-      std::vector<std::vector<float>> waterRenderGrid = renderGrid(&water);
-      drawMarchingSquares(waterRenderGrid,water,false);
-      drawMarchingSquares(waterRenderGrid,water,true);
-
-      std::vector<std::vector<float>> randomRenderGrid = renderGrid(&random);
-      drawMarchingSquares(randomRenderGrid,random,false);
-      drawMarchingSquares(randomRenderGrid,random,true);
+      for(auto& i : m_particleTypes)
+      {
+        std::vector<std::vector<float>> waterRenderGrid = renderGrid(&i);
+        drawMarchingSquares(waterRenderGrid,i,false);
+        drawMarchingSquares(waterRenderGrid,i,true);
+      }
 
       glEnable(GL_LIGHTING);
     }
@@ -334,7 +335,7 @@ void World::update(bool *updateinprogress) {
         {
           for(int i = 0; i<10; ++i)
           {
-            Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),todraw);
+            Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[todraw]);
             newParticle.addVelocity(Vec3(0.0f,-0.2f,0.0f));
             insertParticle(newParticle);
           }
@@ -345,7 +346,7 @@ void World::update(bool *updateinprogress) {
           {
             for(int i = 0; i<5; ++i)
             {
-              Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),todraw);
+              Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),&m_particleTypes[todraw]);
               newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
               insertParticle(newParticle);
             }
@@ -826,7 +827,7 @@ void World::mouseDraw(int x, int y)
 
     if(drawparticle)
     {
-      Particle newparticle = Particle(Vec3(correctedx,correctedy,-2.0f),&water);
+      Particle newparticle = Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[todraw]);
       if(drawwall) newparticle.setWall(true);
       insertParticle(newparticle);
       hashParticles();
@@ -890,51 +891,44 @@ void World::mouseDragEnd(int x, int y)
   m_previousmousey=-10;
 }
 
-void World::handleKeys(char i)
+void World::handleKeys(char _input)
 {
-  if(i=='i') // inflow
+  switch(_input)
   {
-    toggleRain();
-  }
-  else if(i=='g')
-  {
-    toggleGravity();
-  }
-  else if(i=='0')
-  {
+  case '0' :
     drawWith(0);
-  }
-  else if(i=='1')
-  {
+    break;
+  case '1' :
     drawWith(1);
-  }
-
-  if(!m_3d)
-  {
-     if (i=='w')
+    break;
+  case 'w' :
+    if(!m_3d)
     {
       if(drawwall) drawwall=false;
       else drawwall=true;
     }
-    else if(i=='r')
+    break;
+  case 'r':
+    if(!m_3d)
     {
       if(renderoption==1) renderoption=2;
       else renderoption=1;
     }
-
-    else if(i=='p')
+    break;
+  case 'p':
+    if(!m_3d)
     {
       resizeWindow(pixelwidth,pixelheight);
       if(renderoption==2) renderoption=1;
       m_camerarotatex=0.0f;
       m_camerarotatey=0.0f;
     }
-  }
-  else if(i=='o')
-  {
-    resizeWindow(pixelwidth,pixelheight);
-  }
+    break;
 
+  case 'o' :
+    resizeWindow(pixelwidth,pixelheight);
+    break;
+  }
 }
 
 void World::mouseErase(int x, int y)
@@ -1100,12 +1094,12 @@ void World::drawWith(int type)
 {
   if(type==0)
   {
-    todraw=&water;
+    todraw=0;
   }
   else if(type==1)
   {
-    random.randomize();
-    todraw=&random;
+    //random.randomize();
+    todraw=1;
     howmanytimesrandomized++;
   }
 }
@@ -1185,6 +1179,8 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
   float red = p.getRed();
   float green = p.getGreen();
   float blue = p.getBlue();
+
+  std::cout<<"BLUE"<<blue<<std::endl;
 
   float renderthreshold = mainrenderthreshold;
   if(inner)
@@ -1497,5 +1493,6 @@ void World::set3D(bool b)
 {
   m_3d=b;
 }
+
 
 

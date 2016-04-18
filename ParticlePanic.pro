@@ -33,7 +33,7 @@ LIBS += -L/usr/local/lib
 
 linux: {
   LIBS+=$$system(sdl2-config --libs)
-  LIBS += -lSDL2  -lGLU -lGL -lSDL2_image  -L/usr/local/lib/ #-lGLEW -lglut
+  LIBS += -lSDL2  -lGLU -lGL -lSDL2_image  -L/usr/local/lib/ -lglut #-lGLEW
 }
 
 macx: {
@@ -46,4 +46,5 @@ macx: {
   INCLUDEPATH += /usr/local/include
 
   LIBS+= -framework OpenGL
+  LIBS+= -framework GLUT
 }

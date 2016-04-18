@@ -12,6 +12,7 @@
 #ifdef __APPLE__
   #include <OpenGL/gl.h>
   #include <OpenGL/glu.h>
+  #include "GLUT/glut.h"
 #include <SDL.h>
 #include <SDL_image.h>
 #else
@@ -19,11 +20,8 @@
   #include <SDL2/SDL_image.h>
   #include <GL/gl.h>
   #include <GL/glu.h>
+  #include <GL/glut.h>
 #endif
-
-//#include <glm/glm.hpp>
-//#include <glm/gtc/type_ptr.hpp>
-//#include <glm/gtc/matrix_transform.hpp>
 
 
 // Include the header file for our current World
@@ -33,12 +31,14 @@
 #include "include/Toolbar.h"
 #include "include/Commands.h"
 
+
+
 // Change this if you want something different.
 #define WINDOW_TITLE "ParticlePanic"
 
 // These defines are for the initial window size (it can be changed in the resize function)
-int WIDTH = 640;
-int HEIGHT = 400;
+int WIDTH = 900;
+int HEIGHT = 600;
 
 // Our World, which will store all the GL stuff
 World *world = NULL;
@@ -146,6 +146,7 @@ int main( int argc, char* args[] ) {
     world = new World();
 
     toolbar = new Toolbar();
+    toolbar->setWorld(world);
 
     // Initialise the World
     world->init();
@@ -197,9 +198,22 @@ int main( int argc, char* args[] ) {
             else if( e.type == SDL_QUIT ) {
                 quit = true;
             }
+
+            else if(e.type == SDL_KEYDOWN)
+            {
+              if(e.key.keysym.sym == SDLK_BACKSPACE)
+              {
+                toolbar->removeNumber();
+              }
+            }
+
             //Handle keypress with current mouse position
             else if( e.type == SDL_TEXTINPUT ) { //on mouse press?
-                //world->handleKeys( e.text.text[ 0 ] );
+                int charint = (int) e.text.text[0];
+                if(charint > 47 && charint < 58)
+                {
+                  toolbar->addNumber(e.text.text[0]);
+                }
                 if(e.text.text[0]=='p' || e.text.text[0]=='o')
                 {
                   bool toSet3D = false;
@@ -220,6 +234,7 @@ int main( int argc, char* args[] ) {
                   commands.push_back(newcommand3);
                 }
                 world->handleKeys( e.text.text[ 0 ] );
+                toolbar->handleKeys( e.text.text[ 0 ] );
             }
             else if( e.type == SDL_MOUSEBUTTONDOWN) { //on mouse press?
               //std::cout<<e.button<<std::endl;
@@ -228,10 +243,15 @@ int main( int argc, char* args[] ) {
                 int x = 0, y = 0;
                 SDL_GetMouseState( &x, &y );
 
-                if(y<(float)(3.0f/20.0f)*HEIGHT)
+                if(toolbar->getdropdownopen())
+                {
+                  toolbar->handleClickDropDown(x, y, WIDTH, HEIGHT);
+                }
+
+                else if(y<(float)(3.0f/20.0f)*HEIGHT)
                 {
                   std::cout<<"yoooo"<<std::endl;
-                  toolbar->handleClickDown(world, WIDTH, x);
+                  toolbar->handleClickDown(x, y, WIDTH, HEIGHT);
                   leftMouseOnToolbar=true;
                 }
                 else
@@ -337,19 +357,19 @@ int main( int argc, char* args[] ) {
           //world->mouseDraw( x, y );
         }
 
-        if(!(leftMouseOnWorld&&toolbar->getDraw())) //|| toolbar->getDrag())
-        {
-          //world->update(&updateinprogress);
-        }
-
 
         //Render the World
         frame++;
 
+
+
         world->draw();
 
+        toolbar->drawNumbers(0,0,HEIGHT,"1234567890");
+
+
         //toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
-        toolbar->drawToolbar(world->getHalfHeight(), world->getHalfWidth());
+        toolbar->drawToolbar(HEIGHT);
 
 
         //Update screen
