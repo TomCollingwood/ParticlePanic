@@ -44,7 +44,8 @@ World::World() :
   springsize(500000),
   particlesPoolSize(3000),
   m_3d(false),
-  m_boundaryMultiplier(0.6f)
+  m_boundaryMultiplier(1.0f),
+  m_boundaryType(1)
 {
 }
 
@@ -128,6 +129,8 @@ void World::init() {
     m_camerarotatex=0.0f;
 
     // create start two blocks of particles
+
+    /*
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
@@ -137,6 +140,7 @@ void World::init() {
         insertParticle(newparticle);
       }
     }
+    */
 
 
 
@@ -344,7 +348,7 @@ void World::update(bool *updateinprogress) {
           for(int i = 0; i<10; ++i)
           {
             Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
-            newParticle.addVelocity(Vec3(0.0f,-0.2f,0.0f));
+            newParticle.addVelocity(Vec3(0.0f,-0.05f,0.0f));
             insertParticle(newParticle);
           }
         }
@@ -575,32 +579,34 @@ void World::update(bool *updateinprogress) {
         }
 
 
-        // BOTTOM
-        float distance = halfheight + i->getPosition()[1];
-        float q = distance/(m_boundaryMultiplier*interactionradius);
-        if(q<1 && q!=0) // q==0 when same particle
+        if(m_boundaryType==1)
         {
-          density+=(1.0f-q)*(1.0f-q);
-          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
-        }
-        // RIGHT
-        distance = halfwidth - i->getPosition()[0];
-        q = distance/(m_boundaryMultiplier*interactionradius);
-        if(q<1 && q!=0) // q==0 when same particle
-        {
-          density+=(1.0f-q)*(1.0f-q);
-          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
-        }
+          // BOTTOM
+          float distance = halfheight + i->getPosition()[1];
+          float q = distance/(m_boundaryMultiplier*interactionradius);
+          if(q<1 && q!=0) // q==0 when same particle
+          {
+            density+=(1.0f-q)*(1.0f-q);
+            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+          }
+          // RIGHT
+          distance = halfwidth - i->getPosition()[0];
+          q = distance/(m_boundaryMultiplier*interactionradius);
+          if(q<1 && q!=0) // q==0 when same particle
+          {
+            density+=(1.0f-q)*(1.0f-q);
+            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+          }
 
-        // LEFT
-        distance = i->getPosition()[0] + halfwidth ;
-        q = distance/(m_boundaryMultiplier*interactionradius);
-        if(q<1 && q!=0) // q==0 when same particle
-        {
-          density+=(1.0f-q)*(1.0f-q);
-          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+          // LEFT
+          distance = i->getPosition()[0] + halfwidth ;
+          q = distance/(m_boundaryMultiplier*interactionradius);
+          if(q<1 && q!=0) // q==0 when same particle
+          {
+            density+=(1.0f-q)*(1.0f-q);
+            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+          }
         }
-        //*/
 
 
 
@@ -655,88 +661,84 @@ void World::update(bool *updateinprogress) {
         // OpenMP <<---
         // MTSi parallelism for loop as prrallel as you can on an intel.
 
-
-
-        //------------------------------------BOTTOM------------------------------
-        if(particles[i].getPosition()[1]-0.5f<-halfheight)
+        if(m_boundaryType==0)
         {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
-          particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
+          //------------------------------------BOTTOM------------------------------
+          if(particles[i].getPosition()[1]-0.5f<-halfheight)
+          {
+            particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
+            particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
+          }
+          //------------------------------------TOP------------------------------
+
+          if(particles[i].getPosition()[1]+1.5f>halfheight)
+          {
+            particles[i].setPosition(Vec3(particles[i].getPosition()[0],halfheight-1.5f,particles[i].getPosition()[2]));
+            particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
+          }
+
+          //------------------------------------RIGHT------------------------------
+          if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
+          {
+            particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
+            particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+          }
+          //------------------------------------LEFT------------------------------
+          if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
+          {
+            particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
+            particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+          }
+          if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
+          {
+            particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
+            particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+          }
+          if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
+          {
+            particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
+            particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+          }
         }
 
-//        float distance = halfheight + particles[i].getPosition()[1];
-//        if(distance<(m_boundaryMultiplier*interactionradius))
-//        {
-//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
-//         particles[i].addVelocity(Vec3(0.0f,force,0.0f));
-//        }
-
-        //------------------------------------TOP------------------------------
-
-        if(particles[i].getPosition()[1]+1.5f>halfheight)
+        if(m_boundaryType==1)
         {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],halfheight-1.5f,particles[i].getPosition()[2]));
-          particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
+        float distance = halfheight + particles[i].getPosition()[1];
+        if(distance<(m_boundaryMultiplier*interactionradius))
+        {
+         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+         particles[i].addVelocity(Vec3(0.0f,force,0.0f));
         }
 
-        //------------------------------------RIGHT------------------------------
-        if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
+        distance = particles[i].getPosition()[0] + halfwidth*smallen;
+        if(distance<(m_boundaryMultiplier*interactionradius))
         {
-          particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
-          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+         particles[i].addVelocity(Vec3(force,0.0f,0.0f));
+        }
+
+        distance = halfwidth*smallen - particles[i].getPosition()[0];
+        if(distance<(m_boundaryMultiplier*interactionradius))
+        {
+         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+         particles[i].addVelocity(Vec3(-force,0.0f,0.0f));
+        }
+
+        distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
+        if(distance<(m_boundaryMultiplier*interactionradius))
+        {
+         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+         particles[i].addVelocity(Vec3(0.0f,0.0f,force));
+        }
+
+        distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
+        if(distance<(m_boundaryMultiplier*interactionradius))
+        {
+         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+         particles[i].addVelocity(Vec3(0.0f,0.0f,-force));
         }
 
 
-
-//        distance = particles[i].getPosition()[0] + halfwidth*smallen;
-//        if(distance<(m_boundaryMultiplier*interactionradius))
-//        {
-//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
-//         particles[i].addVelocity(Vec3(force,0.0f,0.0f));
-//        }
-
-
-        //------------------------------------LEFT------------------------------
-        if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
-        {
-          particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
-          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
-        }
-
-//        distance = halfwidth*smallen - particles[i].getPosition()[0];
-//        if(distance<(m_boundaryMultiplier*interactionradius))
-//        {
-//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
-//         particles[i].addVelocity(Vec3(-force,0.0f,0.0f));
-//        }
-        //
-
-
-
-//        distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
-//        if(distance<(m_boundaryMultiplier*interactionradius))
-//        {
-//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
-//         particles[i].addVelocity(Vec3(0.0f,0.0f,+force));
-//        }
-
-        if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
-        {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
-        }
-
-//        distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
-//        if(distance<(m_boundaryMultiplier*interactionradius))
-//        {
-//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5f;
-//         particles[i].addVelocity(Vec3(0.0f,0.0f,-force));
-//        }
-
-        if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
-        {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
         }
 
       }
@@ -1083,6 +1085,7 @@ void World::insertParticle(Particle particle)
 void World::deleteParticle(int p)
 {
   particles[p].setAlive(false);
+  particles[p].clearParticleSprings();
   if(lastTakenParticle==p)
   {
     while(particles[lastTakenParticle].isAlive()==false && lastTakenParticle>-1)

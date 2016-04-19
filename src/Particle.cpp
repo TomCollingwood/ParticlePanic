@@ -212,3 +212,8 @@ void Particle::updateSpringIndex(int from, int to)
     }
   }
 }
+
+void Particle::clearParticleSprings()
+{
+  particleSprings.clear();
+}

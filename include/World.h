@@ -164,6 +164,8 @@ protected: // Protected means that it is accessible to derived classes
 
     float m_boundaryMultiplier;
 
+    int m_boundaryType;
+
 };
 
 #endif // WORLD_H

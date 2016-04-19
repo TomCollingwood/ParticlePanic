@@ -8,8 +8,8 @@ OBJECTS_DIR = obj
 #QMAKE_CC = gcc
 #QMAKE_CXX = g++
 
-QMAKE_CXXFLAGS += -fopenmp
-LIBS += -fopenmp
+#MAKE_CXXFLAGS += -fopenmp
+#LIBS += -fopenmp
 
 SOURCES += src/main.cpp \
     src/Vec3.cpp \

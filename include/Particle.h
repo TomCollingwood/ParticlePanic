@@ -88,6 +88,8 @@ public:
   void setIndex(int i);
   int getIndex();
 
+  void clearParticleSprings();
+
   void updateSpringIndex(int from, int to);
 
   ParticleProperties *getProperties() const;
