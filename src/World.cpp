@@ -9,15 +9,15 @@
 #include <string>
 
 #ifdef __APPLE__
-  #include <OpenGL/gl.h>
-  #include <OpenGL/glu.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
 #include <SDL.h>
 #include <SDL_image.h>
 #else
-  #include <SDL2/SDL.h>
-  #include <SDL2/SDL_image.h>
-  #include <GL/gl.h>
-  #include <GL/glu.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 
 //#include <GLUT/glut.h>
@@ -38,7 +38,7 @@ World::World() :
   mainrenderthreshold(90.f),  //85
   renderresolution(7),
   renderoption(1),
-  rain(false),
+  rain(true),
   drawwall(false),
   gravity(true),
   springsize(500000),
@@ -59,78 +59,79 @@ World::~World() {
  * @brief World::init initialises the GL World, enabling features that are needed
  */
 void World::init() {
-    // Sanity check - if we've already initialised this class we shouldn't be here
-    if (m_isInit) return;
+  // Sanity check - if we've already initialised this class we shouldn't be here
+  if (m_isInit) return;
 
-    // Disable texturing
-    glEnable(GL_TEXTURE_2D);
+  // Disable texturing
+  glEnable(GL_TEXTURE_2D);
 
-    // Enable counter clockwise face ordering
-    glFrontFace(GL_CCW); // front face - determines normal in order you specify vertices
+  // Enable counter clockwise face ordering
+  glFrontFace(GL_CCW); // front face - determines normal in order you specify vertices
 
-    //glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHTING); // no longer need normals or lights
-    glEnable(GL_NORMALIZE);
-    glEnable(GL_LIGHT0);
-    glEnable(GL_LIGHT_MODEL_AMBIENT);
+  //glEnable(GL_LIGHTING);
+  glEnable(GL_LIGHTING); // no longer need normals or lights
+  glEnable(GL_NORMALIZE);
+  glEnable(GL_LIGHT0);
+  glEnable(GL_LIGHT_MODEL_AMBIENT);
 
-    GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
-    glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
+  GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
+  glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 
-    // Make our points lovely and smooth
-    glEnable( GL_POINT_SMOOTH );
-    glEnable( GL_MULTISAMPLE_ARB);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_POINT_SIZE);
-    glEnable(GL_COLOR_MATERIAL);
-    glPointSize(pointsize);
+  // Make our points lovely and smooth
+  glEnable( GL_POINT_SMOOTH );
+  glEnable( GL_MULTISAMPLE_ARB);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_POINT_SIZE);
+  glEnable(GL_COLOR_MATERIAL);
+  glPointSize(pointsize);
 
-    // Set the background colour
-    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+  // Set the background colour
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
-    // Set our start time by using the gettimeofday function (accurate to 10 nanosecs)
-    struct timeval tim;
-    gettimeofday(&tim, NULL);
-    m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
-    srand (time(NULL));
+  // Set our start time by using the gettimeofday function (accurate to 10 nanosecs)
+  struct timeval tim;
+  gettimeofday(&tim, NULL);
+  m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
+  srand (time(NULL));
 
-    particles.clear();
-    springs.clear();
+  particles.clear();
+  springs.clear();
 
-    Particle defaultparticle;
-    defaultparticle.setAlive(false);
-    particles.resize(particlesPoolSize,defaultparticle);
-    firstFreeParticle=0;
-    lastTakenParticle=-1;
-    howManyAliveParticles=0;
+  Particle defaultparticle;
+  defaultparticle.setAlive(false);
+  particles.resize(particlesPoolSize,defaultparticle);
+  firstFreeParticle=0;
+  lastTakenParticle=-1;
+  howManyAliveParticles=0;
 
-    Particle::Spring defaultspring;
-    defaultspring.alive=false;
-    springs.resize(springsize,defaultspring);
-    firstFreeSpring=0;
+  Particle::Spring defaultspring;
+  defaultspring.alive=false;
+  springs.resize(springsize,defaultspring);
+  firstFreeSpring=0;
+  lastTakenSpring=-1;
 
-    // DEFAULT PARTICLE PROPERTIES
-    m_particleTypes.push_back(ParticleProperties()); //water
-    m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //slime
-    m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //blobby
-    m_particleTypes.push_back(ParticleProperties()); //random
+  // DEFAULT PARTICLE PROPERTIES
+  m_particleTypes.push_back(ParticleProperties()); //water
+  m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //slime
+  m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //blobby
+  m_particleTypes.push_back(ParticleProperties()); //random
 
-    //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
-    //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
+  //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
+  //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
 
-    //random=ParticleProperties();
-    //random.randomize();
-    m_todraw=1; // This is the liquid to draw (tap or mouse)
+  //random=ParticleProperties();
+  //random.randomize();
+  m_todraw=0; // This is the liquid to draw (tap or mouse)
 
-    m_previousmousex=-10;
-    m_previousmousey=-10;
+  m_previousmousex=-10;
+  m_previousmousey=-10;
 
-    m_camerarotatey=0.0f;
-    m_camerarotatex=0.0f;
+  m_camerarotatey=0.0f;
+  m_camerarotatex=0.0f;
 
-    // create start two blocks of particles
+  // create start two blocks of particles
 
-    /*
+  /*
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
@@ -144,7 +145,7 @@ void World::init() {
 
 
 
-    /*
+  /*
     for(int i = 0; i<10; ++i)
     {
       for(int j=0; j<10; ++j)
@@ -154,7 +155,7 @@ void World::init() {
       i.addVelocity(Vec3(((float)(rand() % 100 - 50)*0.001f),((float)(rand() % 10000 - 50))*0.001f));
 */
 
-    m_isInit = true;
+  m_isInit = true;
 }
 
 /**
@@ -193,7 +194,7 @@ void World::resizeWorld(int w, int h)
   }
 
   renderwidth=gridwidth*renderresolution;
-  renderheight=gridheight*renderresolution;  
+  renderheight=gridheight*renderresolution;
 
   // GHOST PARTICLES
 
@@ -274,45 +275,45 @@ void World::resizeWindow(int w, int h) {
  * @brief World::draw draws the World to the current GL context. Called a lot - make this fast!
  */
 void World::draw() {
-    if (!m_isInit) return;
+  if (!m_isInit) return;
 
-    glMatrixMode(GL_MODELVIEW);
+  glMatrixMode(GL_MODELVIEW);
 
-    if(m_3d)
+  if(m_3d)
+  {
+    glPushMatrix();
+    glTranslatef(0.0f,2.0f,-10.0f);
+    glTranslatef(0.0f, 0.0f, -2.0f); // move back to focus of gluLookAt
+    glRotatef(m_camerarotatex,0.0f,1.0f,0.0f); //  rotate around center
+    glRotatef(m_camerarotatey,1.0f,0.0f,0.0f); //  rotate around center
+    glTranslatef(0.0f, 0.0f, 2.0f); //move object to center
+  }
+
+  glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+  if(renderoption==1){
+    for(int i=0; i<lastTakenParticle+1; ++i){
+      if(particles[i].isAlive())
+        particles[i].drawParticle();
+    }
+  }
+
+
+  else if(renderoption==2)
+  {
+    glDisable(GL_LIGHTING);
+
+    for(auto& i : m_particleTypes)
     {
-      glPushMatrix();
-      glTranslatef(0.0f,2.0f,-10.0f);
-      glTranslatef(0.0f, 0.0f, -2.0f); // move back to focus of gluLookAt
-      glRotatef(m_camerarotatex,0.0f,1.0f,0.0f); //  rotate around center
-      glRotatef(m_camerarotatey,1.0f,0.0f,0.0f); //  rotate around center
-      glTranslatef(0.0f, 0.0f, 2.0f); //move object to center
+      std::vector<std::vector<float>> waterRenderGrid = renderGrid(&i);
+      drawMarchingSquares(waterRenderGrid,i,false);
+      drawMarchingSquares(waterRenderGrid,i,true);
     }
 
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-    if(renderoption==1){
-      for(int i=0; i<lastTakenParticle+1; ++i){
-        if(particles[i].isAlive())
-          particles[i].drawParticle();
-      }
-    }
+    glEnable(GL_LIGHTING);
+  }
 
 
-    else if(renderoption==2)
-    {
-      glDisable(GL_LIGHTING);
-
-      for(auto& i : m_particleTypes)
-      {
-        std::vector<std::vector<float>> waterRenderGrid = renderGrid(&i);
-        drawMarchingSquares(waterRenderGrid,i,false);
-        drawMarchingSquares(waterRenderGrid,i,true);
-      }
-
-      glEnable(GL_LIGHTING);
-    }
-
-
-    if(m_3d) glPopMatrix();
+  if(m_3d) glPopMatrix();
 }
 
 
@@ -320,79 +321,79 @@ void World::draw() {
  * @brief World::update updates the World based on a timer. Used for animation.
  */
 void World::update(bool *updateinprogress) {
-    if (!m_isInit) return;
-    *updateinprogress = true;
+  if (!m_isInit) return;
+  *updateinprogress = true;
 
-    // Some stuff we need to perform timings
-    struct timeval tim;
+  // Some stuff we need to perform timings
+  struct timeval tim;
 
-    // Retrieve the current time in nanoseconds (accurate to 10ns)
-    //gettimeofday(&tim, NULL);
-    //double now =tim.tv_sec+(tim.tv_usec * 1e-6);
+  // Retrieve the current time in nanoseconds (accurate to 10ns)
+  //gettimeofday(&tim, NULL);
+  //double now =tim.tv_sec+(tim.tv_usec * 1e-6);
 
-    // Increment the rotation based on the time elapsed since we started running
-    //m_elapsedTime = m_startTime - now;
+  // Increment the rotation based on the time elapsed since we started running
+  //m_elapsedTime = m_startTime - now;
 
-    //make it rain
+  //make it rain
 
-    // 2d/3d different
+  // 2d/3d different
 
-    static int everyother = 0;
-    everyother++;
+  static int everyother = 0;
+  everyother++;
 
-    if(rain)
-    {
-      if(everyother%2==0){
-        if(!m_3d)
+  if(rain)
+  {
+    if(everyother%2==0){
+      if(!m_3d)
+      {
+        for(int i = 0; i<10; ++i)
         {
-          for(int i = 0; i<10; ++i)
+          Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
+          newParticle.addVelocity(Vec3(0.0f,-0.05f,0.0f));
+          insertParticle(newParticle);
+        }
+      }
+      else
+      {
+        for(int j = 0; j< 5; ++j)
+        {
+          for(int i = 0; i<5; ++i)
           {
-            Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
-            newParticle.addVelocity(Vec3(0.0f,-0.05f,0.0f));
+            Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),&m_particleTypes[m_todraw]);
+            newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
             insertParticle(newParticle);
           }
         }
-        else
-        {
-          for(int j = 0; j< 5; ++j)
-          {
-            for(int i = 0; i<5; ++i)
-            {
-              Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),&m_particleTypes[m_todraw]);
-              newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
-              insertParticle(newParticle);
-            }
-          }
-        }
       }
     }
+  }
 
-    // ------------------------------GRAVITY --------------------------------------------
-    if(gravity)
+  // ------------------------------GRAVITY --------------------------------------------
+  if(gravity)
+  {
+    Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
+    //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
+    // PARALLEL
+    for(int i=0; i<lastTakenParticle+1; ++i)
     {
-      Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
-      //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
-      // PARALLEL
-      for(int i=0; i<lastTakenParticle+1; ++i)
-      {
-        if(particles[i].isAlive()) particles[i].addVelocity(gravityvel);
-      }
+      if(particles[i].isAlive()) particles[i].addVelocity(gravityvel);
     }
+  }
 
-    // ------------------------------VISCOSITY--------------------------------------------
-    // TODO : Implement spatial hash for loop here
+  // ------------------------------VISCOSITY--------------------------------------------
+  // TODO : Implement spatial hash for loop here
 
 
-    int choo = 0;
+  int choo = 0;
 
-    //#pragma omp parallel for ordered schedule(dynamic)
-    for(auto k = 0; k<(int)grid.size(); ++k)
+  //#pragma omp parallel for ordered schedule(dynamic)
+  for(auto k = 0; k<(int)grid.size(); ++k)
+  {
+    int ploo = 0;
+    for(auto& i : grid[k])
     {
-      int ploo = 0;
-      for(auto& i : grid[k])
+      if(!(i->getWall()))
       {
-        if(!(i->getWall()))
-        {
         std::vector<Particle *> surroundingParticles = getSurroundingParticles(choo,1,false);
         int cloo = 0;
         for(auto& j : surroundingParticles)
@@ -422,344 +423,352 @@ void World::update(bool *updateinprogress) {
         }
         ploo++;
 
-        }
-      }
-      choo++;
-    }
-    // */
-
-    //------------------------------------------POSITION----------------------------------------
-
-    for(int i=0; i<lastTakenParticle+1; ++i)
-    {
-      if(particles[i].isAlive())
-      {
-        particles[i].updatePrevPosition();
-        if(!(particles[i].getDrag())&&!(particles[i].getWall()))
-          particles[i].updatePosition(m_timestep);
       }
     }
-    hashParticles();
+    choo++;
+  }
+  // */
 
-    //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
+  //------------------------------------------POSITION----------------------------------------
 
-
-    //#pragma omp parallel for ordered
-    for(int k=0; k<gridheight*gridwidth; ++k)
+  for(int i=0; i<lastTakenParticle+1; ++i)
+  {
+    if(particles[i].isAlive())
     {
-      if(cellsContainingParticles[k])
-      {
-        std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,3,false);
-
-        for(auto& i : grid[k])
-        {
-          if(i->getProperties()->getSpring() && (!i->isObject() || (i->isObject() && !i->isInit()) ) && !i->getWall())
-          {
-            for(auto& j : surroundingParticles)
-            {
-              if(j->getProperties()==i->getProperties()) // They only cling when same type
-              {
-                Vec3 rij=(j->getPosition()-i->getPosition());
-                float rijmag = rij.length();
-                float q = rijmag/interactionradius;
-
-                if(q<1 && q!=0)
-                {
-                  // FINDING / CREATING THE SPRING
-                  bool quiter = false;
-                  int thisspring;
-
-                  for(auto& spring : i->particleSprings)
-                  {
-                    if(((springs[spring].indexi==i->getIndex()) && (springs[spring].indexj==j->getIndex())) ||
-                       ((springs[spring].indexi==j->getIndex()) && (springs[spring].indexj==i->getIndex())))
-                    {
-                      springs[spring].alive=true;
-                      thisspring=spring;
-                      quiter=true; // FOUND EXISTING SPRING
-                      break;
-                    }
-                  }
-
-                  if(!quiter)
-                  {
-                    Particle::Spring newspring;
-                    newspring.indexi=i->getIndex();
-                    newspring.indexj=j->getIndex();
-                    newspring.count=everyother-1;
-                    newspring.alive=true;
-                    newspring.L = interactionradius; // maybe change this to sum of radius of two particles
-
-                    thisspring = insertSpring(newspring);
-
-                    i->particleSprings.push_back(thisspring);
-                    j->particleSprings.push_back(thisspring);
-                  }
-
-                  // MAKING SURE EACH SPRING IS ONLY UPDATED ONCE PER FRAME
-                  if(springs[thisspring].count!=everyother)
-                  {
-                    GLfloat L = springs[thisspring].L;
-                    GLfloat d= L*i->getProperties()->getGamma();
-                    GLfloat alpha = i->getProperties()->getAlpha();
-
-                    if(rijmag>L+d)
-                    {
-                      springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
-                    }
-                    else if(rijmag<L-d)
-                    {
-                      springs[thisspring].L=L-m_timestep*alpha*(L-d-rijmag);
-                    }
-                    springs[thisspring].count++;
-                  }
-                }
-              }
-            }
-            i->setInit();
-          }
-        }
-      }
+      particles[i].updatePrevPosition();
+      if(!(particles[i].getDrag())&&!(particles[i].getWall()))
+        particles[i].updatePosition(m_timestep);
     }
+  }
+  hashParticles();
 
-    // delete springs if over rest length?
+  //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
 
 
-    //spring displacements
-
-    int count=0;
-    for(auto& i : springs)
+  //#pragma omp parallel for ordered
+  for(int k=0; k<gridheight*gridwidth; ++k)
+  {
+    if(cellsContainingParticles[k])
     {
-      if(i.alive){
-        Vec3 rij = (particles[i.indexj].getPosition() - particles[i.indexi].getPosition());
-        float rijmag = rij.length();
-
-        if(rijmag>interactionradius && !particles[i.indexi].isObject())
-        {
-          deleteSpring(count);
-        }
-
-        else{
-          rij.normalize();
-          Vec3 D = rij*m_timestep*m_timestep*particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
-          particles[i.indexi].addPosition(-D/2);
-          particles[i.indexj].addPosition(D/2);
-        }
-
-      }
-      count++;
-    }
-    defragSprings();
-    // */
-
-    //----------------------------------DOUBLEDENSITY------------------------------------------
-
-
-    count =0;
-
-    //#pragma omp parallel for ordered
-    for(int k = 0; k<(int)grid.size(); ++k)
-    {
-      std::vector<Particle *> neighbours=getSurroundingParticles(count,1,false);
+      std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,3,false);
 
       for(auto& i : grid[k])
       {
-        float density =0;
-        float neardensity=0;
-        for(auto& j : neighbours)
+        if(i->getProperties()->getSpring() && (!i->isObject() || (i->isObject() && !i->isInit()) ) && !i->getWall())
         {
-          Vec3 rij = j->getPosition()-i->getPosition(); // THFP
-          float rijmag = rij.length();
-          float q = rijmag/interactionradius;
-          if(q<1 && q!=0) // q==0 when same particle
+          for(auto& j : surroundingParticles)
           {
-            density+=(1.0f-q)*(1.0f-q);
-            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+            if(j->getProperties()==i->getProperties()) // They only cling when same type
+            {
+              Vec3 rij=(j->getPosition()-i->getPosition());
+              float rijmag = rij.length();
+              float q = rijmag/interactionradius;
+
+              if(q<1 && q!=0)
+              {
+                // FINDING / CREATING THE SPRING
+                bool quiter = false;
+                int thisspring;
+
+                for(auto& spring : i->particleSprings)
+                {
+                  if(((springs[spring].indexi==i->getIndex()) && (springs[spring].indexj==j->getIndex())) ||
+                     ((springs[spring].indexi==j->getIndex()) && (springs[spring].indexj==i->getIndex())))
+                  {
+                    springs[spring].alive=true;
+                    thisspring=spring;
+                    quiter=true; // FOUND EXISTING SPRING
+                    break;
+                  }
+                }
+
+                if(!quiter)
+                {
+                  Particle::Spring newspring;
+                  newspring.indexi=i->getIndex();
+                  newspring.indexj=j->getIndex();
+                  newspring.count=everyother-1;
+                  newspring.alive=true;
+                  newspring.L = interactionradius; // maybe change this to sum of radius of two particles
+
+                  thisspring = insertSpring(newspring);
+
+                  i->particleSprings.push_back(thisspring);
+                  j->particleSprings.push_back(thisspring);
+                }
+
+                // MAKING SURE EACH SPRING IS ONLY UPDATED ONCE PER FRAME
+                if(springs[thisspring].count!=everyother)
+                {
+                  GLfloat L = springs[thisspring].L;
+                  GLfloat d= L*i->getProperties()->getGamma();
+                  GLfloat alpha = i->getProperties()->getAlpha();
+
+                  if(rijmag>L+d)
+                  {
+                    springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
+                  }
+                  else if(rijmag<L-d)
+                  {
+                    springs[thisspring].L=L-m_timestep*alpha*(L-d-rijmag);
+                  }
+                  springs[thisspring].count++;
+                }
+              }
+            }
           }
+          i->setInit();
         }
-
-
-        if(m_boundaryType==1)
-        {
-          // BOTTOM
-          float distance = halfheight + i->getPosition()[1];
-          float q = distance/(m_boundaryMultiplier*interactionradius);
-          if(q<1 && q!=0) // q==0 when same particle
-          {
-            density+=(1.0f-q)*(1.0f-q);
-            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
-          }
-          // RIGHT
-          distance = halfwidth - i->getPosition()[0];
-          q = distance/(m_boundaryMultiplier*interactionradius);
-          if(q<1 && q!=0) // q==0 when same particle
-          {
-            density+=(1.0f-q)*(1.0f-q);
-            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
-          }
-
-          // LEFT
-          distance = i->getPosition()[0] + halfwidth ;
-          q = distance/(m_boundaryMultiplier*interactionradius);
-          if(q<1 && q!=0) // q==0 when same particle
-          {
-            density+=(1.0f-q)*(1.0f-q);
-            neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
-          }
-        }
-
-
-
-        float p0 = i->getProperties()->getP0();             // PROPERTIES <--------------------------------------
-        float k = i->getProperties()->getK();
-        float knear = i->getProperties()->getKnear();
-
-        float P = k*(density -p0);
-        float Pnear = knear * neardensity;
-        Vec3 dx = Vec3();
-        for(auto& j : neighbours)
-        {
-          Vec3 rij = j->getPosition()-i->getPosition(); // THFP
-          float rijmag = rij.length();
-          float q = rijmag/interactionradius;
-          if(q<1 && q!=0)
-          {
-            rij.normalize();
-            Vec3 D = rij*(m_timestep*m_timestep*(P*(1.0f-q))+Pnear*(1.0f-q)*(1.0f-q));
-            if(!(j->getWall())) j->addPosition(D/2);
-            dx-=(D/2);
-          }
-        }
-        if(!(i->getWall())) i->addPosition(dx);
-      }
-      count++;
-    }
-    // */
-
-    //----------------------------------MAKE NEW VELOCITY-------------------------------------
-
-    for(auto& list : grid)
-    {
-      for(auto& i : list)
-      {
-        i->setVelocity((i->getPosition()-i->getPrevPosition())/m_timestep);
       }
     }
+  }
 
-    //----------------------------------BOUNDARIES --------------------------------------------
-
-    // 2d/3d different
-
-    float smallen = 0.4f;
-    if(!m_3d) smallen=1.0f;
+  // delete springs if over rest length?
 
 
-    for(int i=0; i<lastTakenParticle+1; ++i)
-    {
-      if(particles[i].isAlive())
+  //spring displacements
+
+  int count=0;
+  for(auto& i : springs)
+  {
+    if(i.alive){
+      Vec3 rij = (particles[i.indexj].getPosition() - particles[i.indexi].getPosition());
+      float rijmag = rij.length();
+
+      if(rijmag>interactionradius && !particles[i.indexi].isObject())
       {
-        // OpenMP <<---
-        // MTSi parallelism for loop as prrallel as you can on an intel.
+        deleteSpring(count);
+      }
 
-        if(m_boundaryType==0)
+      else{
+        rij.normalize();
+        Vec3 D = rij*m_timestep*m_timestep*particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
+        particles[i.indexi].addPosition(-D/2);
+        particles[i.indexj].addPosition(D/2);
+      }
+
+    }
+    count++;
+  }
+  defragSprings();
+  // */
+
+  //----------------------------------DOUBLEDENSITY------------------------------------------
+
+
+  count =0;
+
+  //#pragma omp parallel for ordered
+  for(int k = 0; k<(int)grid.size(); ++k)
+  {
+    std::vector<Particle *> neighbours=getSurroundingParticles(count,1,false);
+
+    for(auto& i : grid[k])
+    {
+      float density =0;
+      float neardensity=0;
+      for(auto& j : neighbours)
+      {
+        Vec3 rij = j->getPosition()-i->getPosition(); // THFP
+        float rijmag = rij.length();
+        float q = rijmag/interactionradius;
+        if(q<1 && q!=0) // q==0 when same particle
         {
-          //------------------------------------BOTTOM------------------------------
-          if(particles[i].getPosition()[1]-0.5f<-halfheight)
-          {
-            particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
-            particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
-          }
-          //------------------------------------TOP------------------------------
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+        }
+      }
 
-          if(particles[i].getPosition()[1]+1.5f>halfheight)
-          {
-            particles[i].setPosition(Vec3(particles[i].getPosition()[0],halfheight-1.5f,particles[i].getPosition()[2]));
-            particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
-          }
 
-          //------------------------------------RIGHT------------------------------
-          if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
-          {
-            particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
-            particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
-          }
-          //------------------------------------LEFT------------------------------
-          if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
-          {
-            particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
-            particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
-          }
-          if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
-          {
-            particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
-            particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
-          }
-          if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
-          {
-            particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
-            particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
-          }
+      if(m_boundaryType==1)
+      {
+        // BOTTOM
+        float distance = halfheight + i->getPosition()[1];
+        float q = distance/(m_boundaryMultiplier*interactionradius);
+        if(q<1 && q!=0) // q==0 when same particle
+        {
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+        }
+        // RIGHT
+        distance = halfwidth - i->getPosition()[0];
+        q = distance/(m_boundaryMultiplier*interactionradius);
+        if(q<1 && q!=0) // q==0 when same particle
+        {
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
         }
 
-        if(m_boundaryType==1)
+        // LEFT
+        distance = i->getPosition()[0] + halfwidth ;
+        q = distance/(m_boundaryMultiplier*interactionradius);
+        if(q<1 && q!=0) // q==0 when same particle
         {
-        float distance = halfheight + particles[i].getPosition()[1];
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+        }
+      }
+
+
+
+      float p0 = i->getProperties()->getP0();             // PROPERTIES <--------------------------------------
+      float k = i->getProperties()->getK();
+      float knear = i->getProperties()->getKnear();
+
+      float P = k*(density -p0);
+      float Pnear = knear * neardensity;
+      Vec3 dx = Vec3();
+      for(auto& j : neighbours)
+      {
+        Vec3 rij = j->getPosition()-i->getPosition(); // THFP
+        float rijmag = rij.length();
+        float q = rijmag/interactionradius;
+        if(q<1 && q!=0)
+        {
+          rij.normalize();
+          Vec3 D = rij*(m_timestep*m_timestep*(P*(1.0f-q))+Pnear*(1.0f-q)*(1.0f-q));
+          if(!(j->getWall())) j->addPosition(D/2);
+          dx-=(D/2);
+        }
+      }
+      if(!(i->getWall())) i->addPosition(dx);
+    }
+    count++;
+  }
+  // */
+
+  //----------------------------------MAKE NEW VELOCITY-------------------------------------
+
+  for(auto& list : grid)
+  {
+    for(auto& i : list)
+    {
+      i->setVelocity((i->getPosition()-i->getPrevPosition())/m_timestep);
+    }
+  }
+
+  //----------------------------------BOUNDARIES --------------------------------------------
+
+  // 2d/3d different
+
+  float smallen = 0.4f;
+  if(!m_3d) smallen=1.0f;
+
+
+  for(int i=0; i<lastTakenParticle+1; ++i)
+  {
+    if(particles[i].isAlive())
+    {
+      // OpenMP <<---
+      // MTSi parallelism for loop as prrallel as you can on an intel.
+
+      if(m_boundaryType==0)
+      {
+        //------------------------------------BOTTOM------------------------------
+        if(particles[i].getPosition()[1]-0.5f<-halfheight)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
+          particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
+        }
+        //------------------------------------TOP------------------------------
+
+        if(particles[i].getPosition()[1]+1.5f>halfheight)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],halfheight-1.5f,particles[i].getPosition()[2]));
+          particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
+        }
+
+        //------------------------------------RIGHT------------------------------
+        if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
+          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+        }
+        //------------------------------------LEFT------------------------------
+        if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
+          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+        }
+        if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+        }
+        if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
+        {
+          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+        }
+      }
+
+      if(m_boundaryType==1)
+      {
+
+        float distance = - particles[i].getPosition()[1] + halfheight - 0.5f;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
-         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-         particles[i].addVelocity(Vec3(0.0f,force,0.0f));
+          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          particles[i].addVelocity(Vec3(0.0f,-force,0.0f));
+        }
+
+        distance = halfheight + particles[i].getPosition()[1];
+        if(distance<(m_boundaryMultiplier*interactionradius))
+        {
+          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          particles[i].addVelocity(Vec3(0.0f,force,0.0f));
         }
 
         distance = particles[i].getPosition()[0] + halfwidth*smallen;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
-         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-         particles[i].addVelocity(Vec3(force,0.0f,0.0f));
+          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          particles[i].addVelocity(Vec3(force,0.0f,0.0f));
         }
 
         distance = halfwidth*smallen - particles[i].getPosition()[0];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
-         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-         particles[i].addVelocity(Vec3(-force,0.0f,0.0f));
+          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          particles[i].addVelocity(Vec3(-force,0.0f,0.0f));
         }
 
         distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
-         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-         particles[i].addVelocity(Vec3(0.0f,0.0f,force));
+          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          particles[i].addVelocity(Vec3(0.0f,0.0f,force));
         }
 
         distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
-         float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-         particles[i].addVelocity(Vec3(0.0f,0.0f,-force));
+          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-force));
         }
 
-
-        }
 
       }
-    }
-    // */
-    //----------------------------------CLEANUP ------------------------------------------------
 
-    if(everyother%30==0)
-    {
-      std::cout<<"Numebr:"<<howManyAliveParticles<<std::endl;
     }
+  }
+  // */
+  //----------------------------------CLEANUP ------------------------------------------------
 
-    int howmany=howManyAliveParticles;
-    if(howmany==0) howmany=1;
-    if(((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany) >0.5)
-    {
-      std::cout<<"fraction: "<<((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany)<<std::endl;
-      std::cout<<"lasttaken: "<<lastTakenParticle<<"  firstfree: "<<firstFreeParticle<<std::endl;
-    }
+  if(everyother%30==0)
+  {
+    std::cout<<"Numebr:"<<howManyAliveParticles<<std::endl;
+  }
 
-    /*
+  int howmany=howManyAliveParticles;
+  if(howmany==0) howmany=1;
+  if(((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany) >0.5)
+  {
+    std::cout<<"fraction: "<<((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany)<<std::endl;
+    std::cout<<"lasttaken: "<<lastTakenParticle<<"  firstfree: "<<firstFreeParticle<<std::endl;
+  }
+
+  /*
     gettimeofday(&tim, NULL);
     static double now = tim.tv_sec+(tim.tv_usec * 1e-6);
     static double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
@@ -901,47 +910,47 @@ Vec3 World::getRenderGridColumnRow(int k)
 
 void World::mouseDraw(int x, int y)
 {
-    float objectdensity=0.1f;
-    if(drawwall) objectdensity=0.05f;
+  float objectdensity=0.1f;
+  if(drawwall) objectdensity=0.05f;
 
-    float currentx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
-    float currenty = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
+  float currentx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
+  float currenty = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
 
-    float correctedx = floor(currentx/objectdensity + 0.5f);
-    correctedx*=objectdensity;
+  float correctedx = floor(currentx/objectdensity + 0.5f);
+  correctedx*=objectdensity;
 
-    float correctedy = floor(currenty/objectdensity + 0.5f);
-    correctedy*=objectdensity;
+  float correctedy = floor(currenty/objectdensity + 0.5f);
+  correctedy*=objectdensity;
 
-    bool drawparticle=true;
-    int grid_cell=floor((correctedx+halfwidth)/squaresize)+floor((correctedy+halfheight)/squaresize)*gridwidth;
-    for(auto& i : grid[grid_cell])
+  bool drawparticle=true;
+  int grid_cell=floor((correctedx+halfwidth)/squaresize)+floor((correctedy+halfheight)/squaresize)*gridwidth;
+  for(auto& i : grid[grid_cell])
+  {
+    if(i->getPosition()[0]==correctedx && i->getPosition()[1]==correctedy)
     {
-      if(i->getPosition()[0]==correctedx && i->getPosition()[1]==correctedy)
-      {
-        drawparticle=false;
-        break;
-      }
+      drawparticle=false;
+      break;
     }
+  }
 
-    if(drawparticle)
+  if(drawparticle)
+  {
+    Particle newparticle;
+    if(drawwall)
     {
-      Particle newparticle;
-      if(drawwall)
-      {
-        int oldm_todraw=m_todraw;
-        m_todraw=0;
-        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[m_todraw]);
-        newparticle.setWall(true);
-        m_todraw=oldm_todraw;
-      }
-      else
-      {
-        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[m_todraw]);
-      }
-      insertParticle(newparticle);
-      hashParticles();
+      int oldm_todraw=m_todraw;
+      m_todraw=0;
+      newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[m_todraw]);
+      newparticle.setWall(true);
+      m_todraw=oldm_todraw;
     }
+    else
+    {
+      newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[m_todraw]);
+    }
+    insertParticle(newparticle);
+    hashParticles();
+  }
 }
 
 void World::mouseDrag(int x, int y)
@@ -993,8 +1002,8 @@ void World::mouseDragEnd(int x, int y)
 
   for(auto& i : draggedParticles)
   {
-      i->setDrag(false);
-      i->addVelocity(newVelocity*0.05f);
+    i->setDrag(false);
+    i->addVelocity(newVelocity*0.05f);
   }
   draggedParticles.clear();
   m_previousmousex=-10;
@@ -1085,7 +1094,11 @@ void World::insertParticle(Particle particle)
 void World::deleteParticle(int p)
 {
   particles[p].setAlive(false);
-  particles[p].clearParticleSprings();
+  for(auto& i : particles[p].particleSprings)
+  {
+    deleteSpring(i);
+  }
+
   if(lastTakenParticle==p)
   {
     while(particles[lastTakenParticle].isAlive()==false && lastTakenParticle>-1)
@@ -1131,7 +1144,7 @@ int World::insertSpring(Particle::Spring spring)
       ++firstFreeSpring;
     }
   }
-    return result;
+  return result;
 }
 
 void World::deleteSpring(int s)
@@ -1615,6 +1628,7 @@ void World::setToDraw(int _todraw)
 void World::setRandomType(int _randomSeed)
 {
   m_particleTypes[3].randomize(_randomSeed);
+  m_particleTypes[3].printVariables();
 }
 
 
