@@ -92,6 +92,7 @@ public:
     void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
 
     void defragParticles();
+    void defragSprings();
 
     void drawchar();
 

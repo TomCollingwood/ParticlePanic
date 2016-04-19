@@ -111,10 +111,10 @@ void World::init() {
     m_particleTypes.push_back(ParticleProperties()); //water
     //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
     //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
-    m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.3f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false));
+    m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false));
     //random=ParticleProperties();
     //random.randomize();
-    todraw=0; // This is the liquid to draw (tap or mouse)
+    todraw=1; // This is the liquid to draw (tap or mouse)
 
     m_previousmousex=-10;
     m_previousmousey=-10;
@@ -128,7 +128,7 @@ void World::init() {
       for(int j=0; j<10; ++j)
       {
         Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),&m_particleTypes[todraw]);
-        //particles.back().setIsObject();
+        newparticle.setIsObject();
         insertParticle(newparticle);
       }
     }
@@ -535,9 +535,11 @@ void World::update(bool *updateinprogress) {
       }
       count++;
     }
+    defragSprings();
     // */
 
     //----------------------------------DOUBLEDENSITY------------------------------------------
+
 
     count =0;
     for(auto& list : grid)
@@ -583,6 +585,7 @@ void World::update(bool *updateinprogress) {
       count++;
     }
     // */
+
     //----------------------------------MAKE NEW VELOCITY-------------------------------------
 
     for(auto& list : grid)
@@ -827,8 +830,19 @@ void World::mouseDraw(int x, int y)
 
     if(drawparticle)
     {
-      Particle newparticle = Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[todraw]);
-      if(drawwall) newparticle.setWall(true);
+      Particle newparticle;
+      if(drawwall)
+      {
+        int oldtodraw=todraw;
+        todraw=0;
+        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[todraw]);
+        newparticle.setWall(true);
+        todraw=oldtodraw;
+      }
+      else
+      {
+        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[todraw]);
+      }
       insertParticle(newparticle);
       hashParticles();
     }
@@ -949,6 +963,7 @@ void World::mouseErase(int x, int y)
   m_previousmousex=x;
   m_previousmousey=y;
   defragParticles();
+  defragSprings();
 }
 
 //------------------------PARTICLES FUNCTIONS-------------------------------------
@@ -1008,40 +1023,26 @@ int World::insertSpring(Particle::Spring spring)
 {
   int result = firstFreeSpring;
   springs[firstFreeSpring]=spring;
-  if(lastTakenParticle<firstFreeSpring)
+  if(lastTakenSpring<firstFreeSpring)
   {
     ++lastTakenSpring;
     ++firstFreeSpring;
   }
   else{
-    while(springs[firstFreeSpring].alive==true)
+    while(springs[firstFreeSpring].alive)
     {
       ++firstFreeSpring;
     }
   }
-  return result;
+    return result;
 }
 
-/*
-int World::insertSpring(Particle::Spring spring)
-{
-  for(int i = firstFreeSpring; i< springsize; ++i)
-  {
-    if(!(springs[i].alive))
-    {
-      springs[i] = spring;
-      firstFreeSpring=i+1;
-      return i;
-    }
-  }
-}
-// */
 void World::deleteSpring(int s)
 {
   springs[s].alive=false;
   if(lastTakenSpring==s)
   {
-    while(springs[lastTakenSpring].alive==false)
+    while(springs[lastTakenSpring].alive==false && lastTakenSpring>-1)
     {
       --lastTakenSpring;
     }
@@ -1049,6 +1050,19 @@ void World::deleteSpring(int s)
   if(firstFreeSpring>s) firstFreeSpring=s;
 }
 
+void World::defragSprings()
+{
+  for(int i=lastTakenSpring; i>firstFreeSpring; --i)
+  {
+    if(springs[i].alive)
+    {
+      particles[springs[i].indexi].updateSpringIndex(i,firstFreeSpring);
+      particles[springs[i].indexj].updateSpringIndex(i,firstFreeSpring);
+      insertSpring(springs[i]);
+      deleteSpring(i);
+    }
+  }
+}
 //-------------------------GETTERS------------------------------
 
 float World::getHalfHeight() const

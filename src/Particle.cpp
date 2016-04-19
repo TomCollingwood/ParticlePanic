@@ -199,3 +199,15 @@ int Particle::getIndex()
 {
   return m_index;
 }
+
+void Particle::updateSpringIndex(int from, int to)
+{
+  for(int i=0; i<(int)particleSprings.size(); ++i)
+  {
+    if(particleSprings[i]==from)
+    {
+      particleSprings[i]=to;
+      break;
+    }
+  }
+}
