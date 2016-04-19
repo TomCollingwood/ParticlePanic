@@ -84,9 +84,9 @@ void ParticleProperties::printVariables() const
 
 }
 
-void ParticleProperties::randomize()
+void ParticleProperties::randomize(int _seed)
 {
-  srand (time(NULL));
+  srand (_seed);
   //SPRING
   m_spring=false;
   if (rand() % 3==0) m_spring=true;  // 1/3 chance it uses spring algorithm

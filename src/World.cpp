@@ -20,7 +20,7 @@
   #include <GL/glu.h>
 #endif
 
-#include <GLUT/glut.h>
+//#include <GLUT/glut.h>
 
 //#include <SDL2_image>
 
@@ -43,7 +43,8 @@ World::World() :
   gravity(true),
   springsize(500000),
   particlesPoolSize(3000),
-  m_3d(false)
+  m_3d(false),
+  m_boundaryMultiplier(0.6f)
 {
 }
 
@@ -109,12 +110,16 @@ void World::init() {
 
     // DEFAULT PARTICLE PROPERTIES
     m_particleTypes.push_back(ParticleProperties()); //water
+    m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //slime
+    m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //blobby
+    m_particleTypes.push_back(ParticleProperties()); //random
+
     //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
     //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
-    m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false));
+
     //random=ParticleProperties();
     //random.randomize();
-    todraw=1; // This is the liquid to draw (tap or mouse)
+    m_todraw=1; // This is the liquid to draw (tap or mouse)
 
     m_previousmousex=-10;
     m_previousmousey=-10;
@@ -127,7 +132,7 @@ void World::init() {
     {
       for(int j=0; j<10; ++j)
       {
-        Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),&m_particleTypes[todraw]);
+        Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),&m_particleTypes[m_todraw]);
         newparticle.setIsObject();
         insertParticle(newparticle);
       }
@@ -188,17 +193,20 @@ void World::resizeWorld(int w, int h)
 
   // GHOST PARTICLES
 
-  //particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),todraw));
+  //particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),m_todraw));
   //particles.back().setWall(true);
 
   /*
-  int density = 90;
+
+  int density = 70;
   float gap = (halfwidth*2)/(float)density;
+  int prevm_todraw=m_todraw;
+  int m_todraw=0;
   for(int i = 0; i<density+1; ++i)
   {
-    for(int j=0; j<5; ++j)
+    for(int j=0; j<3; ++j)
     {
-      Particle newparticle = Particle(Vec3(-halfwidth+i*gap,-halfheight+0.5f-j*gap,-2.0f),todraw);
+      Particle newparticle = Particle(Vec3(-halfwidth+i*gap,-halfheight+0.5f-j*gap,-2.0f),&m_particleTypes[m_todraw]);
       newparticle.setWall(true);
       insertParticle(newparticle);
     }
@@ -208,9 +216,9 @@ void World::resizeWorld(int w, int h)
   gap = (halfheight*2)/(float)density;
   for(int i = 0; i<density+1; ++i)
   {
-    for(int j=0; j<5; ++j)
+    for(int j=0; j<3; ++j)
     {
-      Particle newparticle = Particle(Vec3(-halfwidth-j*gap,-halfheight+i*gap,-2.0f),todraw);
+      Particle newparticle = Particle(Vec3(-halfwidth-j*gap,-halfheight+i*gap,-2.0f),&m_particleTypes[m_todraw]);
       newparticle.setWall(true);
       insertParticle(newparticle);
     }
@@ -220,14 +228,14 @@ void World::resizeWorld(int w, int h)
   gap = (halfheight*2)/(float)density;
   for(int i = 0; i<density+1; ++i)
   {
-    for(int j=0; j<5; ++j)
+    for(int j=0; j<3; ++j)
     {
-      Particle newparticle = Particle(Vec3(halfwidth+j*gap,-halfheight+i*gap,-2.0f),todraw);
+      Particle newparticle = Particle(Vec3(halfwidth+j*gap,-halfheight+i*gap,-2.0f),&m_particleTypes[m_todraw]);
       newparticle.setWall(true);
       insertParticle(newparticle);
     }
   }
-
+  m_todraw=prevm_todraw;
   // */
   hashParticles();
 
@@ -335,7 +343,7 @@ void World::update(bool *updateinprogress) {
         {
           for(int i = 0; i<10; ++i)
           {
-            Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[todraw]);
+            Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
             newParticle.addVelocity(Vec3(0.0f,-0.2f,0.0f));
             insertParticle(newParticle);
           }
@@ -346,7 +354,7 @@ void World::update(bool *updateinprogress) {
           {
             for(int i = 0; i<5; ++i)
             {
-              Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),&m_particleTypes[todraw]);
+              Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),&m_particleTypes[m_todraw]);
               newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
               insertParticle(newParticle);
             }
@@ -373,11 +381,11 @@ void World::update(bool *updateinprogress) {
 
     int choo = 0;
 
-    #pragma omp parallel for
-    for(auto& k : grid)
+    //#pragma omp parallel for ordered schedule(dynamic)
+    for(auto k = 0; k<(int)grid.size(); ++k)
     {
       int ploo = 0;
-      for(auto& i : k)
+      for(auto& i : grid[k])
       {
         if(!(i->getWall()))
         {
@@ -431,6 +439,8 @@ void World::update(bool *updateinprogress) {
 
     //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
 
+
+    //#pragma omp parallel for ordered
     for(int k=0; k<gridheight*gridwidth; ++k)
     {
       if(cellsContainingParticles[k])
@@ -542,10 +552,13 @@ void World::update(bool *updateinprogress) {
 
 
     count =0;
-    for(auto& list : grid)
+
+    //#pragma omp parallel for ordered
+    for(int k = 0; k<(int)grid.size(); ++k)
     {
       std::vector<Particle *> neighbours=getSurroundingParticles(count,1,false);
-      for(auto& i : list)
+
+      for(auto& i : grid[k])
       {
         float density =0;
         float neardensity=0;
@@ -560,6 +573,37 @@ void World::update(bool *updateinprogress) {
             neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
           }
         }
+
+
+        // BOTTOM
+        float distance = halfheight + i->getPosition()[1];
+        float q = distance/(m_boundaryMultiplier*interactionradius);
+        if(q<1 && q!=0) // q==0 when same particle
+        {
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+        }
+        // RIGHT
+        distance = halfwidth - i->getPosition()[0];
+        q = distance/(m_boundaryMultiplier*interactionradius);
+        if(q<1 && q!=0) // q==0 when same particle
+        {
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+        }
+
+        // LEFT
+        distance = i->getPosition()[0] + halfwidth ;
+        q = distance/(m_boundaryMultiplier*interactionradius);
+        if(q<1 && q!=0) // q==0 when same particle
+        {
+          density+=(1.0f-q)*(1.0f-q);
+          neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
+        }
+        //*/
+
+
+
         float p0 = i->getProperties()->getP0();             // PROPERTIES <--------------------------------------
         float k = i->getProperties()->getK();
         float knear = i->getProperties()->getKnear();
@@ -610,11 +654,24 @@ void World::update(bool *updateinprogress) {
       {
         // OpenMP <<---
         // MTSi parallelism for loop as prrallel as you can on an intel.
+
+
+
+        //------------------------------------BOTTOM------------------------------
         if(particles[i].getPosition()[1]-0.5f<-halfheight)
         {
           particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
           particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
         }
+
+//        float distance = halfheight + particles[i].getPosition()[1];
+//        if(distance<(m_boundaryMultiplier*interactionradius))
+//        {
+//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
+//         particles[i].addVelocity(Vec3(0.0f,force,0.0f));
+//        }
+
+        //------------------------------------TOP------------------------------
 
         if(particles[i].getPosition()[1]+1.5f>halfheight)
         {
@@ -622,17 +679,46 @@ void World::update(bool *updateinprogress) {
           particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
         }
 
+        //------------------------------------RIGHT------------------------------
         if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
         {
           particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
           particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
         }
 
+
+
+//        distance = particles[i].getPosition()[0] + halfwidth*smallen;
+//        if(distance<(m_boundaryMultiplier*interactionradius))
+//        {
+//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
+//         particles[i].addVelocity(Vec3(force,0.0f,0.0f));
+//        }
+
+
+        //------------------------------------LEFT------------------------------
         if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
         {
           particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
           particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
         }
+
+//        distance = halfwidth*smallen - particles[i].getPosition()[0];
+//        if(distance<(m_boundaryMultiplier*interactionradius))
+//        {
+//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
+//         particles[i].addVelocity(Vec3(-force,0.0f,0.0f));
+//        }
+        //
+
+
+
+//        distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
+//        if(distance<(m_boundaryMultiplier*interactionradius))
+//        {
+//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5;
+//         particles[i].addVelocity(Vec3(0.0f,0.0f,+force));
+//        }
 
         if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
         {
@@ -640,11 +726,19 @@ void World::update(bool *updateinprogress) {
           particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
         }
 
+//        distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
+//        if(distance<(m_boundaryMultiplier*interactionradius))
+//        {
+//         float force = ((m_boundaryMultiplier*interactionradius)-distance)/1.5f;
+//         particles[i].addVelocity(Vec3(0.0f,0.0f,-force));
+//        }
+
         if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
         {
           particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
           particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
         }
+
       }
     }
     // */
@@ -833,15 +927,15 @@ void World::mouseDraw(int x, int y)
       Particle newparticle;
       if(drawwall)
       {
-        int oldtodraw=todraw;
-        todraw=0;
-        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[todraw]);
+        int oldm_todraw=m_todraw;
+        m_todraw=0;
+        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[m_todraw]);
         newparticle.setWall(true);
-        todraw=oldtodraw;
+        m_todraw=oldm_todraw;
       }
       else
       {
-        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[todraw]);
+        newparticle= Particle(Vec3(correctedx,correctedy,-2.0f),&m_particleTypes[m_todraw]);
       }
       insertParticle(newparticle);
       hashParticles();
@@ -1040,6 +1134,8 @@ int World::insertSpring(Particle::Spring spring)
 void World::deleteSpring(int s)
 {
   springs[s].alive=false;
+  particles[springs[s].indexi].updateSpringIndex(s,-1);
+  particles[springs[s].indexj].updateSpringIndex(s,-1);
   if(lastTakenSpring==s)
   {
     while(springs[lastTakenSpring].alive==false && lastTakenSpring>-1)
@@ -1108,12 +1204,12 @@ void World::drawWith(int type)
 {
   if(type==0)
   {
-    todraw=0;
+    m_todraw=0;
   }
   else if(type==1)
   {
     //random.randomize();
-    todraw=1;
+    m_todraw=1;
     howmanytimesrandomized++;
   }
 }
@@ -1506,6 +1602,16 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
 void World::set3D(bool b)
 {
   m_3d=b;
+}
+
+void World::setToDraw(int _todraw)
+{
+  if(_todraw<m_particleTypes.size()) m_todraw=_todraw;
+}
+
+void World::setRandomType(int _randomSeed)
+{
+  m_particleTypes[3].randomize(_randomSeed);
 }
 
 

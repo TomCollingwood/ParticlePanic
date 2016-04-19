@@ -8,8 +8,8 @@ OBJECTS_DIR = obj
 #QMAKE_CC = gcc
 #QMAKE_CXX = g++
 
-#QMAKE_CXXFLAGS += -fopenmp
-#LIBS += -fopenmp
+QMAKE_CXXFLAGS += -fopenmp
+LIBS += -fopenmp
 
 SOURCES += src/main.cpp \
     src/Vec3.cpp \
@@ -33,7 +33,7 @@ LIBS += -L/usr/local/lib
 
 linux: {
   LIBS+=$$system(sdl2-config --libs)
-  LIBS += -lSDL2  -lGLU -lGL -lSDL2_image  -L/usr/local/lib/ -lglut #-lGLEW
+  LIBS += -lSDL2  -lGLU -lGL -lSDL2_image  -L/usr/local/lib/ #-lglut #-lGLEW
 }
 
 macx: {

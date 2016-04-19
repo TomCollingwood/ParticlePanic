@@ -20,7 +20,7 @@
   #include <SDL2/SDL_image.h>
   #include <GL/gl.h>
   #include <GL/glu.h>
-  #include <GL/glut.h>
+  //#include <GL/glut.h>
 #endif
 
 
@@ -196,6 +196,7 @@ int main( int argc, char* args[] ) {
             }
             //User requests quit
             else if( e.type == SDL_QUIT ) {
+
                 quit = true;
             }
 
@@ -381,6 +382,8 @@ int main( int argc, char* args[] ) {
 
     // Disable our timer
     SDL_RemoveTimer(timerID);
+
+    world->clearWorld();
 
     // Delete our World
     delete world;

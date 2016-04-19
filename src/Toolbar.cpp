@@ -303,6 +303,38 @@ void Toolbar::drawToolbar(int h) const
     glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
     glEnd();
 
+    // ----------------------_RANDOMIZE-=-----------------------
+
+    X+=Width*5+gap*6;
+
+    if(randomize)
+      texX=0.4f;
+    else
+      texX=0.0f;
+    texY=0.0f;
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
+
+    texX=0.8f;
+    texY=0.3f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
+
+    //std::cout<<X<<std::endl;
+
+    X-=Width*5+gap*6;
+
     // ------------------DROP DOWN MENU ---------------
 
     X+=Width+gap;
@@ -320,6 +352,19 @@ void Toolbar::drawToolbar(int h) const
       glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
       glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
       glEnd();
+
+      X+=gap;
+      Y+=gap*1.5;
+
+      glBegin(GL_QUADS); // WATER
+      glTexCoord2f(0, 0.65+0.05*m_dropdownselect+texH*0.6); glVertex3f(X, Y, -1);
+      glTexCoord2f(0+texW, 0.65+0.05*m_dropdownselect+texH*0.7); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(0+texW, 0.65+0.05*m_dropdownselect); glVertex3f(X + Width, Y + Height*0.55, -1);
+      glTexCoord2f(0, 0.65+0.05*m_dropdownselect); glVertex3f(X, Y + Height*0.55, -1);
+      glEnd();
+
+      X-=gap;
+      Y-=gap*1.5;
     }
     else
     {
@@ -441,7 +486,8 @@ void Toolbar::drawToolbar(int h) const
 
       Y+=Height*3.75;
 
-
+      X-=0.1f;
+      texH=0.1f;
     }
     X+=Width+gap;
     if(m_randomSeed.size()!=0)
@@ -472,40 +518,7 @@ void Toolbar::drawToolbar(int h) const
     }
 
     this->drawNumbers(X+((halfheight*2)/h)*8,Y+((halfheight*2)/h)*13,h,m_randomSeed);
-    std::cout<<"seed"<<m_randomSeed<<std::endl;
-
-    // ------------------- RANDOMIZE -------------
-    X+=Width+gap;
-    if(randomize)
-      texX=0.4f;
-    else
-      texX=0.0f;
-
-    Width = ((halfheight*2)/h)*65;
-    texW=74.0f/425.0f;
-    texY=0.0f;
-
-
-    glBegin(GL_QUADS);
-    glColor3f(1.0f,1.0f,1.0f);
-    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-    glEnd();
-
-    // Icon
-      texX=0.8f;
-      texY=0.3f;
-      glBegin(GL_QUADS);
-      glColor3f(1.0f,1.0f,1.0f);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-      glEnd();
-
-
+    //std::cout<<"seed"<<m_randomSeed<<std::endl;
 
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_LIGHTING);
@@ -551,12 +564,16 @@ void Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
   {
     pressDropDownMenu();
   }
+  else if(worldx>5.61667 && worldx<5.61667+Width) //help
+    pressRandomize();
+
 }
 
 void Toolbar::handleClickUp()
 {
   if (clickdownbutton==5) toggleBool(&clear);
   if (clickdownbutton==6) toggleBool(&help);
+  if (clickdownbutton==8) toggleBool(&randomize);
 }
 
 void Toolbar::toggleBool(bool *toggleme)
@@ -639,6 +656,20 @@ void Toolbar::pressDropDownMenu()
 {
   toggleBool(&m_dropdownopen);
   clickdownbutton=7;
+}
+
+void Toolbar::pressRandomize()
+{
+  toggleBool(&randomize);
+  clickdownbutton=8;
+  m_randomSeed.clear();
+  for(int i=0; i<9; ++i)
+  {
+    char p = (char) ((rand() % 10) + 48);
+    m_randomSeed.push_back(p);
+  }
+  int intRandomSeed = atoi(m_randomSeed.c_str());
+  m_world->setRandomType(intRandomSeed);
 }
 
 void Toolbar::setWorld(World *_world)
@@ -854,13 +885,27 @@ void Toolbar::handleClickDropDown(int x, int y, int WIDTH, int HEIGHT)
      || worldy<-halfheight+Height+gap || worldy>-halfheight+5*Height+gap)
     pressDropDownMenu();
   else if(worldy>-halfheight+Height*4+gap)
+  {
     m_dropdownselect=3;
+    pressDropDownMenu();
+  }
   else if(worldy>-halfheight+Height*3+gap)
+  {
     m_dropdownselect=2;
+    pressDropDownMenu();
+  }
   else if(worldy>-halfheight+Height*2+gap)
+  {
     m_dropdownselect=1;
+    pressDropDownMenu();
+  }
   else if(worldy>-halfheight+Height*1+gap)
+  {
     m_dropdownselect=0;
+    pressDropDownMenu();
+  }
+
+  m_world->setToDraw(m_dropdownselect);
 
 }
 
@@ -869,6 +914,11 @@ void Toolbar::addNumber(char p)
   if(m_randomSeed.size()<9)
   {
     m_randomSeed.push_back(p);
+  }
+  if(m_randomSeed.size()==9)
+  {
+    int intRandomSeed = atoi(m_randomSeed.c_str());
+    m_world->setRandomType(intRandomSeed);
   }
 }
 

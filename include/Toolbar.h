@@ -15,6 +15,7 @@
 
 
 #include <iostream>
+#include <time.h>
 
 #include <include/World.h>
 
@@ -30,6 +31,7 @@ public:
     help(false),
     gravity(true),
     erase(false),
+    randomize(false),
     m_dropdownopen(false),
     m_dropdownselect(0){}
 
@@ -58,6 +60,7 @@ public:
   void pressHelp();
   void pressTap();
   void pressDropDownMenu();
+  void pressRandomize();
 
   void removeNumber();
 

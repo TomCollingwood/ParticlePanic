@@ -1,5 +1,5 @@
 #include "include/Particle.h"
-#include "GLUT/glut.h"
+//#include "GLUT/glut.h"
 
 void Particle::drawParticle()
 {
@@ -206,7 +206,8 @@ void Particle::updateSpringIndex(int from, int to)
   {
     if(particleSprings[i]==from)
     {
-      particleSprings[i]=to;
+      if(to>-1) particleSprings[i]=to;
+      else particleSprings.erase(particleSprings.begin()+i);
       break;
     }
   }

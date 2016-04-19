@@ -96,6 +96,9 @@ public:
 
     void drawchar();
 
+    void setToDraw(int _todraw);
+    void setRandomType(int _randomSeed);
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -150,7 +153,7 @@ protected: // Protected means that it is accessible to derived classes
     int m_previousmousex, m_previousmousey;
 
     // FUN PARTICLE TYPES
-    int todraw;
+    int m_todraw;
 
     int howmanytimesrandomized;
     bool m_3d;
@@ -158,6 +161,8 @@ protected: // Protected means that it is accessible to derived classes
     float m_camerarotatey, m_camerarotatex, m_camerazoom;
 
     std::vector<ParticleProperties> m_particleTypes;
+
+    float m_boundaryMultiplier;
 
 };
 

@@ -76,7 +76,7 @@ public:
   bool getColourEffect() const;
   void printVariables() const;
 
-  void randomize(); // <--- very fun function
+  void randomize(int _seed); // <--- very fun function
 
 private:
   GLfloat m_sigma, m_beta, m_gamma, m_alpha, m_knear, m_k, m_kspring, m_p0, m_red, m_green, m_blue, m_spring, m_coloureffect;
