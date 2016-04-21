@@ -1649,15 +1649,15 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
 
 
-  int render3dheight=renderGrid.size();
-  int render3dwidth=renderGrid[0].size();
+  int render3dwidth=renderGrid.size();
+  int render3dheight=renderGrid[0].size();
   int render3ddepth=renderGrid[0][0].size();
   float isolevel=mainrenderthreshold;
 
 
-  for(int w=0; w<render3dheight-1; ++w)
+  for(int w=0; w<render3dwidth-1; ++w)
   {
-    for(int h=0; h<render3dwidth-1; ++h)
+    for(int h=0; h<render3dheight-1; ++h)
     {
       for(int d=0; d<render3ddepth-1; ++d)
       {
@@ -1673,29 +1673,6 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
         gridvalue[6]=renderGrid[w+1][h+1][d+1];     //6
         gridvalue[7]=renderGrid[w][h+1][d+1];       //7
 
-        if(w==0 && h==0  && d==0 )
-        {
-          red=1.0f;
-          blue=0.0f;
-          green=0.0f;
-        gridvalue[0]=100;
-        gridvalue[1]=100;
-        gridvalue[2]=100;
-        gridvalue[3]=100;
-        }
-
-        else if(w==0 && h==2  && d==0 )
-        {
-          red=0.0f;
-          blue=1.0f;
-          green=0.0f;
-        gridvalue[0]=100;
-        gridvalue[1]=100;
-        gridvalue[2]=100;
-        gridvalue[3]=100;
-
-        }
-
         float rendersquare=squaresize/renderresolution;
 
         float wWorld = - halfwidth + w * rendersquare;
@@ -1710,7 +1687,7 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
         gridposition.push_back(Vec3(wWorld,             hWorld+rendersquare,dWorld));               //4
         gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld));               //5
-        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld));               //6
+        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld+rendersquare));               //6
         gridposition.push_back(Vec3(wWorld,             hWorld+rendersquare,dWorld+rendersquare));  //7
 
         Vec3 vertlist[12];
@@ -1763,10 +1740,10 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
           vertlist[11] =
               VertexInterp(gridposition[3],gridposition[7],gridvalue[3],gridvalue[7]);
 
-//        srand(cubeindex);
-//        red = rand() & 100 / 100;
-//        green = rand() & 100 / 100;
-//        blue = rand() & 100 / 100;
+        srand(cubeindex);
+        red = rand() & 100 / 100;
+        green = rand() & 100 / 100;
+        blue = rand() & 100 / 100;
 
         for (int i=0;triTable[cubeindex][i]!=-1;i+=3)
         {
@@ -1781,8 +1758,6 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
     }
   }
 }
-
-// Aren't Grammars the way to go? i dunno
 
 Vec3 World::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
 {
@@ -1810,10 +1785,10 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 {
   std::vector<std::vector<std::vector<float>>> rendergrid;
   rendergrid.clear();
-  rendergrid.resize(renderheight+1);
+  rendergrid.resize(renderwidth+1);
   for(auto& i : rendergrid)
   {
-    i.resize(renderwidth+1);
+    i.resize(renderheight+1);
     for(auto& j : i)
     {
       j.resize(renderwidth+1,0.0f);
@@ -1860,7 +1835,7 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 
               float metaballfloat = 10/(metaballx*metaballx + metabally*metabally + metaballz*metaballz);
               //std::cout<<metaballfloat<<std::endl;
-              rendergrid[currentrow][currentcolumn][currentdepth]+=metaballfloat;
+              rendergrid[currentcolumn][currentrow][currentdepth]+=metaballfloat;
             }
           }
         }
@@ -1876,5 +1851,5 @@ Vec3 World::getGridXYZ(int k) // CHECK THIS
     int y = floor((k - z*gridwidth*gridheight)/gridwidth);
     int x = k - y*gridwidth - z*gridwidth*gridheight;
 
-    return Vec3(y,x,z);
+    return Vec3(x,y,z);
 }
