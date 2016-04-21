@@ -5,6 +5,13 @@ float Vec3::dot(const Vec3 &_rhs) const
   return m_x*_rhs.m_x + m_y*_rhs.m_y + m_z*_rhs.m_z;
 }
 
+Vec3 Vec3::cross(Vec3 &_rhs) const
+{
+  return Vec3(m_y*_rhs.m_z-m_z*_rhs.m_y,
+              m_z*_rhs.m_x-m_x*_rhs.m_z,
+              m_x*_rhs.m_y-m_y*_rhs.m_x);
+}
+
 float Vec3::length() const
 {
   return sqrt(m_x*m_x + m_y*m_y + m_z*m_z);
@@ -27,10 +34,10 @@ void Vec3::normalize()
   }
 }
 
-Vec3 Vec3::perpendicular()
-{
+//Vec3 Vec3::perpendicular()
+//{
   //return Vec3(-m_y, m_x); //<=== need to implement 3d version
-}
+//}
 
 //void Vec3::operator *(const Mat3 &_r) const
 //{

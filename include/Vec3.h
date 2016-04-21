@@ -30,7 +30,7 @@ public:
   float length() const;
   float lengthSquared() const;
   void normalize();
-  Vec3 perpendicular();
+  Vec3 cross(Vec3 &_rhs) const;
 
   void rotateAroundXAxisf(float degrees);
 

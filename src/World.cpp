@@ -35,8 +35,8 @@ World::World() :
   squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  mainrenderthreshold(3.0f),  //90
-  renderresolution(1),
+  mainrenderthreshold(500.0f),  //90
+  renderresolution(2),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -319,9 +319,9 @@ void World::draw() {
       for(auto& i : m_particleTypes)
       {
         std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
-        glDisable(GL_LIGHTING);
+        //glDisable(GL_LIGHTING);
         drawMarchingCubes(waterRender3dGrid,i);
-        glEnable(GL_LIGHTING);
+        //glEnable(GL_LIGHTING);
       }
     }
 
@@ -1643,6 +1643,8 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
   float green = p.getGreen();
   float blue = p.getBlue();
 
+  std::vector<Vec3> triangleVerticies;
+
 //  float red = rand() & 100 / 100;
 //  float green = rand() & 100 / 100;
 //  float blue = rand() & 100 / 100;
@@ -1702,60 +1704,85 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
         if (gridvalue[6] < isolevel) cubeindex |= 64;
         if (gridvalue[7] < isolevel) cubeindex |= 128;
 
-        // Find the vertices where the surface intersects the cube
-        if (edgeTable[cubeindex] & 1)
-          vertlist[0] =
-              VertexInterp(gridposition[0],gridposition[1],gridvalue[0],gridvalue[1]);
-        if (edgeTable[cubeindex] & 2)
-          vertlist[1] =
-              VertexInterp(gridposition[1],gridposition[2],gridvalue[1],gridvalue[2]);
-        if (edgeTable[cubeindex] & 4)
-          vertlist[2] =
-              VertexInterp(gridposition[2],gridposition[3],gridvalue[2],gridvalue[3]);
-        if (edgeTable[cubeindex] & 8)
-          vertlist[3] =
-              VertexInterp(gridposition[3],gridposition[0],gridvalue[3],gridvalue[0]);
-        if (edgeTable[cubeindex] & 16)
-          vertlist[4] =
-              VertexInterp(gridposition[4],gridposition[5],gridvalue[4],gridvalue[5]);
-        if (edgeTable[cubeindex] & 32)
-          vertlist[5] =
-              VertexInterp(gridposition[5],gridposition[6],gridvalue[5],gridvalue[6]);
-        if (edgeTable[cubeindex] & 64)
-          vertlist[6] =
-              VertexInterp(gridposition[6],gridposition[7],gridvalue[6],gridvalue[7]);
-        if (edgeTable[cubeindex] & 128)
-          vertlist[7] =
-              VertexInterp(gridposition[7],gridposition[4],gridvalue[7],gridvalue[4]);
-        if (edgeTable[cubeindex] & 256)
-          vertlist[8] =
-              VertexInterp(gridposition[0],gridposition[4],gridvalue[0],gridvalue[4]);
-        if (edgeTable[cubeindex] & 512)
-          vertlist[9] =
-              VertexInterp(gridposition[1],gridposition[5],gridvalue[1],gridvalue[5]);
-        if (edgeTable[cubeindex] & 1024)
-          vertlist[10] =
-              VertexInterp(gridposition[2],gridposition[6],gridvalue[2],gridvalue[6]);
-        if (edgeTable[cubeindex] & 2048)
-          vertlist[11] =
-              VertexInterp(gridposition[3],gridposition[7],gridvalue[3],gridvalue[7]);
-
-        srand(cubeindex);
-        red = rand() & 100 / 100;
-        green = rand() & 100 / 100;
-        blue = rand() & 100 / 100;
-
-        for (int i=0;triTable[cubeindex][i]!=-1;i+=3)
+        if(edgeTable[cubeindex]!=0)
         {
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(vertlist[triTable[cubeindex][i  ]][0],vertlist[triTable[cubeindex][i  ]][1],vertlist[triTable[cubeindex][i  ]][2]);
-          glVertex3f(vertlist[triTable[cubeindex][i+1]][0],vertlist[triTable[cubeindex][i+1]][1],vertlist[triTable[cubeindex][i+1]][2]);
-          glVertex3f(vertlist[triTable[cubeindex][i+2]][0],vertlist[triTable[cubeindex][i+2]][1],vertlist[triTable[cubeindex][i+2]][2]);
-          glEnd();
+          // Find the vertices where the surface intersects the cube
+          if (edgeTable[cubeindex] & 1)
+            vertlist[0] =
+                VertexInterp(gridposition[0],gridposition[1],gridvalue[0],gridvalue[1]);
+          if (edgeTable[cubeindex] & 2)
+            vertlist[1] =
+                VertexInterp(gridposition[1],gridposition[2],gridvalue[1],gridvalue[2]);
+          if (edgeTable[cubeindex] & 4)
+            vertlist[2] =
+                VertexInterp(gridposition[2],gridposition[3],gridvalue[2],gridvalue[3]);
+          if (edgeTable[cubeindex] & 8)
+            vertlist[3] =
+                VertexInterp(gridposition[3],gridposition[0],gridvalue[3],gridvalue[0]);
+          if (edgeTable[cubeindex] & 16)
+            vertlist[4] =
+                VertexInterp(gridposition[4],gridposition[5],gridvalue[4],gridvalue[5]);
+          if (edgeTable[cubeindex] & 32)
+            vertlist[5] =
+                VertexInterp(gridposition[5],gridposition[6],gridvalue[5],gridvalue[6]);
+          if (edgeTable[cubeindex] & 64)
+            vertlist[6] =
+                VertexInterp(gridposition[6],gridposition[7],gridvalue[6],gridvalue[7]);
+          if (edgeTable[cubeindex] & 128)
+            vertlist[7] =
+                VertexInterp(gridposition[7],gridposition[4],gridvalue[7],gridvalue[4]);
+          if (edgeTable[cubeindex] & 256)
+            vertlist[8] =
+                VertexInterp(gridposition[0],gridposition[4],gridvalue[0],gridvalue[4]);
+          if (edgeTable[cubeindex] & 512)
+            vertlist[9] =
+                VertexInterp(gridposition[1],gridposition[5],gridvalue[1],gridvalue[5]);
+          if (edgeTable[cubeindex] & 1024)
+            vertlist[10] =
+                VertexInterp(gridposition[2],gridposition[6],gridvalue[2],gridvalue[6]);
+          if (edgeTable[cubeindex] & 2048)
+            vertlist[11] =
+                VertexInterp(gridposition[3],gridposition[7],gridvalue[3],gridvalue[7]);
+
+//          srand(cubeindex);
+//          red = rand() & 100 / 100;
+//          green = rand() & 100 / 100;
+//          blue = rand() & 100 / 100;
+
+          for (int i=0;triTable[cubeindex][i]!=-1;i+=3)
+          {
+            Vec3 vectorA = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+1]]) ;
+            Vec3 vectorB = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+2]]) ;
+            Vec3 normal = vectorB.cross(vectorA);
+            normal.normalize();
+//            glBegin(GL_TRIANGLES);
+//            glColor3f(red,green,blue);
+//            glNormal3f(normal[0],normal[1],normal[2]);
+//            glVertex3f(vertlist[triTable[cubeindex][i  ]][0],vertlist[triTable[cubeindex][i  ]][1],vertlist[triTable[cubeindex][i  ]][2]);
+//            glVertex3f(vertlist[triTable[cubeindex][i+1]][0],vertlist[triTable[cubeindex][i+1]][1],vertlist[triTable[cubeindex][i+1]][2]);
+//            glVertex3f(vertlist[triTable[cubeindex][i+2]][0],vertlist[triTable[cubeindex][i+2]][1],vertlist[triTable[cubeindex][i+2]][2]);
+//            glEnd();
+
+            triangleVerticies.push_back(normal);
+            triangleVerticies.push_back(vertlist[triTable[cubeindex][i  ]]);
+            triangleVerticies.push_back(vertlist[triTable[cubeindex][i+1]]);
+            triangleVerticies.push_back(vertlist[triTable[cubeindex][i+2]]);
+
+
+          }
         }
       }
     }
+  }
+  for(int i = 0; i < triangleVerticies.size() ; i+=4)
+  {
+    glBegin(GL_TRIANGLES);
+    glColor3f(red,green,blue);
+    glNormal3f(triangleVerticies[i][0],triangleVerticies[i][1],triangleVerticies[i][2]);
+    glVertex3f(triangleVerticies[i+1][0],triangleVerticies[i+1][1],triangleVerticies[i+1][2]);
+    glVertex3f(triangleVerticies[i+2][0],triangleVerticies[i+2][1],triangleVerticies[i+2][2]);
+    glVertex3f(triangleVerticies[i+3][0],triangleVerticies[i+3][1],triangleVerticies[i+3][2]);
+    glEnd();
   }
 }
 
