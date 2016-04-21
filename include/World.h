@@ -99,6 +99,11 @@ public:
     void setToDraw(int _todraw);
     void setRandomType(int _randomSeed);
 
+    void drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p);
+    std::vector<std::vector<std::vector<float>>> render3dGrid(ParticleProperties *p);
+    Vec3 VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2);
+    Vec3 getGridColumnRowDepth(int k);
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;

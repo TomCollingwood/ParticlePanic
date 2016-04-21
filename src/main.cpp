@@ -20,7 +20,7 @@
   #include <SDL2/SDL_image.h>
   #include <GL/gl.h>
   #include <GL/glu.h>
-  //#include <GL/glut.h>
+  #include <GL/glut.h>
 #endif
 
 
@@ -56,8 +56,10 @@ bool leftMouseOnWorldPrevious=false;
 bool rightMouseButton = false;
 bool pookd = false;
 bool updateinprogress = false;
+bool drawInTimer=false;
 
 int frame=0;
+int previousframe=0;
 int framedrawn=0;
 
 std::vector<Command*> commands;
@@ -117,8 +119,17 @@ Uint32 timerCallback(Uint32 interval, void *) {
       }
       commands.clear();
       world->update(&updateinprogress);
-      //world->draw();
+
+      if(drawInTimer)
+      {
+      SDL_GL_MakeCurrent(gWindow,gContext);
+      world->draw();
+      toolbar->drawToolbar(HEIGHT);
+      SDL_GL_SwapWindow( gWindow );
+      }
+
     }
+    ++frame;
     return interval;
 }
 
@@ -158,9 +169,13 @@ int main( int argc, char* args[] ) {
     // Use a timer to update our World. This is the best way to handle updates,
     // as the timer runs in a separate thread and is therefore not affected by the
     // rendering performance.
+
     SDL_TimerID timerID = SDL_AddTimer(30, /*elapsed time in milliseconds*/
                                      timerCallback, /*callback function*/
                                      (void*) NULL /*parameters (none)*/);
+
+    //glutTimerFunc(30, timerCallback, (void *) NULL);
+
 
     //Main loop flag
     bool quit = false;
@@ -171,8 +186,6 @@ int main( int argc, char* args[] ) {
     //Enable text input
     SDL_StartTextInput();
 
-    bool pause=false;
-
     //While application is running
     while( !quit )
     {
@@ -181,7 +194,8 @@ int main( int argc, char* args[] ) {
         {
             // The window has been resized
             if ((e.type == SDL_WINDOWEVENT) &&
-                    (e.window.event == SDL_WINDOWEVENT_RESIZED)) {
+                    (e.window.event == SDL_WINDOWEVENT_RESIZED))
+            {
                 SDL_SetWindowSize(gWindow, e.window.data1, e.window.data2);
 
                 ResizeWorld *newcommand=new ResizeWorld();
@@ -192,7 +206,6 @@ int main( int argc, char* args[] ) {
                 world->resizeWindow(e.window.data1, e.window.data2);
                 WIDTH=e.window.data1;
                 HEIGHT=e.window.data2;
-                //world->hashParticles();
             }
             //User requests quit
             else if( e.type == SDL_QUIT ) {
@@ -209,7 +222,8 @@ int main( int argc, char* args[] ) {
             }
 
             //Handle keypress with current mouse position
-            else if( e.type == SDL_TEXTINPUT ) { //on mouse press?
+            else if( e.type == SDL_TEXTINPUT )
+            {
                 int charint = (int) e.text.text[0];
                 if(charint > 47 && charint < 58)
                 {
@@ -237,8 +251,8 @@ int main( int argc, char* args[] ) {
                 world->handleKeys( e.text.text[ 0 ] );
                 toolbar->handleKeys( e.text.text[ 0 ] );
             }
-            else if( e.type == SDL_MOUSEBUTTONDOWN) { //on mouse press?
-              //std::cout<<e.button<<std::endl;
+            else if( e.type == SDL_MOUSEBUTTONDOWN)
+            {
               if (e.button.button == SDL_BUTTON_LEFT)
               {
                 int x = 0, y = 0;
@@ -262,7 +276,8 @@ int main( int argc, char* args[] ) {
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 rightMouseButton=true;
             }
-            else if( e.type == SDL_MOUSEBUTTONUP) { //on mouse press?
+            else if( e.type == SDL_MOUSEBUTTONUP)
+            {
               if (e.button.button == SDL_BUTTON_LEFT)
               {
                 if(leftMouseOnWorld)
@@ -278,8 +293,6 @@ int main( int argc, char* args[] ) {
                     newcommand->setxy(x,y);
                     newcommand->setWorld(world);
                     commands.push_back(newcommand);
-
-                    //world->mouseDragEnd(x,y);
                   }
                 }
                 else if(leftMouseOnToolbar)
@@ -312,8 +325,6 @@ int main( int argc, char* args[] ) {
               newcommand->setxy(x,y);
               commands.push_back(newcommand);
 
-              //world->selectDraggedParticles(x,y);
-
               leftMouseOnWorldPrevious=true;
             }
 
@@ -321,8 +332,6 @@ int main( int argc, char* args[] ) {
             newcommand->setWorld(world);
             newcommand->setxy(x,y);
             commands.push_back(newcommand);
-
-            //world->mouseDrag( x, y);
           }
           else if(toolbar->getDraw())
           {
@@ -330,8 +339,6 @@ int main( int argc, char* args[] ) {
             newcommand->setWorld(world);
             newcommand->setxy(x,y);
             commands.push_back(newcommand);
-
-            //world->mouseDraw( x, y );
           }
           else if(toolbar->getErase())
           {
@@ -339,8 +346,6 @@ int main( int argc, char* args[] ) {
             newcommand->setWorld(world);
             newcommand->setxy(x,y);
             commands.push_back(newcommand);
-
-            //world->mouseErase(x, y);
           }
         }
 
@@ -354,27 +359,14 @@ int main( int argc, char* args[] ) {
           newcommand->setWorld(world);
           newcommand->setxy(x,y);
           commands.push_back(newcommand);
-
-          //world->mouseDraw( x, y );
         }
 
-
-        //Render the World
-        frame++;
-
-
-
-        world->draw();
-
-        toolbar->drawNumbers(0,0,HEIGHT,"1234567890");
-
-
-        //toolbar->drawTitle(world->getHalfHeight(), world->getHalfWidth());
-        toolbar->drawToolbar(HEIGHT);
-
-
-        //Update screen
-        SDL_GL_SwapWindow( gWindow );
+        if(!drawInTimer)
+        {
+          world->draw();
+          toolbar->drawToolbar(HEIGHT);
+          SDL_GL_SwapWindow( gWindow );
+        }
     }
 
     //Disable text input
