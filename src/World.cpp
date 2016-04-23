@@ -35,8 +35,9 @@ World::World() :
   squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  mainrenderthreshold(500.0f),  //90
-  renderresolution(2),
+  mainrenderthreshold(90.0f),  //90
+  renderresolution(7),
+  render3dresolution(2),
   renderoption(1),
   rain(false),
   drawwall(false),
@@ -45,7 +46,8 @@ World::World() :
   particlesPoolSize(3000),
   m_3d(false),
   m_boundaryMultiplier(1.0f),
-  m_boundaryType(0)
+  m_boundaryType(0),
+  m_snapshotMode(0)
 {
 }
 
@@ -196,6 +198,9 @@ void World::resizeWorld(int w, int h)
   renderwidth=gridwidth*renderresolution;
   renderheight=gridheight*renderresolution;
 
+  render3dwidth=gridwidth*render3dresolution;
+  render3dheight=gridheight*render3dresolution;
+
   // GHOST PARTICLES
 
   //particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),m_todraw));
@@ -277,6 +282,8 @@ void World::resizeWindow(int w, int h) {
 void World::draw() {
   if (!m_isInit) return;
 
+
+
   glMatrixMode(GL_MODELVIEW);
 
   bool current_3d=m_3d;
@@ -291,6 +298,9 @@ void World::draw() {
   }
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+  //drawLoading();
+
   if(renderoption==1){
     for(int i=0; i<lastTakenParticle+1; ++i){
       if(particles[i].isAlive())
@@ -301,10 +311,9 @@ void World::draw() {
 
   else if(renderoption==2)
   {
-
-
     if(!m_3d)
     {
+      //drawLoading();
       for(auto& i : m_particleTypes)
       {
         glDisable(GL_LIGHTING);
@@ -316,16 +325,40 @@ void World::draw() {
     }
     else
     {
-      for(auto& i : m_particleTypes)
+      if(m_snapshotMode==1)
       {
-        std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
-        //glDisable(GL_LIGHTING);
-        drawMarchingCubes(waterRender3dGrid,i);
-        //glEnable(GL_LIGHTING);
+        drawLoading();
+        ++m_snapshotMode;
       }
+      else if(m_snapshotMode==2)
+      {
+        drawLoading();
+        render3dresolution*=4;
+        render3dwidth=gridwidth*render3dresolution;
+        render3dheight=gridheight*render3dresolution;
+
+        for(auto& i : m_particleTypes)
+        {
+          std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
+          drawMarchingCubes(waterRender3dGrid,i);
+        }
+        ++m_snapshotMode;
+      }
+      else if(m_snapshotMode>2)
+      {
+        std::cout<<"HIYA VAPE NASH22"<<std::endl;
+        drawSnapshot();
+      }
+      else
+      {
+        for(auto& i : m_particleTypes)
+        {
+          std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
+          drawMarchingCubes(waterRender3dGrid,i);
+        }
+      }
+
     }
-
-
   }
 
   if(current_3d) glPopMatrix();
@@ -1039,6 +1072,27 @@ void World::handleKeys(char _input)
     if(renderoption==1) renderoption=2;
     else renderoption=1;
     break;
+
+  case 't':
+    if(m_3d)
+    {
+      if(renderoption==1) renderoption=2;
+      if(m_snapshotMode>2)
+      {
+        render3dresolution/=4;
+        render3dwidth=gridwidth*render3dresolution;
+        render3dheight=gridheight*render3dresolution;
+        m_snapshotTriangles.clear();
+        m_snapshotMode=0;
+      }
+      else
+      {
+        //drawLoading();
+        m_snapshotMode=1;
+      }
+    }
+
+
   case 'p':
     if(!m_3d)
     {
@@ -1645,18 +1699,12 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
   std::vector<Vec3> triangleVerticies;
 
-//  float red = rand() & 100 / 100;
-//  float green = rand() & 100 / 100;
-//  float blue = rand() & 100 / 100;
-
-
-
   int render3dwidth=renderGrid.size();
   int render3dheight=renderGrid[0].size();
   int render3ddepth=renderGrid[0][0].size();
   float isolevel=mainrenderthreshold;
 
-
+  //#pragma omp parallel for
   for(int w=0; w<render3dwidth-1; ++w)
   {
     for(int h=0; h<render3dheight-1; ++h)
@@ -1675,7 +1723,7 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
         gridvalue[6]=renderGrid[w+1][h+1][d+1];     //6
         gridvalue[7]=renderGrid[w][h+1][d+1];       //7
 
-        float rendersquare=squaresize/renderresolution;
+        float rendersquare=squaresize/render3dresolution;
 
         float wWorld = - halfwidth + w * rendersquare;
         float hWorld = - halfheight + h * rendersquare ;
@@ -1744,51 +1792,49 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
             vertlist[11] =
                 VertexInterp(gridposition[3],gridposition[7],gridvalue[3],gridvalue[7]);
 
-//          srand(cubeindex);
-//          red = rand() & 100 / 100;
-//          green = rand() & 100 / 100;
-//          blue = rand() & 100 / 100;
-
           for (int i=0;triTable[cubeindex][i]!=-1;i+=3)
           {
             Vec3 vectorA = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+1]]) ;
             Vec3 vectorB = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+2]]) ;
             Vec3 normal = vectorB.cross(vectorA);
             normal.normalize();
-//            glBegin(GL_TRIANGLES);
-//            glColor3f(red,green,blue);
-//            glNormal3f(normal[0],normal[1],normal[2]);
-//            glVertex3f(vertlist[triTable[cubeindex][i  ]][0],vertlist[triTable[cubeindex][i  ]][1],vertlist[triTable[cubeindex][i  ]][2]);
-//            glVertex3f(vertlist[triTable[cubeindex][i+1]][0],vertlist[triTable[cubeindex][i+1]][1],vertlist[triTable[cubeindex][i+1]][2]);
-//            glVertex3f(vertlist[triTable[cubeindex][i+2]][0],vertlist[triTable[cubeindex][i+2]][1],vertlist[triTable[cubeindex][i+2]][2]);
-//            glEnd();
-
             triangleVerticies.push_back(normal);
+            triangleVerticies.push_back(Vec3(red,green,blue));
             triangleVerticies.push_back(vertlist[triTable[cubeindex][i  ]]);
             triangleVerticies.push_back(vertlist[triTable[cubeindex][i+1]]);
             triangleVerticies.push_back(vertlist[triTable[cubeindex][i+2]]);
-
-
           }
         }
       }
     }
   }
-  for(int i = 0; i < triangleVerticies.size() ; i+=4)
+
+  // #pragma omp parallel for
+
+  if(!m_snapshotMode)
   {
     glBegin(GL_TRIANGLES);
-    glColor3f(red,green,blue);
-    glNormal3f(triangleVerticies[i][0],triangleVerticies[i][1],triangleVerticies[i][2]);
-    glVertex3f(triangleVerticies[i+1][0],triangleVerticies[i+1][1],triangleVerticies[i+1][2]);
-    glVertex3f(triangleVerticies[i+2][0],triangleVerticies[i+2][1],triangleVerticies[i+2][2]);
-    glVertex3f(triangleVerticies[i+3][0],triangleVerticies[i+3][1],triangleVerticies[i+3][2]);
+    for(int i = 0; i < triangleVerticies.size() ; i+=5)
+    {
+      glNormal3f(triangleVerticies[i][0],triangleVerticies[i][1],triangleVerticies[i][2]);
+      glColor3f(triangleVerticies[i+1][0],triangleVerticies[i+1][1],triangleVerticies[i+1][2]);
+      glVertex3f(triangleVerticies[i+2][0],triangleVerticies[i+2][1],triangleVerticies[i+2][2]);
+      glVertex3f(triangleVerticies[i+3][0],triangleVerticies[i+3][1],triangleVerticies[i+3][2]);
+      glVertex3f(triangleVerticies[i+4][0],triangleVerticies[i+4][1],triangleVerticies[i+4][2]);
+    }
     glEnd();
+  }
+  else if(m_snapshotMode==2)
+  {
+    for(int i = 0 ;  i<(int)triangleVerticies.size(); ++i)
+    {
+      m_snapshotTriangles.push_back(triangleVerticies[i]);
+    }
   }
 }
 
 Vec3 World::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
 {
-    
   float isolevel = mainrenderthreshold;
 
   double mu;
@@ -1812,29 +1858,29 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 {
   std::vector<std::vector<std::vector<float>>> rendergrid;
   rendergrid.clear();
-  rendergrid.resize(renderwidth+1);
+  rendergrid.resize(render3dwidth+1);
   for(auto& i : rendergrid)
   {
-    i.resize(renderheight+1);
+    i.resize(render3dheight+1);
     for(auto& j : i)
     {
-      j.resize(renderwidth+1,0.0f);
+      j.resize(render3dwidth+1,0.0f);
     }
   }
 
-  float rendersquare=squaresize/renderresolution;
+  float rendersquare=squaresize/render3dresolution;
 
   for(int i=0; i<lastTakenParticle+1; ++i)
   {
     if(particles[i].isAlive()&&(particles[i].getProperties()==p))
     {
-      Vec3 heightwidthdepth = getGridXYZ(particles[i].getGridPosition())*renderresolution; // 3Dify this
+      Vec3 heightwidthdepth = getGridXYZ(particles[i].getGridPosition())*render3dresolution; // 3Dify this
 
-      for(int x = -2*renderresolution; x<=4*renderresolution; ++x)
+      for(int x = -2*render3dresolution; x<=4*render3dresolution; ++x)
       {
-        for(int y = -2*renderresolution; y<=4*renderresolution ; ++y)
+        for(int y = -2*render3dresolution; y<=4*render3dresolution ; ++y)
         {
-          for(int z = -2*renderresolution; z<=4*renderresolution ; ++z)
+          for(int z = -2*render3dresolution; z<=4*render3dresolution ; ++z)
           {
 
             //std::cout<<"hello"<<std::endl;
@@ -1842,15 +1888,9 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
             int currentrow=heightwidthdepth[1]+y;
             int currentdepth=heightwidthdepth[2]+z;
 
-            //std::cout<<currentcolumn<<","<<currentrow<<","<<currentdepth<<std::endl;
-
-            //std::cout<<"column"<<currentcolumn<<","<<renderwidth<<std::endl;
-            //std::cout<<"row"<<currentrow<<","<<renderheight<<std::endl;
-            //std::cout<<"depth"<<currentdepth<<","<<renderwidth<<std::endl;
-
-            if(currentcolumn<renderwidth && currentcolumn>0 &&
-               currentrow<renderheight && currentrow>0 &&
-               currentdepth<renderwidth && currentdepth>0)
+            if(currentcolumn<render3dwidth && currentcolumn>0 &&
+               currentrow<render3dheight && currentrow>0 &&
+               currentdepth<render3dwidth && currentdepth>0)
             {
               float currentx = rendersquare*(float)currentcolumn - halfwidth;
               float currenty = rendersquare*(float)currentrow - halfheight;
@@ -1860,7 +1900,7 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
               float metabally = currenty-particles[i].getPosition()[1];
               float metaballz = currentz-particles[i].getPosition()[2];
 
-              float metaballfloat = 10/(metaballx*metaballx + metabally*metabally + metaballz*metaballz);
+              float metaballfloat = (interactionradius*interactionradius)/(metaballx*metaballx + metabally*metabally + metaballz*metaballz);
               //std::cout<<metaballfloat<<std::endl;
               rendergrid[currentcolumn][currentrow][currentdepth]+=metaballfloat;
             }
@@ -1879,4 +1919,70 @@ Vec3 World::getGridXYZ(int k) // CHECK THIS
     int x = k - y*gridwidth - z*gridwidth*gridheight;
 
     return Vec3(x,y,z);
+}
+
+int World::getSnapshotMode()
+{
+  return m_snapshotMode;
+}
+
+void World::drawSnapshot()
+{
+  for(int i = 0; i< (int)m_snapshotTriangles.size(); i+=5)
+  {
+    glBegin(GL_TRIANGLES);
+    glNormal3f(m_snapshotTriangles[i][0],m_snapshotTriangles[i][1],m_snapshotTriangles[i][2]);
+    glColor3f(m_snapshotTriangles[i+1][0],m_snapshotTriangles[i+1][1],m_snapshotTriangles[i+1][2]);
+    glVertex3f(m_snapshotTriangles[i+2][0],m_snapshotTriangles[i+2][1],m_snapshotTriangles[i+2][2]);
+    glVertex3f(m_snapshotTriangles[i+3][0],m_snapshotTriangles[i+3][1],m_snapshotTriangles[i+3][2]);
+    glVertex3f(m_snapshotTriangles[i+4][0],m_snapshotTriangles[i+4][1],m_snapshotTriangles[i+4][2]);
+    glEnd();
+  }
+}
+
+void World::drawLoading()
+{
+  glDisable(GL_LIGHTING);
+  glEnable(GL_TEXTURE_2D);
+
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // You should probably use CSurface::OnLoad ... ;)
+  //-- and make sure the Surface pointer is good!
+  GLuint titleTextureID = 0;
+  SDL_Surface* Surface = IMG_Load("textures/buttons.png");
+  if(!Surface)
+    {
+      printf("IMG_Load: %s\n", IMG_GetError());
+      std::cout<<"error"<<std::endl;
+    }
+
+  glGenTextures(1, &titleTextureID);
+  glBindTexture(GL_TEXTURE_2D, titleTextureID);
+
+  int Mode = GL_RGBA;
+
+  glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  float texH = 0.1f;
+  float texW = 0.6f;
+  float X = -1.0f;
+  float Y = -0.3f;
+  float Width = 2.8;
+  float Height = 0.6f;
+
+  glBegin(GL_QUADS);
+  glColor3f(1.0f,1.0f,1.0f);
+  glTexCoord2f(0, 0.9+texH); glVertex3f(X, Y, -2);
+  glTexCoord2f(0+texW, 0.9+texH); glVertex3f(X + Width, Y, -2);
+  glTexCoord2f(0+texW, 0.9); glVertex3f(X + Width, Y + Height, -2);
+  glTexCoord2f(0, 0.9); glVertex3f(X, Y + Height, -2);
+  glEnd();
+
+  glDisable(GL_TEXTURE_2D);
+  glEnable(GL_LIGHTING) ;
 }

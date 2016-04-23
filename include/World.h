@@ -11,10 +11,6 @@
 
 #include <stdlib.h>
 #include <vector>
-#include <deque>
-#include <array>
-#include <list>
-#include <tuple>
 #include "include/Particle.h"
 
 /**
@@ -104,6 +100,15 @@ public:
     Vec3 VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2);
     Vec3 getGridXYZ(int k);
 
+    int getSnapshotMode();
+
+    void drawSnapshot();
+    void setSnapshot(bool snap);
+
+    int getrenderoption();
+
+    void drawLoading();
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -140,6 +145,8 @@ protected: // Protected means that it is accessible to derived classes
     float mainrenderthreshold;
     int renderresolution;
     int renderwidth, renderheight;
+    int render3dresolution;
+    int render3dwidth, render3dheight;
     int renderoption;
 
     // SPRING ATTRIBUTES
@@ -170,6 +177,10 @@ protected: // Protected means that it is accessible to derived classes
     float m_boundaryMultiplier;
 
     int m_boundaryType;
+
+    int m_snapshotMode;
+
+    std::vector<Vec3> m_snapshotTriangles;
 
     int edgeTable[256]={
     0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,

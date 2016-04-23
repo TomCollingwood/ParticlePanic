@@ -35,10 +35,7 @@ public:
     m_isPartOfObject(false),
     m_init(false),
     m_alive(true)
-/*  system(prop),
-    rotation(0.0f),
-    timeToDeath(-1),
-    particleColour(Colour(0.0f,0.0f,0.0f))*/{}
+    {}
 
   void drawParticle();
 

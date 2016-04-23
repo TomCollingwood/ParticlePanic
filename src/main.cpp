@@ -118,14 +118,16 @@ Uint32 timerCallback(Uint32 interval, void *) {
         delete i;
       }
       commands.clear();
-      world->update(&updateinprogress);
+
+      if(world->getSnapshotMode()<2)
+        world->update(&updateinprogress);
 
       if(drawInTimer)
       {
-      SDL_GL_MakeCurrent(gWindow,gContext);
-      world->draw();
-      toolbar->drawToolbar(HEIGHT);
-      SDL_GL_SwapWindow( gWindow );
+        SDL_GL_MakeCurrent(gWindow,gContext);
+        world->draw();
+        toolbar->drawToolbar(HEIGHT);
+        SDL_GL_SwapWindow( gWindow );
       }
 
     }
@@ -208,9 +210,9 @@ int main( int argc, char* args[] ) {
                 HEIGHT=e.window.data2;
             }
             //User requests quit
-            else if( e.type == SDL_QUIT ) {
-
-                quit = true;
+            else if( e.type == SDL_QUIT )
+            {
+              quit = true;
             }
 
             else if(e.type == SDL_KEYDOWN)
@@ -224,12 +226,14 @@ int main( int argc, char* args[] ) {
             //Handle keypress with current mouse position
             else if( e.type == SDL_TEXTINPUT )
             {
-                int charint = (int) e.text.text[0];
-                if(charint > 47 && charint < 58)
-                {
-                  toolbar->addNumber(e.text.text[0]);
-                }
-                if(e.text.text[0]=='p' || e.text.text[0]=='o')
+              int charint = (int) e.text.text[0];
+              if(charint > 47 && charint < 58)
+              {
+                toolbar->addNumber(e.text.text[0]);
+              }
+              if(e.text.text[0]=='p' || e.text.text[0]=='o')
+              {
+                if(!world->getSnapshotMode())
                 {
                   bool toSet3D = false;
                   if(e.text.text[0]=='p') toSet3D=true;
@@ -248,34 +252,41 @@ int main( int argc, char* args[] ) {
                   newcommand3->setWorld(world);
                   commands.push_back(newcommand3);
                 }
-                world->handleKeys( e.text.text[ 0 ] );
+              }
+              world->handleKeys( e.text.text[ 0 ] );
+              if(!world->getSnapshotMode())
                 toolbar->handleKeys( e.text.text[ 0 ] );
             }
+
             else if( e.type == SDL_MOUSEBUTTONDOWN)
             {
               if (e.button.button == SDL_BUTTON_LEFT)
               {
-                int x = 0, y = 0;
-                SDL_GetMouseState( &x, &y );
+                  int x = 0, y = 0;
+                  SDL_GetMouseState( &x, &y );
 
-                if(toolbar->getdropdownopen())
-                {
-                  toolbar->handleClickDropDown(x, y, WIDTH, HEIGHT);
-                }
+                  if(toolbar->getdropdownopen() && !world->getSnapshotMode())
+                  {
+                    toolbar->handleClickDropDown(x, y, WIDTH, HEIGHT);
+                  }
 
-                else if(y<(float)(3.0f/20.0f)*HEIGHT)
-                {
-                  std::cout<<"yoooo"<<std::endl;
-                  toolbar->handleClickDown(x, y, WIDTH, HEIGHT);
-                  leftMouseOnToolbar=true;
+                  else if(!world->getSnapshotMode())
+                  {
+                    leftMouseOnToolbar = toolbar->handleClickDown(x, y, WIDTH, HEIGHT);
+                  }
+                  else
+                    leftMouseOnWorld=true;
                 }
-                else
-                  leftMouseOnWorld=true;
-              }
 
               else if (e.button.button == SDL_BUTTON_RIGHT)
-                rightMouseButton=true;
+              {
+                if(!world->getSnapshotMode())
+                {
+                  rightMouseButton=true;
+                }
+              }
             }
+
             else if( e.type == SDL_MOUSEBUTTONUP)
             {
               if (e.button.button == SDL_BUTTON_LEFT)
@@ -284,7 +295,8 @@ int main( int argc, char* args[] ) {
                 {
                   leftMouseOnWorld=false;
                   leftMouseOnWorldPrevious=false;
-                  if(toolbar->getDrag())
+
+                  if(toolbar->getDrag() && !world->getSnapshotMode())
                   {
                     int x = 0, y = 0;
                     SDL_GetMouseState( &x, &y );
@@ -304,13 +316,14 @@ int main( int argc, char* args[] ) {
               else if (e.button.button == SDL_BUTTON_RIGHT)
                 rightMouseButton=false;
             }
+
             else if (e.type == SDL_MOUSEMOTION) {
               int x = 0, y = 0;
-                SDL_GetMouseState( &x, &y );
-                world->mouseMove(x, y, leftMouseOnWorld, rightMouseButton);
+              SDL_GetMouseState( &x, &y );
+              world->mouseMove(x, y, leftMouseOnWorld, rightMouseButton);
             }
-        }
 
+        }
 
         if(leftMouseOnWorld)
         {
@@ -364,7 +377,12 @@ int main( int argc, char* args[] ) {
         if(!drawInTimer)
         {
           world->draw();
-          toolbar->drawToolbar(HEIGHT);
+
+          if(!world->getSnapshotMode())
+          {
+            toolbar->drawToolbar(HEIGHT);
+          }
+
           SDL_GL_SwapWindow( gWindow );
         }
     }

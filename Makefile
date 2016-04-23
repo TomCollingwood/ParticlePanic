@@ -14,8 +14,8 @@ CC            = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefau
 CXX           = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++
 DEFINES       = -DMAC_OS_X_VERSION_MIN_REQUIRED=1060 -DQT_GUI_LIB -DQT_CORE_LIB
 CFLAGS        = -pipe -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -mmacosx-version-min=10.7 -Wall -W -fPIC $(DEFINES)
-CXXFLAGS      = -pipe -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.7 -Wall -W -fPIC $(DEFINES)
-INCPATH       = -I. -I. -I/Library/Frameworks/SLD2_image.framework -I/Library/Frameworks/SDL2.framework/Headers -I/usr/local/include -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AGL.framework/Headers -I../../../Qt/5.5/clang_64/lib/QtGui.framework/Headers -I../../../Qt/5.5/clang_64/lib/QtCore.framework/Headers -I. -I../../../Qt/5.5/clang_64/mkspecs/macx-clang -F/Users/Tom/Qt/5.5/clang_64/lib
+CXXFLAGS      = -pipe -std=c++11 -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk -std=c++11 -stdlib=libc++ -mmacosx-version-min=10.7 -Wall -W -fPIC $(DEFINES)
+INCPATH       = -I. -I. -I/Library/Frameworks/SLD2_image.framework -I/Library/Frameworks/SDL2.framework/Headers -I/usr/local/include -I/usr/local/Cellar -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/OpenGL.framework/Headers -I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.11.sdk/System/Library/Frameworks/AGL.framework/Headers -I../../../Qt/5.5/clang_64/lib/QtGui.framework/Headers -I../../../Qt/5.5/clang_64/lib/QtCore.framework/Headers -I. -I../../../Qt/5.5/clang_64/mkspecs/macx-clang -F/Users/Tom/Qt/5.5/clang_64/lib
 QMAKE         = /Users/Tom/Qt/5.5/clang_64/bin/qmake
 DEL_FILE      = rm -f
 CHK_DIR_EXISTS= test -d
@@ -55,7 +55,8 @@ SOURCES       = src/main.cpp \
 		src/World.cpp \
 		src/Toolbar.cpp \
 		src/ParticleProperties.cpp \
-		src/Commands.cpp 
+		src/Commands.cpp \
+		src/MarchingCubes.cpp 
 OBJECTS       = obj/main.o \
 		obj/Vec3.o \
 		obj/Mat3.o \
@@ -63,7 +64,8 @@ OBJECTS       = obj/main.o \
 		obj/World.o \
 		obj/Toolbar.o \
 		obj/ParticleProperties.o \
-		obj/Commands.o
+		obj/Commands.o \
+		obj/MarchingCubes.o
 DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		../../../Qt/5.5/clang_64/mkspecs/qdevice.pri \
 		../../../Qt/5.5/clang_64/mkspecs/features/device_config.prf \
@@ -212,14 +214,16 @@ DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		include/World.h \
 		include/Toolbar.h \
 		include/ParticleProperties.h \
-		include/Commands.h src/main.cpp \
+		include/Commands.h \
+		include/MarchingCubes.h src/main.cpp \
 		src/Vec3.cpp \
 		src/Mat3.cpp \
 		src/Particle.cpp \
 		src/World.cpp \
 		src/Toolbar.cpp \
 		src/ParticleProperties.cpp \
-		src/Commands.cpp
+		src/Commands.cpp \
+		src/MarchingCubes.cpp
 QMAKE_TARGET  = ParticlePanic
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = ParticlePanic.app/Contents/MacOS/ParticlePanic
@@ -583,8 +587,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Commands.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h include/MarchingCubes.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/main.cpp src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Commands.cpp src/MarchingCubes.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -678,6 +682,7 @@ obj/main.o: src/main.cpp /Library/Frameworks/SDL2.framework/Headers/SDL.h \
 		include/Particle.h \
 		include/ParticleProperties.h \
 		include/World.h \
+		include/MarchingCubes.h \
 		include/Toolbar.h \
 		include/Commands.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o src/main.cpp
@@ -700,6 +705,7 @@ obj/World.o: src/World.cpp include/World.h \
 		include/Vec3.h \
 		include/Mat3.h \
 		include/ParticleProperties.h \
+		include/MarchingCubes.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_main.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_stdinc.h \
@@ -801,7 +807,8 @@ obj/Toolbar.o: src/Toolbar.cpp include/Toolbar.h \
 		include/Particle.h \
 		include/Vec3.h \
 		include/Mat3.h \
-		include/ParticleProperties.h
+		include/ParticleProperties.h \
+		include/MarchingCubes.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Toolbar.o src/Toolbar.cpp
 
 obj/ParticleProperties.o: src/ParticleProperties.cpp include/ParticleProperties.h
@@ -812,8 +819,16 @@ obj/Commands.o: src/Commands.cpp include/Commands.h \
 		include/Particle.h \
 		include/Vec3.h \
 		include/Mat3.h \
-		include/ParticleProperties.h
+		include/ParticleProperties.h \
+		include/MarchingCubes.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Commands.o src/Commands.cpp
+
+obj/MarchingCubes.o: src/MarchingCubes.cpp include/MarchingCubes.h \
+		include/Particle.h \
+		include/Vec3.h \
+		include/Mat3.h \
+		include/ParticleProperties.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MarchingCubes.o src/MarchingCubes.cpp
 
 ####### Install
 

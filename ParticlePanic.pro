@@ -5,10 +5,12 @@ CONFIG += opengl
 INCLUDEPATH += .
 OBJECTS_DIR = obj
 
-#QMAKE_CC = gcc
-#QMAKE_CXX = g++
+QMAKE_CC = gcc
+QMAKE_CXX = g++
 
-#MAKE_CXXFLAGS += -fopenmp
+QMAKE_CXXFLAGS += -std=c++11
+
+#QMAKE_CXXFLAGS += -fopenmp
 #LIBS += -fopenmp
 
 SOURCES += src/main.cpp \
@@ -18,7 +20,8 @@ SOURCES += src/main.cpp \
     src/World.cpp \
     src/Toolbar.cpp \
     src/ParticleProperties.cpp \
-    src/Commands.cpp
+    src/Commands.cpp \
+    src/MarchingCubes.cpp
 
 HEADERS += \
     include/Particle.h \
@@ -27,7 +30,8 @@ HEADERS += \
     include/World.h \
     include/Toolbar.h \
     include/ParticleProperties.h \
-    include/Commands.h
+    include/Commands.h \
+    include/MarchingCubes.h
 
 LIBS += -L/usr/local/lib
 
@@ -44,6 +48,7 @@ macx: {
   INCLUDEPATH += /Library/Frameworks/SLD2_image.framework
   INCLUDEPATH += /Library/Frameworks/SDL2.framework/Headers
   INCLUDEPATH += /usr/local/include
+  INCLUDEPATH += /usr/local/Cellar
 
   LIBS+= -framework OpenGL
   LIBS+= -framework GLUT

@@ -335,6 +335,50 @@ void Toolbar::drawToolbar(int h) const
 
     X-=Width*5+gap*6;
 
+    // ----------------------CAMERA SNAPSHOT-----------------------
+
+
+    float prevX = X;
+    float prevY = Y;
+    X=halfwidth-1.3;
+    Y=-halfheight+0.2f;
+
+    if(randomize)
+      texX=0.4f;
+    else
+      texX=0.0f;
+    texY=0.0f;
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
+
+    texX=0.4f;
+    texY=0.6f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
+
+    //std::cout<<X<<std::endl;
+
+    X=prevX;
+    Y=prevY;
+
+    // */
+
+    X=prevX;
+    Y=prevY;
+
+
+
     // ------------------DROP DOWN MENU ---------------
 
     X+=Width+gap;
@@ -524,7 +568,7 @@ void Toolbar::drawToolbar(int h) const
   glEnable(GL_LIGHTING);
 }
 
-void Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
+bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
 {
 
   float halfwidth = m_world->getHalfWidth();
@@ -539,34 +583,76 @@ void Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
   float Y = halfheight-Height-gap;
 
   float worldx = ((float)x/(float)WIDTH)*(halfwidth*2) - halfwidth;
+  float worldy = - ((float)y/(float)HEIGHT)*(halfheight*2) + halfheight;
 
-  if(worldx>startx && worldx<startx+Width)  // draw
-    pressDraw();
-
-  else if(worldx>startx+Width+gap && worldx<startx+Width*2+gap) // erase
-    pressErase();
-
-  else if(worldx>startx+Width*2+gap*2 && worldx<startx+Width*3+gap*2) //drag
-    pressDrag();
-
-  else if(worldx>startx+Width*3+gap*3 && worldx<startx+Width*4+gap*3) //tap
-    pressTap();
-
-  else if(worldx>startx+Width*4+gap*4  && worldx<startx+Width*5+gap*4)//gravity
-    pressGravity();
-
-  else if(worldx>startx+Width*5+gap*5 && worldx<startx+Width*6+gap*5) //clear
-    pressClear();
-
-  else if(worldx>startx+Width*6+gap*6 && worldx<startx+Width*7+gap*6) //help
-    pressHelp();
-  else if(worldx>startx+Width*7+gap*7 && worldx<startx+Width*6+gap*7+(((halfheight*2)/HEIGHT)*205))
+  if(worldy>halfheight-(halfheight*(4.f/20.f)))
   {
-    pressDropDownMenu();
-  }
-  else if(worldx>5.61667 && worldx<5.61667+Width) //help
-    pressRandomize();
+    if(worldx>startx && worldx<startx+Width)  // draw
+    {
+      pressDraw();
+      return true;
+    }
 
+    else if(worldx>startx+Width+gap && worldx<startx+Width*2+gap) // erase
+    {
+      pressErase();
+      return true;
+    }
+
+    else if(worldx>startx+Width*2+gap*2 && worldx<startx+Width*3+gap*2) //drag
+    {
+      pressDrag();
+      return true;
+    }
+
+    else if(worldx>startx+Width*3+gap*3 && worldx<startx+Width*4+gap*3) //tap
+    {
+      pressTap();
+      return true;
+    }
+
+    else if(worldx>startx+Width*4+gap*4  && worldx<startx+Width*5+gap*4)//gravity
+    {
+      pressGravity();
+      return true;
+    }
+
+    else if(worldx>startx+Width*5+gap*5 && worldx<startx+Width*6+gap*5) //clear
+    {
+      pressClear();
+      return true;
+    }
+
+    else if(worldx>startx+Width*6+gap*6 && worldx<startx+Width*7+gap*6) //help
+    {
+      pressHelp();
+      return true;
+    }
+
+    else if(worldx>startx+Width*7+gap*7 && worldx<startx+Width*6+gap*7+(((halfheight*2)/HEIGHT)*205))
+    {
+      pressDropDownMenu();
+      return true;
+    }
+
+    else if(worldx>5.61667 && worldx<5.61667+Width) //help
+    {
+      pressRandomize();
+      return true;
+    }
+  }
+
+
+  else if(
+          worldy<-halfheight+1.f &&
+          worldx>halfwidth-1.3
+          )
+  {
+    pressCamera();
+    return true;
+  }
+
+  return false;
 }
 
 void Toolbar::handleClickUp()
@@ -574,6 +660,11 @@ void Toolbar::handleClickUp()
   if (clickdownbutton==5) toggleBool(&clear);
   if (clickdownbutton==6) toggleBool(&help);
   if (clickdownbutton==8) toggleBool(&randomize);
+  if (clickdownbutton==9)
+  {
+    toggleBool(&camera);
+    m_world->handleKeys('t');
+  }
 }
 
 void Toolbar::toggleBool(bool *toggleme)
@@ -670,6 +761,12 @@ void Toolbar::pressRandomize()
   }
   int intRandomSeed = atoi(m_randomSeed.c_str());
   m_world->setRandomType(intRandomSeed);
+}
+
+void Toolbar::pressCamera()
+{
+  clickdownbutton=9;
+  toggleBool(&camera);
 }
 
 void Toolbar::setWorld(World *_world)
@@ -926,6 +1023,6 @@ void Toolbar::removeNumber()
 {
   if(m_randomSeed.size()>0)
   {
-    m_randomSeed.pop_back();
+    m_randomSeed.erase( m_randomSeed.size()-1, 1);
   }
 }

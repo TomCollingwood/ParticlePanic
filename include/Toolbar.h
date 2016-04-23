@@ -32,12 +32,13 @@ public:
     gravity(true),
     erase(false),
     randomize(false),
+    camera(false),
     m_dropdownopen(false),
     m_dropdownselect(0){}
 
   void drawTitle(float halfheight, float halfwidth) const;
   void drawToolbar(int h) const;
-  void handleClickDown(int x, int y, int WIDTH, int HEIGHT);
+  bool handleClickDown(int x, int y, int WIDTH, int HEIGHT);
   void handleClickUp();
 
   void handleClickDropDown(int x, int y, int WIDTH, int HEIGHT);
@@ -61,6 +62,7 @@ public:
   void pressTap();
   void pressDropDownMenu();
   void pressRandomize();
+  void pressCamera();
 
   void removeNumber();
 
@@ -71,7 +73,7 @@ public:
   void addNumber(char p);
 
 private:
-  bool draw, erase, drag, tap, gravity, clear, help, randomize;
+  bool draw, erase, drag, tap, gravity, clear, help, randomize, camera;
   bool m_dropdownopen;
   int m_dropdownselect;
   GLuint iconsTexture, titleTexture;
