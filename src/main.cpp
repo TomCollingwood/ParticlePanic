@@ -270,12 +270,8 @@ int main( int argc, char* args[] ) {
                     toolbar->handleClickDropDown(x, y, WIDTH, HEIGHT);
                   }
 
-                  else if(!world->getSnapshotMode())
-                  {
-                    leftMouseOnToolbar = toolbar->handleClickDown(x, y, WIDTH, HEIGHT);
-                  }
-                  else
-                    leftMouseOnWorld=true;
+                  leftMouseOnToolbar = toolbar->handleClickDown(x, y, WIDTH, HEIGHT);
+                  leftMouseOnWorld=!leftMouseOnToolbar;
                 }
 
               else if (e.button.button == SDL_BUTTON_RIGHT)
@@ -325,7 +321,7 @@ int main( int argc, char* args[] ) {
 
         }
 
-        if(leftMouseOnWorld)
+        if(leftMouseOnWorld && !world->get3D())
         {
           int x = 0, y = 0;
           SDL_GetMouseState(&x, &y);
@@ -362,7 +358,7 @@ int main( int argc, char* args[] ) {
           }
         }
 
-        else if(rightMouseButton)
+        else if(rightMouseButton && !world->get3D())
         {
           int x = 0, y = 0;
           SDL_GetMouseState(&x, &y);
@@ -378,10 +374,7 @@ int main( int argc, char* args[] ) {
         {
           world->draw();
 
-          if(!world->getSnapshotMode())
-          {
-            toolbar->drawToolbar(HEIGHT);
-          }
+          toolbar->drawToolbar(HEIGHT);
 
           SDL_GL_SwapWindow( gWindow );
         }

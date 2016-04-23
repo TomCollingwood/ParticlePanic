@@ -79,6 +79,7 @@ public:
     void clearWorld();
 
     void set3D(bool b);
+    bool get3D();
 
     void drawWith(int type);
 
@@ -142,7 +143,8 @@ protected: // Protected means that it is accessible to derived classes
 
     // RENDERING ATTRIBUTES
     float pointsize;
-    float mainrenderthreshold;
+    float m_mainrender3dthreshold;
+    float m_mainrender2dthreshold;
     int renderresolution;
     int renderwidth, renderheight;
     int render3dresolution;

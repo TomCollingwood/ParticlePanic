@@ -9,10 +9,10 @@ void Toolbar::drawTitle(float halfheight, float halfwidth) const
   GLuint titleTextureID = 0;
   SDL_Surface* Surface = IMG_Load("textures/title.png");
   if(!Surface)
-    {
-      printf("IMG_Load: %s\n", IMG_GetError());
-      std::cout<<"error"<<std::endl;
-    }
+  {
+    printf("IMG_Load: %s\n", IMG_GetError());
+    std::cout<<"error"<<std::endl;
+  }
 
   glGenTextures(1, &titleTextureID);
   glBindTexture(GL_TEXTURE_2D, titleTextureID);
@@ -20,7 +20,7 @@ void Toolbar::drawTitle(float halfheight, float halfwidth) const
   int Mode = GL_RGB;
 
   if(Surface->format->BytesPerPixel == 4) {
-      Mode = GL_RGBA;
+    Mode = GL_RGBA;
   }
 
   glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
@@ -33,11 +33,11 @@ void Toolbar::drawTitle(float halfheight, float halfwidth) const
   float Width = 5;
   float Height = 1.5;
   glBegin(GL_QUADS);
-      glColor3f(1.0f,1.0f,1.0f);
-      glTexCoord2f(0, 1); glVertex3f(X, Y, -2);
-      glTexCoord2f(1, 1); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(1, 0); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(0, 0); glVertex3f(X, Y + Height, -2);
+  glColor3f(1.0f,1.0f,1.0f);
+  glTexCoord2f(0, 1); glVertex3f(X, Y, -2);
+  glTexCoord2f(1, 1); glVertex3f(X + Width, Y, -2);
+  glTexCoord2f(1, 0); glVertex3f(X + Width, Y + Height, -2);
+  glTexCoord2f(0, 0); glVertex3f(X, Y + Height, -2);
   glEnd();
 
   glDisable(GL_TEXTURE_2D);
@@ -57,10 +57,10 @@ void Toolbar::drawToolbar(int h) const
   GLuint titleTextureID = 0;
   SDL_Surface* Surface = IMG_Load("textures/buttons.png");
   if(!Surface)
-    {
-      printf("IMG_Load: %s\n", IMG_GetError());
-      std::cout<<"error"<<std::endl;
-    }
+  {
+    printf("IMG_Load: %s\n", IMG_GetError());
+    std::cout<<"error"<<std::endl;
+  }
 
   glGenTextures(1, &titleTextureID);
   glBindTexture(GL_TEXTURE_2D, titleTextureID);
@@ -69,9 +69,9 @@ void Toolbar::drawToolbar(int h) const
 
   int Mode = GL_RGBA;
 
-//  if(Surface->format->BytesPerPixel == 4) {
-//      Mode = GL_RGBA;
-//  }
+  //  if(Surface->format->BytesPerPixel == 4) {
+  //      Mode = GL_RGBA;
+  //  }
 
   glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
 
@@ -97,11 +97,16 @@ void Toolbar::drawToolbar(int h) const
   float texW = 74.0f/425.0f;
   float texH = 0.1f;
 
-  // Button
-  if(draw)
-    texX=0.4f;
-  else
-    texX=0.0f;
+  float numbersX;
+  float numbersY;
+
+  if(!m_world->getSnapshotMode())
+  {
+    // Button
+    if(draw)
+      texX=0.4f;
+    else
+      texX=0.0f;
 
     glBegin(GL_QUADS);
     glColor3f(1.0f,1.0f,1.0f);
@@ -111,188 +116,188 @@ void Toolbar::drawToolbar(int h) const
     glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
     glEnd();
 
-  // Icon
+    // Icon
 
-  texX=0.8f;
-  texY=0.2f;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-  glEnd();
+    texX=0.8f;
+    texY=0.2f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
 
-  texY=0.0f;
+    texY=0.0f;
 
 
-  // ---------------------ERASE --------------------------
+    // ---------------------ERASE --------------------------
 
-  X+=Width+gap;
+    X+=Width+gap;
 
-  // Button
-  if(erase)
+    // Button
+    if(erase)
+      texX=0.4f;
+    else
+      texX=0.0f;
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
+
+    // Icon
+    texX=0.2f;
+    texY=0.3f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
+
+    texY=0.0f;
+
+    // --------------------DRAG--------------
+
+    X+=Width+gap;
+
+    // Button
+    if(drag)
+      texX=0.4f;
+    else
+      texX=0.0f;
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
+
+    // Icon
+    texX=0.0f;
+    texY=0.3f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
+
+    texY=0.0f;
+
+    // -------------------TAP -------------
+    X+=Width+gap;
+
+    // Button
+    if(tap)
+      texX=0.4f;
+    else
+      texX=0.0f;
+
+
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
+
+    //  Icon
     texX=0.4f;
-  else
-    texX=0.0f;
+    texY=0.2f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
 
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-  glEnd();
+    texY=0.0f;
 
-  // Icon
-  texX=0.2f;
-  texY=0.3f;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-  glEnd();
+    // -------------------GRAVITY -------------
+    X+=Width+gap;
+    if(gravity)
+      texX=0.4;
+    else
+      texX=0.0f;
 
-  texY=0.0f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
 
-  // --------------------DRAG--------------
-
-  X+=Width+gap;
-
-  // Button
-  if(drag)
+    // Icon
     texX=0.4f;
-  else
-    texX=0.0f;
+    texY=0.3f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
 
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-  glEnd();
+    texY=0.0f;
 
-  // Icon
-  texX=0.0f;
-  texY=0.3f;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-  glEnd();
-
-  texY=0.0f;
-
-  // -------------------TAP -------------
-  X+=Width+gap;
-
-  // Button
-  if(tap)
-    texX=0.4f;
-  else
-    texX=0.0f;
+    // -------------------CLEAR -------------
+    X+=Width+gap;
+    if(clear)
+      texX=0.4f;
+    else
+      texX=0.0f;
 
 
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-  glEnd();
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
 
-//  Icon
-  texX=0.4f;
-  texY=0.2f;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-  glEnd();
+    // Icon
+    texX=0.6f;
+    texY=0.2f;
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+    glEnd();
 
-  texY=0.0f;
+    texY=0.0f;
 
-  // -------------------GRAVITY -------------
-  X+=Width+gap;
-  if(gravity)
-    texX=0.4;
-  else
-    texX=0.0f;
-
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-  glEnd();
-
-  // Icon
-  texX=0.4f;
-  texY=0.3f;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-  glEnd();
-
-  texY=0.0f;
-
-  // -------------------CLEAR -------------
-  X+=Width+gap;
-  if(clear)
-    texX=0.4f;
-  else
-    texX=0.0f;
+    // -------------------HELP -------------
+    X+=Width+gap;
+    if(help)
+      texX=0.4f;
+    else
+      texX=0.0f;
 
 
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-  glEnd();
+    glBegin(GL_QUADS);
+    glColor3f(1.0f,1.0f,1.0f);
+    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+    glEnd();
 
-  // Icon
-  texX=0.6f;
-  texY=0.2f;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-  glEnd();
-
-  texY=0.0f;
-
-  // -------------------HELP -------------
-  X+=Width+gap;
-  if(help)
-    texX=0.4f;
-  else
-    texX=0.0f;
-
-
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-  glEnd();
-
-  // Icon
+    // Icon
     texX=0.6f;
     texY=0.3f;
     glBegin(GL_QUADS);
@@ -331,55 +336,7 @@ void Toolbar::drawToolbar(int h) const
     glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
     glEnd();
 
-    //std::cout<<X<<std::endl;
-
     X-=Width*5+gap*6;
-
-    // ----------------------CAMERA SNAPSHOT-----------------------
-
-
-    float prevX = X;
-    float prevY = Y;
-    X=halfwidth-1.3;
-    Y=-halfheight+0.2f;
-
-    if(randomize)
-      texX=0.4f;
-    else
-      texX=0.0f;
-    texY=0.0f;
-
-    glBegin(GL_QUADS);
-    glColor3f(1.0f,1.0f,1.0f);
-    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
-    glEnd();
-
-    texX=0.4f;
-    texY=0.6f;
-    glBegin(GL_QUADS);
-    glColor3f(1.0f,1.0f,1.0f);
-    glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
-    glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
-    glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
-    glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
-    glEnd();
-
-    //std::cout<<X<<std::endl;
-
-    X=prevX;
-    Y=prevY;
-
-    // */
-
-    X=prevX;
-    Y=prevY;
-
-
-
-    // ------------------DROP DOWN MENU ---------------
 
     X+=Width+gap;
 
@@ -561,8 +518,64 @@ void Toolbar::drawToolbar(int h) const
       glEnd();
     }
 
-    this->drawNumbers(X+((halfheight*2)/h)*8,Y+((halfheight*2)/h)*13,h,m_randomSeed);
-    //std::cout<<"seed"<<m_randomSeed<<std::endl;
+    numbersX=X;
+    numbersY=Y;
+
+  }
+
+  //----------------------CAMERA SNAPSHOT-----------------------
+
+  if(m_world->getSnapshotMode()!=1 && m_world->getSnapshotMode()!=2 && m_world->get3D())
+  {
+  texW = 74.0f/425.0f;
+  texH = 0.1f;
+
+  Width = ((halfheight*2)/h)*65;
+  Height = ((halfheight*2)/h)*50;
+
+  int prevX = X;
+  int prevY = Y;
+
+  X=halfwidth-1.3;
+  Y=-halfheight+0.2f;
+
+  if(camera)
+    texX=0.4f;
+  else
+    texX=0.0f;
+  texY=0.0f;
+
+  glBegin(GL_QUADS);
+  glColor3f(1.0f,1.0f,1.0f);
+  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
+  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
+  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
+  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+  glEnd();
+
+  if(!m_world->getSnapshotMode())
+  {
+    texX=0.4f;
+    texY=0.6f;
+  }
+  else
+  {
+    texX=0.4f;
+    texY=0.687f;
+  }
+  glBegin(GL_QUADS);
+  glColor3f(1.0f,1.0f,1.0f);
+  glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+  glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+  glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+  glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
+  glEnd();
+
+  Y=prevY;
+  X=prevX;
+  }
+
+  if(!m_world->getSnapshotMode()) this->drawNumbers(numbersX+((halfheight*2)/h)*8,numbersY+((halfheight*2)/h)*13,h,m_randomSeed);
 
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_LIGHTING);
@@ -585,7 +598,7 @@ bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
   float worldx = ((float)x/(float)WIDTH)*(halfwidth*2) - halfwidth;
   float worldy = - ((float)y/(float)HEIGHT)*(halfheight*2) + halfheight;
 
-  if(worldy>halfheight-(halfheight*(4.f/20.f)))
+  if(worldy>halfheight-(halfheight*(4.f/20.f)) && !m_world->getSnapshotMode())
   {
     if(worldx>startx && worldx<startx+Width)  // draw
     {
@@ -793,19 +806,19 @@ void Toolbar::handleKeys(char _input)
   case 'w' :
     //if(!m_3d)
     //{
-      //soon
+    //soon
     //}
     break;
   case 'r':
     //if(!m_3d)
     //{
-      //soon
+    //soon
     //}
     break;
   case 'p':
     //if(!m_3d)
     //{
-      //soon
+    //soon
     //}
     break;
 
@@ -834,10 +847,10 @@ void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
   GLuint titleTextureID = 0;
   SDL_Surface* Surface = IMG_Load("textures/numbers.png");
   if(!Surface)
-    {
-      printf("IMG_Load: %s\n", IMG_GetError());
-      std::cout<<"error"<<std::endl;
-    }
+  {
+    printf("IMG_Load: %s\n", IMG_GetError());
+    std::cout<<"error"<<std::endl;
+  }
 
   glGenTextures(1, &titleTextureID);
   glBindTexture(GL_TEXTURE_2D, titleTextureID);
@@ -845,7 +858,7 @@ void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
   int Mode = GL_RGB;
 
   if(Surface->format->BytesPerPixel == 4) {
-      Mode = GL_RGBA;
+    Mode = GL_RGBA;
   }
 
   glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
@@ -853,15 +866,13 @@ void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-
-
   float currentx = x;
 
   for(char&c : _numbers)
   {
     switch(c)
     {
-     case '1':
+    case '1':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
       glTexCoord2f(0, 1); glVertex3f(currentx, y, -1);
@@ -871,86 +882,86 @@ void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
       glEnd();
       break;
     case '2':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.1, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.2,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.2, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.1, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.1, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.2,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.2, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.1, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '3':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.2, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.3,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.3, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.2, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.2, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.3,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.3, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.2, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '4':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.3, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.4,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.4, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.3, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.3, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.4,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.4, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.3, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '5':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.4, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.5,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.5, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.4, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.4, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.5,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.5, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.4, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '6':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.5, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.6,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.6, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.5, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.5, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.6,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.6, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.5, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '7':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.6, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.7,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.7, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.6, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.6, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.7,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.7, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.6, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '8':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.7, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.8,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.8, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.7, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.7, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.8,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.8, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.7, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '9':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.8, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(0.9,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(0.9, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.8, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.8, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(0.9,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(0.9, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.8, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     case '0':
-     glBegin(GL_QUADS);
-     glColor3f(0.0f,0.0f,0.0f);
-     glTexCoord2f(0.9, 1); glVertex3f(currentx, y, -1);
-     glTexCoord2f(1,1); glVertex3f(currentx+gap, y, -1);
-     glTexCoord2f(1, 0); glVertex3f(currentx+gap, y+height, -1);
-     glTexCoord2f(0.9, 0); glVertex3f(currentx, y + height, -1);
-     glEnd();
-     break;
+      glBegin(GL_QUADS);
+      glColor3f(0.0f,0.0f,0.0f);
+      glTexCoord2f(0.9, 1); glVertex3f(currentx, y, -1);
+      glTexCoord2f(1,1); glVertex3f(currentx+gap, y, -1);
+      glTexCoord2f(1, 0); glVertex3f(currentx+gap, y+height, -1);
+      glTexCoord2f(0.9, 0); glVertex3f(currentx, y + height, -1);
+      glEnd();
+      break;
     }
     currentx+=gap;
   }

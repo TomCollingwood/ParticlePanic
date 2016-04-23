@@ -35,7 +35,8 @@ World::World() :
   squaresize(1.0f),
   m_timestep(1.0f),
   pointsize(10.0f),
-  mainrenderthreshold(90.0f),  //90
+  m_mainrender2dthreshold(90.0f),  //90
+  m_mainrender3dthreshold(200.0f),
   renderresolution(7),
   render3dresolution(2),
   renderoption(1),
@@ -1368,7 +1369,7 @@ void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, Part
 
   //std::cout<<"BLUE"<<blue<<std::endl;
 
-  float renderthreshold = mainrenderthreshold;
+  float renderthreshold = m_mainrender2dthreshold;
   if(inner)
   {
     renderthreshold=0.7f*renderthreshold;
@@ -1680,6 +1681,11 @@ void World::set3D(bool b)
   m_3d=b;
 }
 
+bool World::get3D()
+{
+  return m_3d;
+}
+
 void World::setToDraw(int _todraw)
 {
   if(_todraw<m_particleTypes.size()) m_todraw=_todraw;
@@ -1702,7 +1708,7 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
   int render3dwidth=renderGrid.size();
   int render3dheight=renderGrid[0].size();
   int render3ddepth=renderGrid[0][0].size();
-  float isolevel=mainrenderthreshold;
+  float isolevel=m_mainrender3dthreshold;
 
   //#pragma omp parallel for
   for(int w=0; w<render3dwidth-1; ++w)
@@ -1835,7 +1841,7 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
 Vec3 World::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
 {
-  float isolevel = mainrenderthreshold;
+  float isolevel = m_mainrender3dthreshold;
 
   double mu;
   Vec3 p = Vec3();
