@@ -609,13 +609,13 @@ bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
       return true;
     }
 
-    else if(worldx>startx+Width*7+gap*7 && worldx<startx+Width*6+gap*7+(((halfheight*2)/HEIGHT)*205))
+    else if(worldx>startx+Width*7+gap*7 && worldx<startx+Width*9.2+gap*7)
     {
       pressDropDownMenu();
       return true;
     }
 
-    else if(worldx>5.61667 && worldx<5.61667+Width) //help
+    else if(worldx>startx+Width*11.4+gap*7 && worldx<startx+Width*12.4+gap*7) //help
     {
       pressRandomize();
       return true;
@@ -956,7 +956,7 @@ void Toolbar::handleClickDropDown(int x, int y, int WIDTH, int HEIGHT)
 
   float worldx = ((float)x/(float)WIDTH)*(halfwidth*2) - halfwidth;
   float worldy = ((float)y/(float)HEIGHT)*(halfheight*2) - halfheight;
-  if(worldx<startx+Width*7+gap*7 || worldx>startx+Width*6+gap*7+(((halfheight*2)/HEIGHT)*210)
+  if(worldx<startx+Width*7+gap*7 || worldx>startx+Width*9.2+gap*7
      || worldy<-halfheight+Height+gap || worldy>-halfheight+5*Height+gap)
     pressDropDownMenu();
   else if(worldy>-halfheight+Height*4+gap)

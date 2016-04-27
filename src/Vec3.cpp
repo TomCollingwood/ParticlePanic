@@ -115,7 +115,7 @@ void Vec3::operator -=(const Vec3 &_r)
 
 bool Vec3::operator ==(const Vec3 &_rhs) const
 {
-  if(abs(m_x-_rhs.m_x)==0 && abs(m_y-_rhs.m_y)==0 && abs(m_z-_rhs.m_z)==0) return true;
+  if(std::abs(m_x-_rhs.m_x)==0 && std::abs(m_y-_rhs.m_y)==0 && std::abs(m_z-_rhs.m_z)==0) return true;
   else return false;
 }
 

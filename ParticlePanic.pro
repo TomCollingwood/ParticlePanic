@@ -21,7 +21,8 @@ SOURCES += \
     src/Toolbar.cpp \
     src/ParticleProperties.cpp \
     src/Commands.cpp \
-    src/Main.cpp
+    src/Main.cpp \
+    src/MarchingAlgorithms.cpp
 
 HEADERS += \
     include/Particle.h \
@@ -30,7 +31,8 @@ HEADERS += \
     include/World.h \
     include/Toolbar.h \
     include/ParticleProperties.h \
-    include/Commands.h
+    include/Commands.h \
+    include/MarchingAlgorithms.h
 
 LIBS += -L/usr/local/lib
 

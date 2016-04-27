@@ -19,7 +19,7 @@ World::World() :
   pointsize(10.0f),
   m_mainrender2dthreshold(90.0f),  //90
   m_mainrender3dthreshold(90.0f),
-  renderresolution(7),
+  renderresolution(4),
   render3dresolution(2),
   renderoption(1),
   rain(false),
@@ -116,8 +116,9 @@ void World::init() {
   m_camerarotatey=0.0f;
   m_camerarotatex=0.0f;
 
-  // create start two blocks of particles
+  m_marching = new MarchingAlgorithms(m_mainrender2dthreshold, m_mainrender3dthreshold);
 
+  // create start two blocks of particles
   /*
     for(int i = 0; i<10; ++i)
     {
@@ -1341,6 +1342,7 @@ void World::mouseMove(const int &x, const int &y, bool leftclick, bool rightclic
   }
 }
 
+// keep in world
 std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
 {
   std::vector<std::vector<float>> rendergrid;
@@ -1741,11 +1743,12 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
   std::vector<Vec3> triangleVerticies;
 
-  int render3ddepth=render3dwidth;
-  float isolevel=m_mainrender3dthreshold;
 
+  int render3dheight=renderGrid.size()-1;
+  int render3dwidth=renderGrid[0].size()-1;
+  int render3ddepth=renderGrid[0][0].size()-1;
 
-
+  float isolevel=m_mainrender3dthreshold; //can set at initialization
 
   //#pragma omp parallel for
   for(int w=0; w<render3dwidth; ++w)

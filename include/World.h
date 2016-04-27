@@ -31,6 +31,7 @@
 #include "include/Vec3.h"
 #include "include/Particle.h"
 #include "include/ParticleProperties.h"
+#include "include/MarchingAlgorithms.h"
 
 
 /**
@@ -113,8 +114,9 @@ public:
     void setRandomType(int _randomSeed);
 
     void drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p);
-    std::vector<std::vector<std::vector<float>>> render3dGrid(ParticleProperties *p);
     Vec3 VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2);
+    std::vector<std::vector<std::vector<float>>> render3dGrid(ParticleProperties *p);
+
     Vec3 getGridXYZ(int k);
 
     int getSnapshotMode();
@@ -199,6 +201,8 @@ protected: // Protected means that it is accessible to derived classes
 
     // MARCHING CUBES DATA (author Paul Bourke)
     // http://paulbourke.net/geometry/polygonise/
+
+    MarchingAlgorithms m_marching;
 
     /// The following section is from :-
     /// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
