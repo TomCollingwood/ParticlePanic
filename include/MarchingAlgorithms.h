@@ -24,6 +24,7 @@ class MarchingAlgorithms
 public:
   MarchingAlgorithms() = default;
   MarchingAlgorithms(float _render2dThreshold, float _render3dThreshold, float _squaresize, float _renderresolution, float _render3dresolution, float _halfwidth, float _halfheight):
+    m_snapshotMode(0),
     m_render2dThreshold(_render2dThreshold),
     m_render3dThreshold(_render3dThreshold),
     m_squaresize(_squaresize),
@@ -44,9 +45,17 @@ public:
   int getSnapshotMode();
   void setSnapshotMode(int _s);
 
+  void setSquareSize(float ss)
+  {
+    m_squaresize=ss;
+  }
+
   void clearRealtime2DTriangles();
   void clearRealtime3DTriangles();
   void clearSnapshot3DTriangles();
+
+  void increase2DResolution();
+  void decrease2DResolution();
 
 private:
   int m_snapshotMode;

@@ -13,10 +13,10 @@ World::World() :
   m_isInit(false),
   m_startTime(0.0),
   m_elapsedTime(0.0),
-  interactionradius(1.0f),
-  squaresize(1.0f),
+  interactionradius(1.0f),  //1
+  squaresize(1.0f), //1
   m_timestep(1.0f),
-  pointsize(10.0f),
+  pointsize(10.0f), //10
   m_mainrender2dthreshold(90.0f),  //90
   m_mainrender3dthreshold(90.0f),
   renderresolution(4),
@@ -29,8 +29,7 @@ World::World() :
   particlesPoolSize(3000),
   m_3d(false),
   m_boundaryMultiplier(1.0f),
-  m_boundaryType(0),
-  m_snapshotMode(0)
+  m_boundaryType(0)
 {
 }
 
@@ -270,8 +269,6 @@ void World::resizeWindow(int w, int h) {
 void World::draw() {
   if (!m_isInit) return;
 
-
-
   glMatrixMode(GL_MODELVIEW);
 
   bool current_3d=m_3d;
@@ -290,7 +287,7 @@ void World::draw() {
   if(renderoption==1){
     for(int i=0; i<lastTakenParticle+1; ++i){
       if(particles[i].isAlive())
-        particles[i].drawParticle();
+        particles[i].drawParticle(pointsize);
     }
   }
 
@@ -299,33 +296,25 @@ void World::draw() {
   {
     if(!m_3d)
     {
-      //drawLoading();
       for(auto& i : m_particleTypes)
       {
-        glDisable(GL_LIGHTING);
         std::vector<std::vector<float>> waterRenderGrid = renderGrid(&i);
-        drawMarchingSquares(waterRenderGrid,i,false);
-        drawMarchingSquares(waterRenderGrid,i,true);
-        /*
         m_marching.calculateMarchingSquares(waterRenderGrid,i,false);
         m_marching.calculateMarchingSquares(waterRenderGrid,i,true);
-        m_marching.draw2DRealtime();
-        m_marching.clearRealtime2DTriangles();
-        */
-        glEnable(GL_LIGHTING);
       }
+      m_marching.draw2DRealtime();
     }
     else
     {
       // DRAW LOADING SCREEN
-      if(m_snapshotMode==1)
+      if(m_marching.getSnapshotMode()==1)
       {
         drawLoading();
-        ++m_snapshotMode;
+        m_marching.setSnapshotMode(2);
       }
 
       // SNAPSHOT MODE PROCESSING
-      else if(m_snapshotMode==2)
+      else if(m_marching.getSnapshotMode()==2)
       {
         render3dresolution*=6;
         render3dwidth=gridwidth*render3dresolution;
@@ -345,42 +334,29 @@ void World::draw() {
         for(auto& i : m_particleTypes)
         {
           std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
-          drawMarchingCubes(waterRender3dGrid,i);
-          drawSnapshot();
+          m_marching.calculateMarchingCubes(waterRender3dGrid,i);
         }
-        ++m_snapshotMode;
+        m_marching.setSnapshotMode(3);
       }
 
       // DRAW THE GENERATED SNAPSHOT
-      else if(m_snapshotMode>2)
+      else if(m_marching.getSnapshotMode()>2)
       {
-        std::cout<<"HIYA VAPE NASH22"<<std::endl;
-        drawSnapshot();
+        m_marching.draw3DSnapshot();
       }
 
       // DRAW REAL-TIME FLUID MARCHING CUBES
       else
       {
-
-        m_snapshotTriangles.clear();
-        m_snapshotTriangles.resize(render3dwidth);
-        for(auto& i : m_snapshotTriangles)
-        {
-          i.resize(render3dheight);
-          for(auto& j : i)
-          {
-            j.resize(render3dwidth);
-          }
-        }
+        m_marching.clearSnapshot3DTriangles();
 
         for(auto& i : m_particleTypes)
         {
           std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
-          drawMarchingCubes(waterRender3dGrid,i);
-          drawSnapshot();
+          m_marching.calculateMarchingCubes(waterRender3dGrid,i);
         }
+        m_marching.draw3DRealtime();
       }
-
     }
   }
 
@@ -417,10 +393,18 @@ void World::update(bool *updateinprogress) {
     if(everyother%2==0){
       if(!m_3d)
       {
-        for(int i = 0; i<10; ++i)
+        for(int i = 0; i<6; ++i)
         {
-          Particle newParticle = Particle(Vec3(-3.0f+i*0.15f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
-          newParticle.addVelocity(Vec3(0.0f,-0.05f,0.0f));
+          Particle newParticle;
+          if(interactionradius==1.0f)
+          {
+            newParticle = Particle(Vec3(-3.0f+i*0.3f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
+            newParticle.addVelocity(Vec3(3*0.03f-i*0.03f,-0.1f,0.0f));
+          }
+          else{
+            newParticle = Particle(Vec3(-3.0f+i*0.1f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
+            newParticle.addVelocity(Vec3(0,-0.1f,0.0f));
+          }
           insertParticle(newParticle);
         }
       }
@@ -738,7 +722,7 @@ void World::update(bool *updateinprogress) {
         if(particles[i].getPosition()[1]-0.5f<-halfheight)
         {
           particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
-          particles[i].setVelocity(Vec3(0.5f*particles[i].getVelocity()[0],-0.5f*particles[i].getVelocity()[1],0.0f));
+          particles[i].setVelocity(Vec3(particles[i].getVelocity()[0],-0.8f*particles[i].getVelocity()[1],0.0f));
         }
         //------------------------------------TOP------------------------------
 
@@ -760,6 +744,7 @@ void World::update(bool *updateinprogress) {
           particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
           particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
         }
+
         if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
         {
           particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
@@ -775,48 +760,48 @@ void World::update(bool *updateinprogress) {
       if(m_boundaryType==1)
       {
 
-        float fmult = 0.5f;
+        float fmult = 1.0f;
 
         float distance = - particles[i].getPosition()[1] + halfheight - 0.5f;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,-fmult*force,0.0f));
+          particles[i].addVelocity(Vec3(0.0f,-sqrt(fmult*force),0.0f));
         }
 
         distance = halfheight + particles[i].getPosition()[1];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,fmult*force,0.0f));
+          particles[i].addVelocity(Vec3(0.0f,sqrt(fmult*force),0.0f));
         }
 
         distance = particles[i].getPosition()[0] + halfwidth*smallen;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(fmult*force,0.0f,0.0f));
+          particles[i].addVelocity(Vec3(sqrt(fmult*force),0.0f,0.0f));
         }
 
         distance = halfwidth*smallen - particles[i].getPosition()[0];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(-fmult*force,0.0f,0.0f));
+          particles[i].addVelocity(Vec3(-sqrt(fmult*force),0.0f,0.0f));
         }
 
         distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,0.0f,fmult*force));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,sqrt(fmult*force)));
         }
 
         distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-fmult*force));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-sqrt(fmult*force)));
         }
 
 
@@ -1101,18 +1086,17 @@ void World::handleKeys(char _input)
     if(m_3d)
     {
       if(renderoption==1) renderoption=2;
-      if(m_snapshotMode>2)
+      if(m_marching.getSnapshotMode()>2)
       {
         render3dresolution/=6;
         render3dwidth=gridwidth*render3dresolution;
         render3dheight=gridheight*render3dresolution;
         m_snapshotTriangles.clear();
-        m_snapshotMode=0;
+        m_marching.setSnapshotMode(0);
       }
       else
       {
-        //drawLoading();
-        m_snapshotMode=1;
+        m_marching.setSnapshotMode(1);
       }
     }
 
@@ -1133,6 +1117,14 @@ void World::handleKeys(char _input)
 
   case 'c' :
     drawCube();
+    break;
+
+  case '>':
+    makeParticlesBig();
+    break;
+  case '<':
+    makeParticlesSmall();
+    std::cout<<"YOO"<<std::endl;
     break;
 
   default:
@@ -1394,323 +1386,6 @@ std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
   return rendergrid;
 }
 
-void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner)
-{
-
-
-  float red = p.getRed();
-  float green = p.getGreen();
-  float blue = p.getBlue();
-
-  //std::cout<<"BLUE"<<blue<<std::endl;
-
-  float renderthreshold = m_mainrender2dthreshold;
-  if(inner)
-  {
-    renderthreshold=0.7f*renderthreshold;
-    red+=0.4;
-    green+=0.4;
-    blue+=0.4;
-  }
-
-  float rendersquare=squaresize/renderresolution;
-
-  for(int currentrow=0; currentrow<renderheight; ++currentrow)
-  {
-    for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
-    {
-
-      //1---5---2
-      //|       |
-      //8       6
-      //|       |
-      //3---7---4
-
-
-      std::vector<bool> boolpoints;
-      boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
-      boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
-      boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
-      boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
-
-      bool empty=false;
-
-      if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3])
-      {
-        empty=true;
-      }
-
-      if(!empty)
-      {
-        float p1x = (squaresize/renderresolution)*(float)currentcolumn - halfwidth;
-        float p1y = (squaresize/renderresolution)*(float)currentrow - halfheight;
-
-        float p2x = (squaresize/renderresolution)*((float)currentcolumn+1.0f) - halfwidth;
-        float p2y = p1y;
-
-        float p3x = p1x;
-        float p3y = (squaresize/renderresolution)*((float)currentrow+1.0f) - halfheight;
-
-        float p4x = p2x;
-        float p4y = p3y;
-
-        float p5x = (p1x+p2x)/2.0f;
-        float p5y = p1y;
-
-        float p6x = p2x;
-        float p6y = (p2y+p4y)/2.0f;
-
-        float p7x = p5x;
-        float p7y = p3y;
-
-        float p8x = p1x;
-        float p8y = p6y;
-
-        if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111 TICK
-        {
-          glBegin(GL_QUADS);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glEnd();
-        }
-        else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001 TICK
-        {
-          p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glEnd();
-        }
-        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010 TICK
-        {
-          p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glEnd();
-        }
-        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011 TICK
-        {
-          p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-          p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-          glBegin(GL_QUADS);
-          glColor3f(red,green,blue);
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glEnd();
-        }
-        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100 TICK
-        {
-          p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glEnd();
-        }
-        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101 TICK
-        {
-          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-
-          glBegin(GL_QUADS);
-          glColor3f(red,green,blue);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glEnd();
-        }
-        else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110 COULD CHANGE TO SEE
-        {
-          p5x=p1x+(p2x-p1x)*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-          p6y=p4y+(p2y-p4y)*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-          p7x=p4x+(p3x-p4x)*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-          p8y=p1y+(p3y-p1y)*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          //glColor3f(1.0f,0.0f,0.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-
-          glEnd();
-        }
-        else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111 TICK
-        {
-          p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
-          p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glEnd();
-        }
-        else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000 TICK
-        {
-          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-          p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-          glEnd();
-        }
-        else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001 COULD CHANGE TO SEE
-        {
-          p5x=p2x+(p1x-p2x)*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-          p6y=p2y+(p4y-p2y)*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-          p7x=p3x+(p4x-p3x)*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-          p8y=p3y+(p1y-p3y)*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-
-
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-
-          glEnd();
-        }
-        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK
-        {
-          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-
-          glBegin(GL_QUADS);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glEnd();
-        }
-        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011 TICK
-        {
-          p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
-          p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glVertex3f(p5x,p5y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glEnd();
-        }
-        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100 TICK
-        {
-          p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-          p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-          glBegin(GL_QUADS);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-          glEnd();
-        }
-        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101 TICK
-        {
-          p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
-          p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p8x,p8y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p4x,p4y,-2.0f);
-          glEnd();
-        }
-        else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
-        {
-          p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
-          p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
-
-          glBegin(GL_TRIANGLES);
-          glColor3f(red,green,blue);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p2x,p2y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p6x,p6y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p1x,p1y,-2.0f);
-          glVertex3f(p7x,p7y,-2.0f);
-          glVertex3f(p3x,p3y,-2.0f);
-
-          glEnd();
-        }
-      }
-    }
-  }
-}
-
 void World::set3D(bool b)
 {
   m_3d=b;
@@ -1731,237 +1406,6 @@ void World::setRandomType(int _randomSeed)
   m_particleTypes[3].randomize(_randomSeed);
   m_particleTypes[3].printVariables();
 }
-
-
-/// The following section is from :-
-/// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
-/// Available from: <http://paulbourke.net/geometry/polygonise/>.
-///
-
-///
-/// \brief World::drawMarchingCubes
-/// \param renderGrid
-/// \param p
-///
-void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p)
-{
-  float red = p.getRed();
-  float green = p.getGreen();
-  float blue = p.getBlue();
-
-  std::vector<Vec3> triangleVerticies;
-
-  int render3dwidth=renderGrid.size()-1;
-  int render3dheight=renderGrid[0].size()-1;
-  int render3ddepth=renderGrid[0][0].size()-1;
-
-  float isolevel=m_mainrender3dthreshold; //can set at initialization
-
-  //#pragma omp parallel for
-  for(int w=0; w<render3dwidth; ++w)
-  {
-    for(int h=0; h<render3dheight; ++h)
-    {
-      for(int d=0; d<render3ddepth; ++d)
-      {
-        float gridvalue[8];
-
-        gridvalue[0]=renderGrid[w][h][d];     //0
-        gridvalue[1]=renderGrid[w+1][h][d];   //1
-        gridvalue[2]=renderGrid[w+1][h][d+1];   //2
-        gridvalue[3]=renderGrid[w][h][d+1];     //3
-
-        gridvalue[4]=renderGrid[w][h+1][d];     //4
-        gridvalue[5]=renderGrid[w+1][h+1][d];   //5
-        gridvalue[6]=renderGrid[w+1][h+1][d+1];     //6
-        gridvalue[7]=renderGrid[w][h+1][d+1];       //7
-
-        float rendersquare=squaresize/render3dresolution;
-
-        float wWorld = - halfwidth + w * rendersquare;
-        float hWorld = - halfheight + h * rendersquare ;
-        float dWorld = - 2 - halfwidth + d * rendersquare;
-
-        std::vector<Vec3> gridposition;
-        gridposition.push_back(Vec3(wWorld,             hWorld,             dWorld));               //0
-        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld,             dWorld));               //1
-        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld,             dWorld+rendersquare));  //2
-        gridposition.push_back(Vec3(wWorld,             hWorld,             dWorld+rendersquare));  //3
-
-        gridposition.push_back(Vec3(wWorld,             hWorld+rendersquare,dWorld));               //4
-        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld));               //5
-        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld+rendersquare));               //6
-        gridposition.push_back(Vec3(wWorld,             hWorld+rendersquare,dWorld+rendersquare));  //7
-
-        Vec3 vertlist[12];
-
-        int cubeindex = 0;
-        if (gridvalue[0] < isolevel) cubeindex |= 1;
-        if (gridvalue[1] < isolevel) cubeindex |= 2;
-        if (gridvalue[2] < isolevel) cubeindex |= 4;
-        if (gridvalue[3] < isolevel) cubeindex |= 8;
-        if (gridvalue[4] < isolevel) cubeindex |= 16;
-        if (gridvalue[5] < isolevel) cubeindex |= 32;
-        if (gridvalue[6] < isolevel) cubeindex |= 64;
-        if (gridvalue[7] < isolevel) cubeindex |= 128;
-
-        if(edgeTable[cubeindex]!=0)
-        {
-          // Find the vertices where the surface intersects the cube
-          if (edgeTable[cubeindex] & 1)
-            vertlist[0] =
-                VertexInterp(gridposition[0],gridposition[1],gridvalue[0],gridvalue[1]);
-          if (edgeTable[cubeindex] & 2)
-            vertlist[1] =
-                VertexInterp(gridposition[1],gridposition[2],gridvalue[1],gridvalue[2]);
-          if (edgeTable[cubeindex] & 4)
-            vertlist[2] =
-                VertexInterp(gridposition[2],gridposition[3],gridvalue[2],gridvalue[3]);
-          if (edgeTable[cubeindex] & 8)
-            vertlist[3] =
-                VertexInterp(gridposition[3],gridposition[0],gridvalue[3],gridvalue[0]);
-          if (edgeTable[cubeindex] & 16)
-            vertlist[4] =
-                VertexInterp(gridposition[4],gridposition[5],gridvalue[4],gridvalue[5]);
-          if (edgeTable[cubeindex] & 32)
-            vertlist[5] =
-                VertexInterp(gridposition[5],gridposition[6],gridvalue[5],gridvalue[6]);
-          if (edgeTable[cubeindex] & 64)
-            vertlist[6] =
-                VertexInterp(gridposition[6],gridposition[7],gridvalue[6],gridvalue[7]);
-          if (edgeTable[cubeindex] & 128)
-            vertlist[7] =
-                VertexInterp(gridposition[7],gridposition[4],gridvalue[7],gridvalue[4]);
-          if (edgeTable[cubeindex] & 256)
-            vertlist[8] =
-                VertexInterp(gridposition[0],gridposition[4],gridvalue[0],gridvalue[4]);
-          if (edgeTable[cubeindex] & 512)
-            vertlist[9] =
-                VertexInterp(gridposition[1],gridposition[5],gridvalue[1],gridvalue[5]);
-          if (edgeTable[cubeindex] & 1024)
-            vertlist[10] =
-                VertexInterp(gridposition[2],gridposition[6],gridvalue[2],gridvalue[6]);
-          if (edgeTable[cubeindex] & 2048)
-            vertlist[11] =
-                VertexInterp(gridposition[3],gridposition[7],gridvalue[3],gridvalue[7]);
-
-          for (int i=0;triTable[cubeindex][i]!=-1;i+=3)
-          {
-            Vec3 vectorA = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+1]]) ;
-            Vec3 vectorB = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+2]]) ;
-            Vec3 normal = vectorB.cross(vectorA);
-            if(!m_snapshotMode) normal.normalize();
-            m_snapshotTriangles[w][h][d].push_back(Vec3(red,green,blue));
-            m_snapshotTriangles[w][h][d].push_back(normal);
-            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i  ]]);
-            m_snapshotTriangles[w][h][d].push_back(normal);
-            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+1]]);
-            m_snapshotTriangles[w][h][d].push_back(normal);
-            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+2]]);
-          }
-        }
-      }
-    }
-  }
-
-
-  if(m_snapshotMode==2)
-  {
-    /*
-    std::vector<std::vector<std::vector<std::vector<Vec3>>>> temporarynormals = m_snapshotTriangles;
-
-    // CALCULATE NORMALS
-    for(int w=0; w<render3dwidth; ++w)
-    {
-      for(int h=0; h<render3dheight; ++h)
-      {
-        for(int d=0; d<render3ddepth; ++d)
-        {
-          for(int k=0; k<m_snapshotTriangles[w][h][d].size(); k+=7)
-          {
-            for(int j=1; j<7; j+=2)
-            {
-              for(int wa=-1; wa<2; ++wa)
-              {
-                for(int ha=-1; ha<2; ++ha)
-                {
-                  for(int da=-1; da<2; ++da)
-                  {
-                      for(int p=0; p<m_snapshotTriangles[w+wa][h+ha][d+da].size(); p+=7)
-                      {
-                        for(int l=1; l<7; l+=2)
-                        {
-                          //std::cout<<"HERE3"<<std::endl;
-                          if(w+wa<render3dwidth && w+wa>=0 &&
-                             h+ha<render3dheight && h+ha>=0 &&
-                             d+da<render3ddepth && d+da>=0 &&
-                             !(da==0 && wa==0 && da==0 && (k+j==p+l)))
-                          {
-                            //std::cout<<"HERE2"<<std::endl;
-                            if(m_snapshotTriangles[w+wa][h+ha][d+da][p+l+1]==m_snapshotTriangles[w][h][d][k+j+1])
-                            {
-                              //std::cout<<"HERE"<<std::endl;
-                              temporarynormals[w][h][d][k+j]+=m_snapshotTriangles[w+wa][h+ha][d+da][p+l];
-                            }
-                          }
-                        }
-                      }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-
-    m_snapshotTriangles=temporarynormals;
-
-
-    // NORMALIZE NORMALS
-    for(int w=0; w<render3dwidth-1; ++w)
-    {
-      for(int h=0; h<render3dheight-1; ++h)
-      {
-        for(int d=0; d<render3ddepth-1; ++d)
-        {
-          for(int k=0; k<m_snapshotTriangles[w][h][d].size(); k+=7)
-          {
-            for(int j=1; j<7; j+=2)
-            {
-              m_snapshotTriangles[w][h][d][k+j].normalize();
-            }
-          }
-        }
-      }
-    }
-    // */
-  }
-
-
-}
-
-Vec3 World::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
-{
-  float isolevel = m_mainrender3dthreshold;
-
-  double mu;
-  Vec3 p = Vec3();
-
-  if (std::abs(isolevel-valp1) < 0.00001)
-    return p1;
-  if (std::abs(isolevel-valp2) < 0.00001)
-    return p2 ;
-  if (std::abs(valp1-valp2) < 0.00001)
-    return p1 ;
-  mu = (isolevel - valp1) / (valp2 - valp1);
-  p[0] = p1[0] + mu * (p2[0] - p1[0]);
-  p[1] = p1[1] + mu * (p2[1] - p1[1]);
-  p[2] = p1[2] + mu * (p2[2] - p1[2]);
-
-  return p;
-}
-/// end of Citation
 
 std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticleProperties *p)
 {
@@ -2032,33 +1476,7 @@ Vec3 World::getGridXYZ(int k) // CHECK THIS
 
 int World::getSnapshotMode()
 {
-  return m_snapshotMode;
-}
-
-void World::drawSnapshot()
-{
-  glBegin(GL_TRIANGLES);
-  for(auto& i : m_snapshotTriangles)
-  {
-    for(auto& j : i)
-    {
-      for(auto& k : j)
-      {
-        for(int l = 0; l<k.size() ; l+=7)
-        {
-          glColor3f(k[l][0],k[l][1],k[l][2]);
-          glNormal3f(k[l+1][0],k[l+1][1],k[l+1][2]);
-          glVertex3f(k[l+2][0],k[l+2][1],k[l+2][2]);
-          glNormal3f(k[l+3][0],k[l+3][1],k[l+3][2]);
-          glVertex3f(k[l+4][0],k[l+4][1],k[l+4][2]);
-          glNormal3f(k[l+5][0],k[l+5][1],k[l+5][2]);
-          glVertex3f(k[l+6][0],k[l+6][1],k[l+6][2]);
-          //printf("hey");
-        }
-      }
-    }
-  }
-  glEnd();
+  return m_marching.getSnapshotMode();
 }
 
 void World::drawLoading()
@@ -2116,10 +1534,45 @@ void World::drawCube()
     {
       for(int j=0; j<10; ++j)
       {
-        Particle newparticle = Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f,-2.0f),&m_particleTypes[3]);
+        Particle newparticle = Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f,-2.0f),&m_particleTypes[0]);
         newparticle.setIsObject();
         insertParticle(newparticle);
       }
     }
   }
+}
+
+void World::makeParticlesBig()
+{
+    pointsize=10.f;
+    squaresize=1.0f;
+    m_marching.setSquareSize(1.0f);
+    interactionradius=1.0f;
+    hashParticles();
+}
+
+void World::makeParticlesSmall()
+{
+    pointsize=5.0f;
+    squaresize=0.5f;
+    m_marching.setSquareSize(0.5f);
+    interactionradius=0.5f;
+    hashParticles();
+}
+
+void World::increase2DResolutionWORLD()
+{
+  ++renderresolution;
+  m_marching.increase2DResolution();
+  renderwidth=gridwidth*renderresolution;
+  renderheight=gridheight*renderresolution;
+}
+
+void World::decrease2DResolutionWORLD()
+{
+  m_marching.decrease2DResolution();
+  if(renderresolution!=1)
+    --renderresolution;
+  renderwidth=gridwidth*renderresolution;
+  renderheight=gridheight*renderresolution;
 }

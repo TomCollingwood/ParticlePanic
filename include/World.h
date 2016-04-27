@@ -59,20 +59,17 @@ public:
     /// Called most frequently, redraws the scene.
     virtual void draw();
 
-    void hashParticles();
+
+
+    float getHalfHeight() const;
+    float getHalfWidth() const;
 
     Vec3 getGridColumnRow(int k);
 
-    bool isLeftButtonPressed();
 
-    void mouseDraw(int x, int y);
-    void mouseDrag(int x, int y);
-    void mouseErase(int x, int y);
 
     std::vector<Particle *> getSurroundingParticles(int thiscell,int numsur, bool withwalls) const;
 
-    void mouseDragEnd(int x, int y);
-    void selectDraggedParticles(int x, int y);
 
     void getbackhere(Particle * p);
 
@@ -82,14 +79,25 @@ public:
 
     void drawMenu();
 
+    // SPRING AND PARTICLE MAINTENANCE
     void deleteSpring(int s);
     int insertSpring(Particle::Spring spring);
 
     void deleteParticle(int p);
     void insertParticle(Particle particle);
 
-    float getHalfHeight() const;
-    float getHalfWidth() const;
+    void defragParticles();
+    void defragSprings();
+
+    void hashParticles();
+
+    // INPUTS
+    bool isLeftButtonPressed();
+    void mouseDraw(int x, int y);
+    void mouseDrag(int x, int y);
+    void mouseErase(int x, int y);
+    void mouseDragEnd(int x, int y);
+    void selectDraggedParticles(int x, int y);
 
     void toggleRain();
     void toggleGravity();
@@ -100,35 +108,31 @@ public:
 
     void drawWith(int type);
 
-    std::vector<std::vector<float>> renderGrid(ParticleProperties *p);
-    void drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner);
-
     void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
 
-    void defragParticles();
-    void defragSprings();
-
     void drawchar();
-
     void setToDraw(int _todraw);
     void setRandomType(int _randomSeed);
 
-    void drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p);
-    Vec3 VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2);
-    std::vector<std::vector<std::vector<float>>> render3dGrid(ParticleProperties *p);
+    void makeParticlesBig();
+    void makeParticlesSmall();
 
+    // RENDER GRIDS
+    std::vector<std::vector<float>> renderGrid(ParticleProperties *p);
+    std::vector<std::vector<std::vector<float>>> render3dGrid(ParticleProperties *p);
     Vec3 getGridXYZ(int k);
+    int getrenderoption();
+    void drawLoading();
+
+    void increase2DResolutionWORLD();
+    void decrease2DResolutionWORLD();
 
     int getSnapshotMode();
 
-    void drawSnapshot();
-    void setSnapshot(bool snap);
-
-    int getrenderoption();
-
-    void drawLoading();
-
+    // DRAWS A SQUARE OF m_particleType(todraw)
     void drawCube();
+
+
 
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!

@@ -4,21 +4,16 @@
 
 #include "include/Particle.h"
 
-void Particle::drawParticle()
+void Particle::drawParticle(float pointsize)
 {
-  //glutBitmapCharacter(GLUT_BITMAP_9_BY_15,'a');
-  //glBegin(GL_POINTS);
   if(!wall)
   {
     float fast=velocity.length()*5;
     if(fast>1.0f) fast=1.0f;
-    //glColor3f((float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f,(float)(rand() &100) /100.0f); //funky
     if(m_properties->getColourEffect())
       glColor3f(m_properties->getRed()+fast,m_properties->getGreen()+fast,m_properties->getBlue()+fast);
     else
       glColor3f(m_properties->getRed(),m_properties->getGreen(),m_properties->getBlue());
-
-    //glColor3f(0.8f,0.5f,0.2f);
   }
   else
   {
@@ -33,13 +28,10 @@ void Particle::drawParticle()
   GLUquadricObj *quadric;
   quadric = gluNewQuadric();
   gluQuadricDrawStyle(quadric, GLU_FILL );
-  gluSphere( quadric , 0.25 , 16 , 16 );
+  gluSphere( quadric , 0.25*(pointsize/10.f) , 16 , 16 );
   gluDeleteQuadric(quadric);
 
   glPopMatrix();
-
-  //glVertex3f(position[0],position[1],position[2]);
-  //glEnd();
 }
 
 void Particle::updatePosition(double elapsedtime)

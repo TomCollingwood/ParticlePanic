@@ -118,11 +118,11 @@ void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vec
             }
             else
             {
-              m_realtime2DTriangles.push_back(Vec3(red,green,blue));
-              m_realtime2DTriangles.push_back(normal);
-              m_realtime2DTriangles.push_back(vertlist[triTable[cubeindex][i  ]]);
-              m_realtime2DTriangles.push_back(vertlist[triTable[cubeindex][i+1]]);
-              m_realtime2DTriangles.push_back(vertlist[triTable[cubeindex][i+2]]);
+              m_realtime3DTriangles.push_back(Vec3(red,green,blue));
+              m_realtime3DTriangles.push_back(normal);
+              m_realtime3DTriangles.push_back(vertlist[triTable[cubeindex][i  ]]);
+              m_realtime3DTriangles.push_back(vertlist[triTable[cubeindex][i+1]]);
+              m_realtime3DTriangles.push_back(vertlist[triTable[cubeindex][i+2]]);
             }
           }
         }
@@ -279,7 +279,7 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
         //float p8y = p6y;
 
 
-        if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111 TICK
+        if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111 TICK WAS A QUAD
         {
 
           m_realtime2DTriangles.push_back(Vec3(red,green,blue));
@@ -316,7 +316,7 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
           m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
 
         }
-        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011 TICK
+        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011 TICk QUAD
         {
           float p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
           float p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
@@ -343,12 +343,11 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
           m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
 
         }
-        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101 TICK
+        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101 TICK QUAD
         {
           float p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
           float p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
 
-          glBegin(GL_QUADS);
           m_realtime2DTriangles.push_back(Vec3(red,green,blue));
           m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
           m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
@@ -407,7 +406,6 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
           m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
           m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
           m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
-
         }
         else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000 TICK
         {
@@ -431,7 +429,6 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
 
 
           m_realtime2DTriangles.push_back(Vec3(red,green,blue));
-
           m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
           m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
           m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
@@ -453,7 +450,7 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
 
 
         }
-        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK
+        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK QUAD
         {
           float p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
           float p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
@@ -490,7 +487,7 @@ void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>
           m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
 
         }
-        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100 TICK
+        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100 TICK QUAD
         {
           float p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
           float p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
@@ -560,7 +557,7 @@ void MarchingAlgorithms::draw3DSnapshot()
     {
       for(auto& k : j)
       {
-        for(int l = 0; l<k.size() ; l+=7)
+        for(int l = 0; l<(int)k.size() ; l+=7)
         {
           glColor3f(k[l][0],k[l][1],k[l][2]);
           glNormal3f(k[l+1][0],k[l+1][1],k[l+1][2]);
@@ -569,6 +566,7 @@ void MarchingAlgorithms::draw3DSnapshot()
           glVertex3f(k[l+4][0],k[l+4][1],k[l+4][2]);
           glNormal3f(k[l+5][0],k[l+5][1],k[l+5][2]);
           glVertex3f(k[l+6][0],k[l+6][1],k[l+6][2]);
+          std::cout<<"Hello"<<std::endl;
         }
       }
     }
@@ -586,23 +584,26 @@ void MarchingAlgorithms::draw3DRealtime()
     glVertex3f(m_realtime3DTriangles[i+2][0],m_realtime3DTriangles[i+2][1],m_realtime3DTriangles[i+2][2]);
     glVertex3f(m_realtime3DTriangles[i+3][0],m_realtime3DTriangles[i+3][1],m_realtime3DTriangles[i+3][2]);
     glVertex3f(m_realtime3DTriangles[i+4][0],m_realtime3DTriangles[i+4][1],m_realtime3DTriangles[i+4][2]);
-
+    std::cout<<"Hi there pops"<<std::endl;
   }
   glEnd();
+  clearRealtime3DTriangles();
 }
 
 void MarchingAlgorithms::draw2DRealtime()
 {
+  glDisable(GL_LIGHTING);
   glBegin(GL_TRIANGLES);
-  for(int i =0; i<m_realtime2DTriangles.size(); i+=4)
+  for(int i =0; i<(int)m_realtime2DTriangles.size(); i+=4)
   {
     glColor3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
-    glVertex3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
-    glVertex3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
-    glVertex3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
+    glVertex3f(m_realtime2DTriangles[i+1][0],m_realtime2DTriangles[i+1][1],m_realtime2DTriangles[i+1][2]);
+    glVertex3f(m_realtime2DTriangles[i+2][0],m_realtime2DTriangles[i+2][1],m_realtime2DTriangles[i+2][2]);
+    glVertex3f(m_realtime2DTriangles[i+3][0],m_realtime2DTriangles[i+3][1],m_realtime2DTriangles[i+3][2]);
   }
   glEnd();
-  //clearRealtime2DTriangles();
+  glEnable(GL_LIGHTING);
+  clearRealtime2DTriangles();
 }
 
 Vec3 MarchingAlgorithms::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
@@ -639,6 +640,21 @@ void MarchingAlgorithms::clearRealtime3DTriangles()
 void MarchingAlgorithms::clearSnapshot3DTriangles()
 {
   m_snapshot3DTriangles.clear();
+
+  int gridwidth=ceil((m_halfwidth*2)/m_squaresize);
+  int gridheight=ceil((m_halfheight*2)/m_squaresize);
+  int render3dwidth=gridwidth*m_render3dresolution;
+  int render3dheight=gridheight*m_render3dresolution;
+
+  m_snapshot3DTriangles.resize(render3dwidth);
+  for(auto& i : m_snapshot3DTriangles)
+  {
+    i.resize(render3dheight);
+    for(auto& j : i)
+    {
+      j.resize(render3dwidth);
+    }
+  }
 }
 
 int MarchingAlgorithms::getSnapshotMode()
@@ -649,4 +665,15 @@ int MarchingAlgorithms::getSnapshotMode()
 void MarchingAlgorithms::setSnapshotMode(int _s)
 {
   m_snapshotMode=_s;
+}
+
+void MarchingAlgorithms::increase2DResolution()
+{
+  ++m_renderresolution;
+}
+
+void MarchingAlgorithms::decrease2DResolution()
+{
+  if(m_renderresolution!=1)
+    --m_renderresolution;
 }

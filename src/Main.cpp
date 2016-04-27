@@ -221,6 +221,14 @@ int main( int argc, char* args[] ) {
               {
                 toolbar->removeNumber();
               }
+              else if(e.key.keysym.sym == SDLK_UP)
+              {
+                world->increase2DResolutionWORLD();
+              }
+              else if(e.key.keysym.sym == SDLK_DOWN)
+              {
+                world->decrease2DResolutionWORLD();
+              }
             }
 
             //Handle keypress with current mouse position
@@ -252,6 +260,17 @@ int main( int argc, char* args[] ) {
                   newcommand3->setWorld(world);
                   commands.push_back(newcommand3);
                 }
+              }
+              else if(e.text.text[0]=='<' || e.text.text[0]=='>')
+              {
+                ClearWorld *newcommand2=new ClearWorld();
+                newcommand2->setWorld(world);
+                commands.push_back(newcommand2);
+
+                ResizeWorld *newcommand3=new ResizeWorld();
+                newcommand3->setwh(WIDTH,HEIGHT);
+                newcommand3->setWorld(world);
+                commands.push_back(newcommand3);
               }
               world->handleKeys( e.text.text[ 0 ] );
               if(!world->getSnapshotMode())

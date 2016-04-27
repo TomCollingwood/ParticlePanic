@@ -44,7 +44,7 @@ public:
     m_alive(true)
     {}
 
-  void drawParticle();
+  void drawParticle(float pointsize);
 
   void setPosition(Vec3 pos);
   Vec3 getPosition() const;
