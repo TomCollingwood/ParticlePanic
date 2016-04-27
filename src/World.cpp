@@ -1,28 +1,10 @@
 #include "include/World.h"
 
-// Use this to keep track of the times
-#include <sys/time.h>
-#include <stdlib.h>
-#include <iostream>
-#include <algorithm>
-#include <cmath>
-#include <string>
+///
+///  @file Commands.cpp
+///  @brief Command objects to be executed inside timerCallback in main.
 
-#ifdef __APPLE__
-#include <OpenGL/gl.h>
-#include <OpenGL/glu.h>
-#include <SDL.h>
-#include <SDL_image.h>
-#else
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_image.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
-#endif
 
-//#include <GLUT/glut.h>
-
-//#include <SDL2_image>
 
 /**
  * @brief World::World
@@ -36,7 +18,7 @@ World::World() :
   m_timestep(1.0f),
   pointsize(10.0f),
   m_mainrender2dthreshold(90.0f),  //90
-  m_mainrender3dthreshold(200.0f),
+  m_mainrender3dthreshold(90.0f),
   renderresolution(7),
   render3dresolution(2),
   renderoption(1),
@@ -115,9 +97,11 @@ void World::init() {
 
   // DEFAULT PARTICLE PROPERTIES
   m_particleTypes.push_back(ParticleProperties()); //water
-  m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //slime
+  m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.2f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //slime
   m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //blobby
   m_particleTypes.push_back(ParticleProperties()); //random
+  m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.2f,0.01f,0.004f,0.7f,10.0f,0.8f,0.52f,0.25f,false)); // cube
+                                              //     sig, bet, gamma,alph, knear, k,   kspri,p0,  red,  green,  blue
 
   //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
   //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
@@ -300,8 +284,6 @@ void World::draw() {
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-  //drawLoading();
-
   if(renderoption==1){
     for(int i=0; i<lastTakenParticle+1; ++i){
       if(particles[i].isAlive())
@@ -326,36 +308,67 @@ void World::draw() {
     }
     else
     {
+      // DRAW LOADING SCREEN
       if(m_snapshotMode==1)
       {
         drawLoading();
         ++m_snapshotMode;
       }
+
+      // SNAPSHOT MODE PROCESSING
       else if(m_snapshotMode==2)
       {
-        drawLoading();
-        render3dresolution*=4;
+        render3dresolution*=6;
         render3dwidth=gridwidth*render3dresolution;
         render3dheight=gridheight*render3dresolution;
+
+        m_snapshotTriangles.clear();
+        m_snapshotTriangles.resize(render3dwidth);
+        for(auto& i : m_snapshotTriangles)
+        {
+          i.resize(render3dheight);
+          for(auto& j : i)
+          {
+            j.resize(render3dwidth);
+          }
+        }
 
         for(auto& i : m_particleTypes)
         {
           std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
           drawMarchingCubes(waterRender3dGrid,i);
+          drawSnapshot();
         }
         ++m_snapshotMode;
       }
+
+      // DRAW THE GENERATED SNAPSHOT
       else if(m_snapshotMode>2)
       {
         std::cout<<"HIYA VAPE NASH22"<<std::endl;
         drawSnapshot();
       }
+
+      // DRAW REAL-TIME FLUID MARCHING CUBES
       else
       {
+
+        m_snapshotTriangles.clear();
+        m_snapshotTriangles.resize(render3dwidth);
+        for(auto& i : m_snapshotTriangles)
+        {
+          i.resize(render3dheight);
+          for(auto& j : i)
+          {
+            j.resize(render3dwidth);
+          }
+        }
+
         for(auto& i : m_particleTypes)
         {
           std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
           drawMarchingCubes(waterRender3dGrid,i);
+          drawSnapshot();
         }
       }
 
@@ -629,6 +642,7 @@ void World::update(bool *updateinprogress) {
       }
 
 
+      // MODIFY DENSITY AT BOUNDARIES
       if(m_boundaryType==1)
       {
         // BOTTOM
@@ -657,8 +671,6 @@ void World::update(bool *updateinprogress) {
           neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
         }
       }
-
-
 
       float p0 = i->getProperties()->getP0();             // PROPERTIES <--------------------------------------
       float k = i->getProperties()->getK();
@@ -754,46 +766,48 @@ void World::update(bool *updateinprogress) {
       if(m_boundaryType==1)
       {
 
+        float fmult = 0.5f;
+
         float distance = - particles[i].getPosition()[1] + halfheight - 0.5f;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,-force,0.0f));
+          particles[i].addVelocity(Vec3(0.0f,-fmult*force,0.0f));
         }
 
         distance = halfheight + particles[i].getPosition()[1];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,force,0.0f));
+          particles[i].addVelocity(Vec3(0.0f,fmult*force,0.0f));
         }
 
         distance = particles[i].getPosition()[0] + halfwidth*smallen;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(force,0.0f,0.0f));
+          particles[i].addVelocity(Vec3(fmult*force,0.0f,0.0f));
         }
 
         distance = halfwidth*smallen - particles[i].getPosition()[0];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(-force,0.0f,0.0f));
+          particles[i].addVelocity(Vec3(-fmult*force,0.0f,0.0f));
         }
 
         distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,0.0f,force));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,fmult*force));
         }
 
         distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-force));
+          particles[i].addVelocity(Vec3(0.0f,0.0f,-fmult*force));
         }
 
 
@@ -1080,7 +1094,7 @@ void World::handleKeys(char _input)
       if(renderoption==1) renderoption=2;
       if(m_snapshotMode>2)
       {
-        render3dresolution/=4;
+        render3dresolution/=6;
         render3dwidth=gridwidth*render3dresolution;
         render3dheight=gridheight*render3dresolution;
         m_snapshotTriangles.clear();
@@ -1107,6 +1121,14 @@ void World::handleKeys(char _input)
   case 'o' :
     resizeWindow(pixelwidth,pixelheight);
     break;
+
+  case 'c' :
+    drawCube();
+    break;
+
+  default:
+    break;
+
   }
 }
 
@@ -1121,7 +1143,8 @@ void World::mouseErase(int x, int y)
     bool thereisanobject=false;
     for(auto& i : grid[grid_cell])
     {
-      if(!(i->isObject())) deleteParticle(i->getIndex());
+      //if(!(i->isObject()))
+      deleteParticle(i->getIndex());
       thereisanobject=true;
     }
 
@@ -1363,6 +1386,8 @@ std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
 
 void World::drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner)
 {
+
+
   float red = p.getRed();
   float green = p.getGreen();
   float blue = p.getBlue();
@@ -1697,6 +1722,17 @@ void World::setRandomType(int _randomSeed)
   m_particleTypes[3].printVariables();
 }
 
+
+/// The following section is from :-
+/// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
+/// Available from: <http://paulbourke.net/geometry/polygonise/>.
+///
+
+///
+/// \brief World::drawMarchingCubes
+/// \param renderGrid
+/// \param p
+///
 void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p)
 {
   float red = p.getRed();
@@ -1705,17 +1741,18 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
   std::vector<Vec3> triangleVerticies;
 
-  int render3dwidth=renderGrid.size();
-  int render3dheight=renderGrid[0].size();
-  int render3ddepth=renderGrid[0][0].size();
+  int render3ddepth=render3dwidth;
   float isolevel=m_mainrender3dthreshold;
 
+
+
+
   //#pragma omp parallel for
-  for(int w=0; w<render3dwidth-1; ++w)
+  for(int w=0; w<render3dwidth; ++w)
   {
-    for(int h=0; h<render3dheight-1; ++h)
+    for(int h=0; h<render3dheight; ++h)
     {
-      for(int d=0; d<render3ddepth-1; ++d)
+      for(int d=0; d<render3ddepth; ++d)
       {
         float gridvalue[8];
 
@@ -1803,40 +1840,95 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
             Vec3 vectorA = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+1]]) ;
             Vec3 vectorB = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+2]]) ;
             Vec3 normal = vectorB.cross(vectorA);
-            normal.normalize();
-            triangleVerticies.push_back(normal);
-            triangleVerticies.push_back(Vec3(red,green,blue));
-            triangleVerticies.push_back(vertlist[triTable[cubeindex][i  ]]);
-            triangleVerticies.push_back(vertlist[triTable[cubeindex][i+1]]);
-            triangleVerticies.push_back(vertlist[triTable[cubeindex][i+2]]);
+            if(!m_snapshotMode) normal.normalize();
+            m_snapshotTriangles[w][h][d].push_back(Vec3(red,green,blue));
+            m_snapshotTriangles[w][h][d].push_back(normal);
+            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i  ]]);
+            m_snapshotTriangles[w][h][d].push_back(normal);
+            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+1]]);
+            m_snapshotTriangles[w][h][d].push_back(normal);
+            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+2]]);
           }
         }
       }
     }
   }
 
-  // #pragma omp parallel for
 
-  if(!m_snapshotMode)
+  if(m_snapshotMode==2)
   {
-    glBegin(GL_TRIANGLES);
-    for(int i = 0; i < triangleVerticies.size() ; i+=5)
+    /*
+    std::vector<std::vector<std::vector<std::vector<Vec3>>>> temporarynormals = m_snapshotTriangles;
+
+    // CALCULATE NORMALS
+    for(int w=0; w<render3dwidth; ++w)
     {
-      glNormal3f(triangleVerticies[i][0],triangleVerticies[i][1],triangleVerticies[i][2]);
-      glColor3f(triangleVerticies[i+1][0],triangleVerticies[i+1][1],triangleVerticies[i+1][2]);
-      glVertex3f(triangleVerticies[i+2][0],triangleVerticies[i+2][1],triangleVerticies[i+2][2]);
-      glVertex3f(triangleVerticies[i+3][0],triangleVerticies[i+3][1],triangleVerticies[i+3][2]);
-      glVertex3f(triangleVerticies[i+4][0],triangleVerticies[i+4][1],triangleVerticies[i+4][2]);
+      for(int h=0; h<render3dheight; ++h)
+      {
+        for(int d=0; d<render3ddepth; ++d)
+        {
+          for(int k=0; k<m_snapshotTriangles[w][h][d].size(); k+=7)
+          {
+            for(int j=1; j<7; j+=2)
+            {
+              for(int wa=-1; wa<2; ++wa)
+              {
+                for(int ha=-1; ha<2; ++ha)
+                {
+                  for(int da=-1; da<2; ++da)
+                  {
+                      for(int p=0; p<m_snapshotTriangles[w+wa][h+ha][d+da].size(); p+=7)
+                      {
+                        for(int l=1; l<7; l+=2)
+                        {
+                          //std::cout<<"HERE3"<<std::endl;
+                          if(w+wa<render3dwidth && w+wa>=0 &&
+                             h+ha<render3dheight && h+ha>=0 &&
+                             d+da<render3ddepth && d+da>=0 &&
+                             !(da==0 && wa==0 && da==0 && (k+j==p+l)))
+                          {
+                            //std::cout<<"HERE2"<<std::endl;
+                            if(m_snapshotTriangles[w+wa][h+ha][d+da][p+l+1]==m_snapshotTriangles[w][h][d][k+j+1])
+                            {
+                              //std::cout<<"HERE"<<std::endl;
+                              temporarynormals[w][h][d][k+j]+=m_snapshotTriangles[w+wa][h+ha][d+da][p+l];
+                            }
+                          }
+                        }
+                      }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
-    glEnd();
-  }
-  else if(m_snapshotMode==2)
-  {
-    for(int i = 0 ;  i<(int)triangleVerticies.size(); ++i)
+
+    m_snapshotTriangles=temporarynormals;
+
+
+    // NORMALIZE NORMALS
+    for(int w=0; w<render3dwidth-1; ++w)
     {
-      m_snapshotTriangles.push_back(triangleVerticies[i]);
+      for(int h=0; h<render3dheight-1; ++h)
+      {
+        for(int d=0; d<render3ddepth-1; ++d)
+        {
+          for(int k=0; k<m_snapshotTriangles[w][h][d].size(); k+=7)
+          {
+            for(int j=1; j<7; j+=2)
+            {
+              m_snapshotTriangles[w][h][d][k+j].normalize();
+            }
+          }
+        }
+      }
     }
+    // */
   }
+
+
 }
 
 Vec3 World::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
@@ -1846,19 +1938,20 @@ Vec3 World::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
   double mu;
   Vec3 p = Vec3();
 
-   if (std::abs(isolevel-valp1) < 0.00001)
-      return p1;
-   if (std::abs(isolevel-valp2) < 0.00001)
-      return p2 ;
-   if (std::abs(valp1-valp2) < 0.00001)
-      return p1 ;
-   mu = (isolevel - valp1) / (valp2 - valp1);
-   p[0] = p1[0] + mu * (p2[0] - p1[0]);
-   p[1] = p1[1] + mu * (p2[1] - p1[1]);
-   p[2] = p1[2] + mu * (p2[2] - p1[2]);
+  if (std::abs(isolevel-valp1) < 0.00001)
+    return p1;
+  if (std::abs(isolevel-valp2) < 0.00001)
+    return p2 ;
+  if (std::abs(valp1-valp2) < 0.00001)
+    return p1 ;
+  mu = (isolevel - valp1) / (valp2 - valp1);
+  p[0] = p1[0] + mu * (p2[0] - p1[0]);
+  p[1] = p1[1] + mu * (p2[1] - p1[1]);
+  p[2] = p1[2] + mu * (p2[2] - p1[2]);
 
-   return p;
+  return p;
 }
+/// end of Citation
 
 std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticleProperties *p)
 {
@@ -1920,11 +2013,11 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 
 Vec3 World::getGridXYZ(int k) // CHECK THIS
 {
-    int z = floor(k/(gridwidth*gridheight));
-    int y = floor((k - z*gridwidth*gridheight)/gridwidth);
-    int x = k - y*gridwidth - z*gridwidth*gridheight;
+  int z = floor(k/(gridwidth*gridheight));
+  int y = floor((k - z*gridwidth*gridheight)/gridwidth);
+  int x = k - y*gridwidth - z*gridwidth*gridheight;
 
-    return Vec3(x,y,z);
+  return Vec3(x,y,z);
 }
 
 int World::getSnapshotMode()
@@ -1934,16 +2027,28 @@ int World::getSnapshotMode()
 
 void World::drawSnapshot()
 {
-  for(int i = 0; i< (int)m_snapshotTriangles.size(); i+=5)
+  glBegin(GL_TRIANGLES);
+  for(auto& i : m_snapshotTriangles)
   {
-    glBegin(GL_TRIANGLES);
-    glNormal3f(m_snapshotTriangles[i][0],m_snapshotTriangles[i][1],m_snapshotTriangles[i][2]);
-    glColor3f(m_snapshotTriangles[i+1][0],m_snapshotTriangles[i+1][1],m_snapshotTriangles[i+1][2]);
-    glVertex3f(m_snapshotTriangles[i+2][0],m_snapshotTriangles[i+2][1],m_snapshotTriangles[i+2][2]);
-    glVertex3f(m_snapshotTriangles[i+3][0],m_snapshotTriangles[i+3][1],m_snapshotTriangles[i+3][2]);
-    glVertex3f(m_snapshotTriangles[i+4][0],m_snapshotTriangles[i+4][1],m_snapshotTriangles[i+4][2]);
-    glEnd();
+    for(auto& j : i)
+    {
+      for(auto& k : j)
+      {
+        for(int l = 0; l<k.size() ; l+=7)
+        {
+          glColor3f(k[l][0],k[l][1],k[l][2]);
+          glNormal3f(k[l+1][0],k[l+1][1],k[l+1][2]);
+          glVertex3f(k[l+2][0],k[l+2][1],k[l+2][2]);
+          glNormal3f(k[l+3][0],k[l+3][1],k[l+3][2]);
+          glVertex3f(k[l+4][0],k[l+4][1],k[l+4][2]);
+          glNormal3f(k[l+5][0],k[l+5][1],k[l+5][2]);
+          glVertex3f(k[l+6][0],k[l+6][1],k[l+6][2]);
+          //printf("hey");
+        }
+      }
+    }
   }
+  glEnd();
 }
 
 void World::drawLoading()
@@ -1959,10 +2064,10 @@ void World::drawLoading()
   GLuint titleTextureID = 0;
   SDL_Surface* Surface = IMG_Load("textures/buttons.png");
   if(!Surface)
-    {
-      printf("IMG_Load: %s\n", IMG_GetError());
-      std::cout<<"error"<<std::endl;
-    }
+  {
+    printf("IMG_Load: %s\n", IMG_GetError());
+    std::cout<<"error"<<std::endl;
+  }
 
   glGenTextures(1, &titleTextureID);
   glBindTexture(GL_TEXTURE_2D, titleTextureID);
@@ -1991,4 +2096,20 @@ void World::drawLoading()
 
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_LIGHTING) ;
+}
+
+void World::drawCube()
+{
+  if(!m_3d)
+  {
+    for(int i = 0; i<10; ++i)
+    {
+      for(int j=0; j<10; ++j)
+      {
+        Particle newparticle = Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f,-2.0f),&m_particleTypes[3]);
+        newparticle.setIsObject();
+        insertParticle(newparticle);
+      }
+    }
+  }
 }

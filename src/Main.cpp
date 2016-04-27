@@ -1,11 +1,11 @@
-// Some crap we need to compile on Windows (not tested)
+///
+///  @file    Main.cpp
+///  @brief   contains the main method - creates window and runs the simulation
+///  @author  Richard Southern & Thomas Collingwood
+
 #ifdef _WIN32
 #include <windows.h>
 #endif
-
-// Includes needed for SDL and GL
-//
-
 
 #include <iostream>
 

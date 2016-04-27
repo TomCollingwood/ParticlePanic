@@ -48,24 +48,22 @@ OBJECTS_DIR   = obj/
 
 ####### Files
 
-SOURCES       = src/main.cpp \
-		src/Vec3.cpp \
+SOURCES       = src/Vec3.cpp \
 		src/Mat3.cpp \
 		src/Particle.cpp \
 		src/World.cpp \
 		src/Toolbar.cpp \
 		src/ParticleProperties.cpp \
 		src/Commands.cpp \
-		src/MarchingCubes.cpp 
-OBJECTS       = obj/main.o \
-		obj/Vec3.o \
+		src/Main.cpp 
+OBJECTS       = obj/Vec3.o \
 		obj/Mat3.o \
 		obj/Particle.o \
 		obj/World.o \
 		obj/Toolbar.o \
 		obj/ParticleProperties.o \
 		obj/Commands.o \
-		obj/MarchingCubes.o
+		obj/Main.o
 DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		../../../Qt/5.5/clang_64/mkspecs/qdevice.pri \
 		../../../Qt/5.5/clang_64/mkspecs/features/device_config.prf \
@@ -214,16 +212,14 @@ DIST          = ../../../Qt/5.5/clang_64/mkspecs/features/spec_pre.prf \
 		include/World.h \
 		include/Toolbar.h \
 		include/ParticleProperties.h \
-		include/Commands.h \
-		include/MarchingCubes.h src/main.cpp \
-		src/Vec3.cpp \
+		include/Commands.h src/Vec3.cpp \
 		src/Mat3.cpp \
 		src/Particle.cpp \
 		src/World.cpp \
 		src/Toolbar.cpp \
 		src/ParticleProperties.cpp \
 		src/Commands.cpp \
-		src/MarchingCubes.cpp
+		src/Main.cpp
 QMAKE_TARGET  = ParticlePanic
 DESTDIR       = #avoid trailing-slash linebreak
 TARGET        = ParticlePanic.app/Contents/MacOS/ParticlePanic
@@ -587,8 +583,8 @@ dist: distdir FORCE
 distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
-	$(COPY_FILE) --parents include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h include/MarchingCubes.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/main.cpp src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Commands.cpp src/MarchingCubes.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h $(DISTDIR)/
+	$(COPY_FILE) --parents src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Commands.cpp src/Main.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -630,63 +626,6 @@ compiler_clean:
 
 ####### Compile
 
-obj/main.o: src/main.cpp /Library/Frameworks/SDL2.framework/Headers/SDL.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_main.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_stdinc.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_config.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_platform.h \
-		/Library/Frameworks/SDL2.framework/Headers/begin_code.h \
-		/Library/Frameworks/SDL2.framework/Headers/close_code.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_config_macosx.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_assert.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_atomic.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_audio.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_error.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_endian.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_mutex.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_thread.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_rwops.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_clipboard.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_cpuinfo.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_events.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_video.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_pixels.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_rect.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_surface.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_blendmode.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_keyboard.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_keycode.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_scancode.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_mouse.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_joystick.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_gamecontroller.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_quit.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_gesture.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_touch.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_filesystem.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_haptic.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_hints.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_loadso.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_log.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_messagebox.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_power.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_render.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_system.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_timer.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_version.h \
-		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h \
-		/usr/local/include/SDL2/SDL.h \
-		/usr/local/include/SDL2/SDL_image.h \
-		include/Vec3.h \
-		include/Mat3.h \
-		include/Particle.h \
-		include/ParticleProperties.h \
-		include/World.h \
-		include/MarchingCubes.h \
-		include/Toolbar.h \
-		include/Commands.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/main.o src/main.cpp
-
 obj/Vec3.o: src/Vec3.cpp include/Vec3.h \
 		include/Mat3.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Vec3.o src/Vec3.cpp
@@ -701,11 +640,6 @@ obj/Particle.o: src/Particle.cpp include/Particle.h \
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Particle.o src/Particle.cpp
 
 obj/World.o: src/World.cpp include/World.h \
-		include/Particle.h \
-		include/Vec3.h \
-		include/Mat3.h \
-		include/ParticleProperties.h \
-		include/MarchingCubes.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_main.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_stdinc.h \
@@ -803,12 +737,7 @@ obj/Toolbar.o: src/Toolbar.cpp include/Toolbar.h \
 		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h \
 		/usr/local/include/SDL2/SDL.h \
 		/usr/local/include/SDL2/SDL_image.h \
-		include/World.h \
-		include/Particle.h \
-		include/Vec3.h \
-		include/Mat3.h \
-		include/ParticleProperties.h \
-		include/MarchingCubes.h
+		include/World.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Toolbar.o src/Toolbar.cpp
 
 obj/ParticleProperties.o: src/ParticleProperties.cpp include/ParticleProperties.h
@@ -816,19 +745,110 @@ obj/ParticleProperties.o: src/ParticleProperties.cpp include/ParticleProperties.
 
 obj/Commands.o: src/Commands.cpp include/Commands.h \
 		include/World.h \
-		include/Particle.h \
-		include/Vec3.h \
-		include/Mat3.h \
-		include/ParticleProperties.h \
-		include/MarchingCubes.h
+		/Library/Frameworks/SDL2.framework/Headers/SDL.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_main.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_stdinc.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_config.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_platform.h \
+		/Library/Frameworks/SDL2.framework/Headers/begin_code.h \
+		/Library/Frameworks/SDL2.framework/Headers/close_code.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_config_macosx.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_assert.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_atomic.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_audio.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_error.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_endian.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_mutex.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_thread.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_rwops.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_clipboard.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_cpuinfo.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_events.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_video.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_pixels.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_rect.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_surface.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_blendmode.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_keyboard.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_keycode.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_scancode.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_mouse.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_joystick.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_gamecontroller.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_quit.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_gesture.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_touch.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_filesystem.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_haptic.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_hints.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_loadso.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_log.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_messagebox.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_power.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_render.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_system.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_timer.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_version.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h \
+		/usr/local/include/SDL2/SDL.h \
+		/usr/local/include/SDL2/SDL_image.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Commands.o src/Commands.cpp
 
-obj/MarchingCubes.o: src/MarchingCubes.cpp include/MarchingCubes.h \
-		include/Particle.h \
+obj/Main.o: src/Main.cpp /Library/Frameworks/SDL2.framework/Headers/SDL.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_main.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_stdinc.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_config.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_platform.h \
+		/Library/Frameworks/SDL2.framework/Headers/begin_code.h \
+		/Library/Frameworks/SDL2.framework/Headers/close_code.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_config_macosx.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_assert.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_atomic.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_audio.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_error.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_endian.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_mutex.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_thread.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_rwops.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_clipboard.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_cpuinfo.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_events.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_video.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_pixels.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_rect.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_surface.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_blendmode.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_keyboard.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_keycode.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_scancode.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_mouse.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_joystick.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_gamecontroller.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_quit.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_gesture.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_touch.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_filesystem.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_haptic.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_hints.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_loadso.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_log.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_messagebox.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_power.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_render.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_system.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_timer.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_version.h \
+		/Library/Frameworks/SDL2.framework/Headers/SDL_image.h \
+		/usr/local/include/SDL2/SDL.h \
+		/usr/local/include/SDL2/SDL_image.h \
 		include/Vec3.h \
 		include/Mat3.h \
-		include/ParticleProperties.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MarchingCubes.o src/MarchingCubes.cpp
+		include/Particle.h \
+		include/ParticleProperties.h \
+		include/World.h \
+		include/Toolbar.h \
+		include/Commands.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Main.o src/Main.cpp
 
 ####### Install
 

@@ -13,7 +13,7 @@ QMAKE_CXXFLAGS += -std=c++11
 #QMAKE_CXXFLAGS += -fopenmp
 #LIBS += -fopenmp
 
-SOURCES += src/main.cpp \
+SOURCES += \
     src/Vec3.cpp \
     src/Mat3.cpp \
     src/Particle.cpp \
@@ -21,7 +21,7 @@ SOURCES += src/main.cpp \
     src/Toolbar.cpp \
     src/ParticleProperties.cpp \
     src/Commands.cpp \
-    src/MarchingCubes.cpp
+    src/Main.cpp
 
 HEADERS += \
     include/Particle.h \
@@ -30,8 +30,7 @@ HEADERS += \
     include/World.h \
     include/Toolbar.h \
     include/ParticleProperties.h \
-    include/Commands.h \
-    include/MarchingCubes.h
+    include/Commands.h
 
 LIBS += -L/usr/local/lib
 

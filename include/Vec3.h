@@ -1,5 +1,12 @@
-#ifndef VEC3
-#define VEC3
+/// \file Vec3.h
+/// \brief encapsulates a 3d Point / Vector object. Homogenous is not needed.
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _VEC3_H_
+#define _VEC3_H_
 
 #ifdef __linux__
   #include <GL/gl.h>

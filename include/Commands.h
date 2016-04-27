@@ -1,5 +1,12 @@
-#ifndef COMMANDS_H_
-#define COMMANDS_H_
+/// \file Commands.h
+/// \brief Command objects to be executed inside timerCallback in main
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _COMMANDS_H_
+#define _COMMANDS_H_
 
 #include "include/World.h"
 

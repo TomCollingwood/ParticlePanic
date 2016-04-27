@@ -1,3 +1,7 @@
+///
+///  @file Commands.cpp
+///  @brief Command objects to be executed inside timerCallback in main.
+
 #include "include/Vec3.h"
 
 float Vec3::dot(const Vec3 &_rhs) const
@@ -111,7 +115,7 @@ void Vec3::operator -=(const Vec3 &_r)
 
 bool Vec3::operator ==(const Vec3 &_rhs) const
 {
-  if(m_x==_rhs.m_x && m_y==_rhs.m_y && m_z==_rhs.m_z) return true;
+  if(abs(m_x-_rhs.m_x)==0 && abs(m_y-_rhs.m_y)==0 && abs(m_z-_rhs.m_z)==0) return true;
   else return false;
 }
 

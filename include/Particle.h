@@ -1,5 +1,12 @@
-#ifndef PARTICLE
-#define PARTICLE
+/// \file Particle.h
+/// \brief Particle class that includes all attributes of the particle
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _PARTICLE_H_
+#define _PARTICLE_H_
 #ifdef __APPLE__
   #include <OpenGL/gl.h>
   #include <OpenGL/glu.h>

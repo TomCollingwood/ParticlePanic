@@ -1,5 +1,12 @@
-#ifndef TOOLBAR_H
-#define TOOLBAR_H
+/// \file Toolbar.h
+/// \brief GUI implementation from scratch, includes draw and input interaction.
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _TOOLBAR_H_
+#define _TOOLBAR_H_
 
 #ifdef __APPLE__
   #include <OpenGL/gl.h>

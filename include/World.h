@@ -1,17 +1,37 @@
-#ifndef WORLD_H
-#define WORLD_H
+/// \file World.h
+/// \brief contains all particles and methods to draw and update them
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _WORLD_H_
+#define _WORLD_H_
+
+#include <sys/time.h>
+#include <stdlib.h>
+#include <iostream>
+#include <algorithm>
+#include <cmath>
+#include <string>
+#include <vector>
 
 #ifdef __APPLE__
-  #include <OpenGL/gl.h>
-  #include <OpenGL/glu.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#include <SDL.h>
+#include <SDL_image.h>
 #else
-  #include <GL/gl.h>
-  #include <GL/glu.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 #endif
 
-#include <stdlib.h>
-#include <vector>
+#include "include/Vec3.h"
 #include "include/Particle.h"
+#include "include/ParticleProperties.h"
+
 
 /**
  * @brief The Scene class
@@ -41,10 +61,6 @@ public:
     void hashParticles();
 
     Vec3 getGridColumnRow(int k);
-
-    Vec3 getRenderGridxy(int h, int w);
-    Vec3 getRenderGridColumnRow(int k);
-    Vec3 getRenderGridxyfromIndex(int k);
 
     bool isLeftButtonPressed();
 
@@ -110,6 +126,8 @@ public:
 
     void drawLoading();
 
+    void drawCube();
+
 protected: // Protected means that it is accessible to derived classes
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
@@ -123,16 +141,16 @@ protected: // Protected means that it is accessible to derived classes
     double m_timestep;
 
     // PARTICLES
-    std::vector<Particle> particles; // std::list keeps it's pointers when reallocated
+    std::vector<Particle> particles;
     int particlesPoolSize;
-    int firstFreeParticle;
-    int lastTakenParticle;
+    int firstFreeParticle;  // These two ints are needed for efficient insert and deletion
+    int lastTakenParticle;  // See: insertParticle() and deleteParticle()
     int howManyAliveParticles;
+    std::vector<ParticleProperties> m_particleTypes;
 
+    // SPATIAL HASH
     std::vector<std::vector<Particle *>> grid;
     std::vector<bool> cellsContainingParticles;
-
-    //std::vector<std::vector<float>> renderGrid;
 
     // WORLD SIZE ATTRIBUTES
     float halfwidth, halfheight;
@@ -150,6 +168,8 @@ protected: // Protected means that it is accessible to derived classes
     int render3dresolution;
     int render3dwidth, render3dheight;
     int renderoption;
+    //std::vector<Vec3> m_snapshotTriangles;
+    std::vector<std::vector<std::vector<std::vector<Vec3>>>> m_snapshotTriangles;
 
     // SPRING ATTRIBUTES
     std::vector<Particle::Spring> springs;
@@ -157,33 +177,32 @@ protected: // Protected means that it is accessible to derived classes
     int lastTakenSpring;
     int springsize;
 
-    std::vector<Particle *> draggedParticles;
-
-    // Some input options
+    // INTERACTION ATTRIBUTES
     bool rain;
     bool drawwall;
     bool gravity;
-
+    std::vector<Particle *> draggedParticles;
     int m_previousmousex, m_previousmousey;
 
     // FUN PARTICLE TYPES
     int m_todraw;
-
     int howmanytimesrandomized;
+
+    // 3D ATTRIBUTES
     bool m_3d;
-
     float m_camerarotatey, m_camerarotatex, m_camerazoom;
-
-    std::vector<ParticleProperties> m_particleTypes;
-
-    float m_boundaryMultiplier;
-
-    int m_boundaryType;
-
     int m_snapshotMode;
 
-    std::vector<Vec3> m_snapshotTriangles;
+    // BOUNDARYS
+    float m_boundaryMultiplier;
+    int m_boundaryType;
 
+    // MARCHING CUBES DATA (author Paul Bourke)
+    // http://paulbourke.net/geometry/polygonise/
+
+    /// The following section is from :-
+    /// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
+    /// Available from: <http://paulbourke.net/geometry/polygonise/>.
     int edgeTable[256]={
     0x0  , 0x109, 0x203, 0x30a, 0x406, 0x50f, 0x605, 0x70c,
     0x80c, 0x905, 0xa0f, 0xb06, 0xc0a, 0xd03, 0xe09, 0xf00,
@@ -474,7 +493,7 @@ protected: // Protected means that it is accessible to derived classes
     {0, 9, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {0, 3, 8, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1},
     {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1}};
-
+    /// end of Citation
 };
 
 #endif // WORLD_H

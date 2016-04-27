@@ -1,5 +1,12 @@
-#ifndef MAT3_H__
-#define MAT3_H__
+/// \file Mat3.h
+/// \brief Object needed to rotate particles in 3D mode
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _MAT3_H_
+#define _MAT3_H_
 
 #ifdef __linux__
   #include <GL/gl.h>

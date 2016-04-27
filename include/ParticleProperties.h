@@ -1,5 +1,12 @@
-#ifndef PARTICLEPROPERTIES_H
-#define PARTICLEPROPERTIES_H
+/// \file ParticleProperties.h
+/// \brief contains the properties of a particle type. Each particle has a pointer to such a class.
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
+#ifndef _PARTICLEPROPERTIES_H_
+#define _PARTICLEPROPERTIES_H_
 
 #ifdef __APPLE__
   #include <OpenGL/gl.h>

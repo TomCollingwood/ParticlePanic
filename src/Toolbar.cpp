@@ -1,13 +1,28 @@
+///
+///  @file Commands.cpp
+///  @brief Command objects to be executed inside timerCallback in main.
+
 #include "include/Toolbar.h"
 
-void Toolbar::drawTitle(float halfheight, float halfwidth) const
+void Toolbar::drawToolbar(int h) const
 {
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
-  // You should probably use CSurface::OnLoad ... ;)
-  //-- and make sure the Surface pointer is good!
+
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  /// The following section is modified from :-
+  /// Tim Jones (2011). SDL Tip - SDL Surface to OpenGL Texture [online]. [Accessed 2016].
+  /// Available from: <http://www.sdltutorials.com/sdl-tip-sdl-surface-to-opengl-texture>.
   GLuint titleTextureID = 0;
-  SDL_Surface* Surface = IMG_Load("textures/title.png");
+
+  // The image below is modified from :-
+  /// UI Chest (2014). Summer UI Kit [online]. [Accessed 2016].
+  /// Available from: <http://uichest.com/summer/>.
+  SDL_Surface* Surface = IMG_Load("textures/buttons.png");
+  /// end of Citation
+
   if(!Surface)
   {
     printf("IMG_Load: %s\n", IMG_GetError());
@@ -28,55 +43,7 @@ void Toolbar::drawTitle(float halfheight, float halfwidth) const
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  float X = -halfwidth;
-  float Y = halfheight-1.5;
-  float Width = 5;
-  float Height = 1.5;
-  glBegin(GL_QUADS);
-  glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(0, 1); glVertex3f(X, Y, -2);
-  glTexCoord2f(1, 1); glVertex3f(X + Width, Y, -2);
-  glTexCoord2f(1, 0); glVertex3f(X + Width, Y + Height, -2);
-  glTexCoord2f(0, 0); glVertex3f(X, Y + Height, -2);
-  glEnd();
-
-  glDisable(GL_TEXTURE_2D);
-  glEnable(GL_LIGHTING);
-}
-
-void Toolbar::drawToolbar(int h) const
-{
-  glDisable(GL_LIGHTING);
-  glEnable(GL_TEXTURE_2D);
-
-  glEnable (GL_BLEND);
-  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-  // You should probably use CSurface::OnLoad ... ;)
-  //-- and make sure the Surface pointer is good!
-  GLuint titleTextureID = 0;
-  SDL_Surface* Surface = IMG_Load("textures/buttons.png");
-  if(!Surface)
-  {
-    printf("IMG_Load: %s\n", IMG_GetError());
-    std::cout<<"error"<<std::endl;
-  }
-
-  glGenTextures(1, &titleTextureID);
-  glBindTexture(GL_TEXTURE_2D, titleTextureID);
-
-
-
-  int Mode = GL_RGBA;
-
-  //  if(Surface->format->BytesPerPixel == 4) {
-  //      Mode = GL_RGBA;
-  //  }
-
-  glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  /// end of Citation
 
   // ------------------------DRAW----------------------
 

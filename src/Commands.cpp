@@ -1,3 +1,7 @@
+///
+///  @file Commands.cpp
+///  @brief Command objects to be executed inside timerCallback in main.
+
 #include "include/Commands.h"
 
 void Command::setWorld(World *_world)

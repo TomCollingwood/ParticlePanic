@@ -1,3 +1,8 @@
+///
+///  @file Commands.cpp
+///  @brief Command objects to be executed inside timerCallback in main.
+
+
 #include "include/Mat3.h"
 
 Mat3::Mat3(GLfloat _s) :
