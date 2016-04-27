@@ -22,18 +22,38 @@
 class MarchingAlgorithms
 {
 public:
-  MarchingAlgorithms();
-  MarchingAlgorithms(float _render2dThreshold, float _render3dThreshold):
+  MarchingAlgorithms() = default;
+  MarchingAlgorithms(float _render2dThreshold, float _render3dThreshold, float _squaresize, float _renderresolution, float _render3dresolution, float _halfwidth, float _halfheight):
     m_render2dThreshold(_render2dThreshold),
-    m_render3dThreshold(_render3dThreshold){}
+    m_render3dThreshold(_render3dThreshold),
+    m_squaresize(_squaresize),
+    m_renderresolution(_renderresolution),
+    m_render3dresolution(_render3dresolution),
+    m_halfwidth(_halfwidth),
+    m_halfheight(_halfheight){}
 
-  void drawMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner);
-  void drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p);
+  void calculateMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner);
+  void calculateMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p);
+
   Vec3 VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2);
 
-private:
+  void draw2DRealtime() ;
+  void draw3DRealtime() ;
+  void draw3DSnapshot() ;
 
-  float m_render2dThreshold, m_render3dThreshold;
+  int getSnapshotMode();
+  void setSnapshotMode(int _s);
+
+  void clearRealtime2DTriangles();
+  void clearRealtime3DTriangles();
+  void clearSnapshot3DTriangles();
+
+private:
+  int m_snapshotMode;
+  float m_render2dThreshold, m_render3dThreshold, m_squaresize, m_renderresolution, m_render3dresolution, m_halfwidth, m_halfheight;
+  std::vector<std::vector<std::vector<std::vector<Vec3>>>> m_snapshot3DTriangles;
+  std::vector<Vec3> m_realtime2DTriangles;
+  std::vector<Vec3> m_realtime3DTriangles;
 
   /// The following section is from :-
   /// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
@@ -332,3 +352,4 @@ private:
 };
 
 #endif // MARCHINGALGORITHMS_H
+

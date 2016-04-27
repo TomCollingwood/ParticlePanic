@@ -1,21 +1,16 @@
 #include "include/MarchingAlgorithms.h"
 
-MarchingAlgorithms::MarchingAlgorithms()
-{
-
-}
-
-void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p)
+void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p)
 {
   float red = p.getRed();
   float green = p.getGreen();
   float blue = p.getBlue();
 
-  int render3dheight=renderGrid.size()-1;
-  int render3dwidth=renderGrid[0].size()-1;
+  int render3dwidth=renderGrid.size()-1;
+  int render3dheight=renderGrid[0].size()-1;
   int render3ddepth=renderGrid[0][0].size()-1;
 
-  float isolevel=m_mainrender3dthreshold; //can set at initialization
+  float isolevel=m_render3dThreshold; //can set at initialization
 
   //#pragma omp parallel for
   for(int w=0; w<render3dwidth; ++w)
@@ -36,11 +31,11 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
         gridvalue[6]=renderGrid[w+1][h+1][d+1];     //6
         gridvalue[7]=renderGrid[w][h+1][d+1];       //7
 
-        float rendersquare=squaresize/render3dresolution;
+        float rendersquare=m_squaresize/m_render3dresolution;
 
-        float wWorld = - halfwidth + w * rendersquare;
-        float hWorld = - halfheight + h * rendersquare ;
-        float dWorld = - 2 - halfwidth + d * rendersquare;
+        float wWorld = - m_halfwidth + w * rendersquare;
+        float hWorld = - m_halfheight + h * rendersquare ;
+        float dWorld = - 2 - m_halfwidth + d * rendersquare;
 
         std::vector<Vec3> gridposition;
         gridposition.push_back(Vec3(wWorld,             hWorld,             dWorld));               //0
@@ -50,7 +45,7 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
 
         gridposition.push_back(Vec3(wWorld,             hWorld+rendersquare,dWorld));               //4
         gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld));               //5
-        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld+rendersquare));               //6
+        gridposition.push_back(Vec3(wWorld+rendersquare,hWorld+rendersquare,dWorld+rendersquare));  //6
         gridposition.push_back(Vec3(wWorld,             hWorld+rendersquare,dWorld+rendersquare));  //7
 
         Vec3 vertlist[12];
@@ -111,13 +106,24 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
             Vec3 vectorB = (vertlist[triTable[cubeindex][i  ]] - vertlist[triTable[cubeindex][i+2]]) ;
             Vec3 normal = vectorB.cross(vectorA);
             if(!m_snapshotMode) normal.normalize();
-            m_snapshotTriangles[w][h][d].push_back(Vec3(red,green,blue));
-            m_snapshotTriangles[w][h][d].push_back(normal);
-            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i  ]]);
-            m_snapshotTriangles[w][h][d].push_back(normal);
-            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+1]]);
-            m_snapshotTriangles[w][h][d].push_back(normal);
-            m_snapshotTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+2]]);
+            if(m_snapshotMode==2)
+            {
+              m_snapshot3DTriangles[w][h][d].push_back(Vec3(red,green,blue));
+              m_snapshot3DTriangles[w][h][d].push_back(normal);
+              m_snapshot3DTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i  ]]);
+              m_snapshot3DTriangles[w][h][d].push_back(normal);
+              m_snapshot3DTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+1]]);
+              m_snapshot3DTriangles[w][h][d].push_back(normal);
+              m_snapshot3DTriangles[w][h][d].push_back(vertlist[triTable[cubeindex][i+2]]);
+            }
+            else
+            {
+              m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+              m_realtime2DTriangles.push_back(normal);
+              m_realtime2DTriangles.push_back(vertlist[triTable[cubeindex][i  ]]);
+              m_realtime2DTriangles.push_back(vertlist[triTable[cubeindex][i+1]]);
+              m_realtime2DTriangles.push_back(vertlist[triTable[cubeindex][i+2]]);
+            }
           }
         }
       }
@@ -128,7 +134,7 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
   if(m_snapshotMode==2)
   {
     /*
-    std::vector<std::vector<std::vector<std::vector<Vec3>>>> temporarynormals = m_snapshotTriangles;
+    std::vector<std::vector<std::vector<std::vector<Vec3>>>> temporarynormals = m_snapshot3DTriangles;
 
     // CALCULATE NORMALS
     for(int w=0; w<render3dwidth; ++w)
@@ -137,7 +143,7 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
       {
         for(int d=0; d<render3ddepth; ++d)
         {
-          for(int k=0; k<m_snapshotTriangles[w][h][d].size(); k+=7)
+          for(int k=0; k<m_snapshot3DTriangles[w][h][d].size(); k+=7)
           {
             for(int j=1; j<7; j+=2)
             {
@@ -147,7 +153,7 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
                 {
                   for(int da=-1; da<2; ++da)
                   {
-                      for(int p=0; p<m_snapshotTriangles[w+wa][h+ha][d+da].size(); p+=7)
+                      for(int p=0; p<m_snapshot3DTriangles[w+wa][h+ha][d+da].size(); p+=7)
                       {
                         for(int l=1; l<7; l+=2)
                         {
@@ -158,10 +164,10 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
                              !(da==0 && wa==0 && da==0 && (k+j==p+l)))
                           {
                             //std::cout<<"HERE2"<<std::endl;
-                            if(m_snapshotTriangles[w+wa][h+ha][d+da][p+l+1]==m_snapshotTriangles[w][h][d][k+j+1])
+                            if(m_snapshot3DTriangles[w+wa][h+ha][d+da][p+l+1]==m_snapshot3DTriangles[w][h][d][k+j+1])
                             {
                               //std::cout<<"HERE"<<std::endl;
-                              temporarynormals[w][h][d][k+j]+=m_snapshotTriangles[w+wa][h+ha][d+da][p+l];
+                              temporarynormals[w][h][d][k+j]+=m_snapshot3DTriangles[w+wa][h+ha][d+da][p+l];
                             }
                           }
                         }
@@ -175,7 +181,7 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
       }
     }
 
-    m_snapshotTriangles=temporarynormals;
+    m_snapshot3DTriangles=temporarynormals;
 
 
     // NORMALIZE NORMALS
@@ -185,11 +191,11 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
       {
         for(int d=0; d<render3ddepth-1; ++d)
         {
-          for(int k=0; k<m_snapshotTriangles[w][h][d].size(); k+=7)
+          for(int k=0; k<m_snapshot3DTriangles[w][h][d].size(); k+=7)
           {
             for(int j=1; j<7; j+=2)
             {
-              m_snapshotTriangles[w][h][d][k+j].normalize();
+              m_snapshot3DTriangles[w][h][d][k+j].normalize();
             }
           }
         }
@@ -197,7 +203,450 @@ void MarchingAlgorithms::drawMarchingCubes(std::vector<std::vector<std::vector<f
     }
     // */
   }
-
-
 }
 
+void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner)
+{
+  float red = p.getRed();
+  float green = p.getGreen();
+  float blue = p.getBlue();
+
+  float renderthreshold = m_render2dThreshold;
+
+  int renderheight = renderGrid.size()-1;
+  int renderwidth = renderGrid[0].size()-1;
+
+  if(inner)
+  {
+    renderthreshold=0.7f*renderthreshold;
+    red+=0.4;
+    green+=0.4;
+    blue+=0.4;
+  }
+
+  float rendersquare=m_squaresize/m_renderresolution;
+
+  for(int currentrow=0; currentrow<renderheight; ++currentrow)
+  {
+    for(int currentcolumn=0; currentcolumn<renderwidth; ++currentcolumn)
+    {
+
+      //1---5---2
+      //|       |
+      //8       6
+      //|       |
+      //3---7---4
+
+
+      std::vector<bool> boolpoints;
+      boolpoints.push_back(renderGrid[currentrow][currentcolumn]>renderthreshold);
+      boolpoints.push_back(renderGrid[currentrow][currentcolumn+1]>renderthreshold);
+      boolpoints.push_back(renderGrid[currentrow+1][currentcolumn]>renderthreshold);
+      boolpoints.push_back(renderGrid[currentrow+1][currentcolumn+1]>renderthreshold);
+
+      bool empty=false;
+
+      if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3])
+      {
+        empty=true;
+      }
+
+      if(!empty)
+      {
+        float p1x = (m_squaresize/m_renderresolution)*(float)currentcolumn - m_halfwidth;
+        float p1y = (m_squaresize/m_renderresolution)*(float)currentrow - m_halfheight;
+
+        float p2x = (m_squaresize/m_renderresolution)*((float)currentcolumn+1.0f) - m_halfwidth;
+        float p2y = p1y;
+
+        float p3x = p1x;
+        float p3y = (m_squaresize/m_renderresolution)*((float)currentrow+1.0f) - m_halfheight;
+
+        float p4x = p2x;
+        float p4y = p3y;
+
+
+        //float p5x = (p1x+p2x)/2.0f;
+        float p5y = p1y;
+
+        float p6x = p2x;
+        //float p6y = (p2y+p4y)/2.0f;
+
+        //float p7x = p5x;
+        float p7y = p3y;
+
+        float p8x = p1x;
+        //float p8y = p6y;
+
+
+        if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1111 TICK
+        {
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+
+        }
+        else if(!boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0001 TICK
+        {
+          float p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+          float p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+
+        }
+        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0010 TICK
+        {
+          float p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+          float p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+
+        }
+        else if(!boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0011 TICK
+        {
+          float p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+          float p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //0100 TICK
+        {
+          float p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          float p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //0101 TICK
+        {
+          float p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          float p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+
+          glBegin(GL_QUADS);
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //0110 COULD CHANGE TO SEE
+        {
+          float p5x=p1x+(p2x-p1x)*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          float p6y=p4y+(p2y-p4y)*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          float p7x=p4x+(p3x-p4x)*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+          float p8y=p1y+(p3y-p1y)*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+
+
+        }
+        else if(!boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //0111 TICK
+        {
+          float p5x=p1x+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow][currentcolumn]));
+          float p8y=p1y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1000 TICK
+        {
+          float p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          float p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1001 COULD CHANGE TO SEE
+        {
+          float p5x=p2x+(p1x-p2x)*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          float p6y=p2y+(p4y-p2y)*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+          float p7x=p3x+(p4x-p3x)*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+          float p8y=p3y+(p1y-p3y)*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+
+
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1010 TICK
+        {
+          float p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          float p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+
+        }
+        else if(boolpoints[0]&&!boolpoints[1]&&boolpoints[2]&&boolpoints[3]) //1011 TICK
+        {
+          float p5x=p2x-rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow][currentcolumn+1]));
+          float p6y=p2y+rendersquare*((renderthreshold-renderGrid[currentrow][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow][currentcolumn+1]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p5x,p5y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+
+        }
+        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&!boolpoints[3]) //1100 TICK
+        {
+          float p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+          float p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+
+        }
+        else if(boolpoints[0]&&boolpoints[1]&&!boolpoints[2]&&boolpoints[3]) //1101 TICK
+        {
+          float p7x=p3x+rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow+1][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn]));
+          float p8y=p3y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn])/(renderGrid[currentrow][currentcolumn]-renderGrid[currentrow+1][currentcolumn]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p8x,p8y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p4x,p4y,-2.0f));
+
+        }
+        else if(boolpoints[0]&&boolpoints[1]&&boolpoints[2]&&!boolpoints[3]) //1110
+        {
+          float p7x=p4x-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow+1][currentcolumn]-renderGrid[currentrow+1][currentcolumn+1]));
+          float p6y=p4y-rendersquare*((renderthreshold-renderGrid[currentrow+1][currentcolumn+1])/(renderGrid[currentrow][currentcolumn+1]-renderGrid[currentrow+1][currentcolumn+1]));
+
+
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p2x,p2y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p6x,p6y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(red,green,blue));
+          m_realtime2DTriangles.push_back(Vec3(p1x,p1y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p7x,p7y,-2.0f));
+          m_realtime2DTriangles.push_back(Vec3(p3x,p3y,-2.0f));
+
+        }
+      }
+    }
+  }
+}
+
+void MarchingAlgorithms::draw3DSnapshot()
+{
+  glBegin(GL_TRIANGLES);
+  for(auto& i : m_snapshot3DTriangles)
+  {
+    for(auto& j : i)
+    {
+      for(auto& k : j)
+      {
+        for(int l = 0; l<k.size() ; l+=7)
+        {
+          glColor3f(k[l][0],k[l][1],k[l][2]);
+          glNormal3f(k[l+1][0],k[l+1][1],k[l+1][2]);
+          glVertex3f(k[l+2][0],k[l+2][1],k[l+2][2]);
+          glNormal3f(k[l+3][0],k[l+3][1],k[l+3][2]);
+          glVertex3f(k[l+4][0],k[l+4][1],k[l+4][2]);
+          glNormal3f(k[l+5][0],k[l+5][1],k[l+5][2]);
+          glVertex3f(k[l+6][0],k[l+6][1],k[l+6][2]);
+        }
+      }
+    }
+  }
+  glEnd();
+}
+
+void MarchingAlgorithms::draw3DRealtime()
+{
+  glBegin(GL_TRIANGLES);
+  for(int i =0; i<m_realtime3DTriangles.size(); i+=5)
+  {
+    glColor3f(m_realtime3DTriangles[i][0],m_realtime3DTriangles[i][1],m_realtime3DTriangles[i][2]);
+    glNormal3f(m_realtime3DTriangles[i+1][0],m_realtime3DTriangles[i+1][1],m_realtime3DTriangles[i+1][2]);
+    glVertex3f(m_realtime3DTriangles[i+2][0],m_realtime3DTriangles[i+2][1],m_realtime3DTriangles[i+2][2]);
+    glVertex3f(m_realtime3DTriangles[i+3][0],m_realtime3DTriangles[i+3][1],m_realtime3DTriangles[i+3][2]);
+    glVertex3f(m_realtime3DTriangles[i+4][0],m_realtime3DTriangles[i+4][1],m_realtime3DTriangles[i+4][2]);
+
+  }
+  glEnd();
+}
+
+void MarchingAlgorithms::draw2DRealtime()
+{
+  glBegin(GL_TRIANGLES);
+  for(int i =0; i<m_realtime2DTriangles.size(); i+=4)
+  {
+    glColor3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
+    glVertex3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
+    glVertex3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
+    glVertex3f(m_realtime2DTriangles[i][0],m_realtime2DTriangles[i][1],m_realtime2DTriangles[i][2]);
+  }
+  glEnd();
+  //clearRealtime2DTriangles();
+}
+
+Vec3 MarchingAlgorithms::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
+{
+  float isolevel = m_render3dThreshold;
+
+  double mu;
+  Vec3 p = Vec3();
+
+  if (std::abs(isolevel-valp1) < 0.00001)
+    return p1;
+  if (std::abs(isolevel-valp2) < 0.00001)
+    return p2 ;
+  if (std::abs(valp1-valp2) < 0.00001)
+    return p1 ;
+  mu = (isolevel - valp1) / (valp2 - valp1);
+  p[0] = p1[0] + mu * (p2[0] - p1[0]);
+  p[1] = p1[1] + mu * (p2[1] - p1[1]);
+  p[2] = p1[2] + mu * (p2[2] - p1[2]);
+
+  return p;
+}
+
+void MarchingAlgorithms::clearRealtime2DTriangles()
+{
+  m_realtime2DTriangles.clear();
+}
+
+void MarchingAlgorithms::clearRealtime3DTriangles()
+{
+  m_realtime3DTriangles.clear();
+}
+
+void MarchingAlgorithms::clearSnapshot3DTriangles()
+{
+  m_snapshot3DTriangles.clear();
+}
+
+int MarchingAlgorithms::getSnapshotMode()
+{
+  return m_snapshotMode;
+}
+
+void MarchingAlgorithms::setSnapshotMode(int _s)
+{
+  m_snapshotMode=_s;
+}

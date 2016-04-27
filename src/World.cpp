@@ -116,7 +116,7 @@ void World::init() {
   m_camerarotatey=0.0f;
   m_camerarotatex=0.0f;
 
-  m_marching = new MarchingAlgorithms(m_mainrender2dthreshold, m_mainrender3dthreshold);
+  //m_marching = new MarchingAlgorithms(m_mainrender2dthreshold, m_mainrender3dthreshold);
 
   // create start two blocks of particles
   /*
@@ -259,6 +259,8 @@ void World::resizeWindow(int w, int h) {
 
   glMatrixMode(GL_MODELVIEW);
 
+  m_marching=MarchingAlgorithms( m_mainrender2dthreshold, m_mainrender3dthreshold, squaresize,renderresolution,render3dresolution,halfwidth,halfheight);
+
 
 }
 
@@ -304,6 +306,12 @@ void World::draw() {
         std::vector<std::vector<float>> waterRenderGrid = renderGrid(&i);
         drawMarchingSquares(waterRenderGrid,i,false);
         drawMarchingSquares(waterRenderGrid,i,true);
+        /*
+        m_marching.calculateMarchingSquares(waterRenderGrid,i,false);
+        m_marching.calculateMarchingSquares(waterRenderGrid,i,true);
+        m_marching.draw2DRealtime();
+        m_marching.clearRealtime2DTriangles();
+        */
         glEnable(GL_LIGHTING);
       }
     }
@@ -1743,9 +1751,8 @@ void World::drawMarchingCubes(std::vector<std::vector<std::vector<float>>> rende
 
   std::vector<Vec3> triangleVerticies;
 
-
-  int render3dheight=renderGrid.size()-1;
-  int render3dwidth=renderGrid[0].size()-1;
+  int render3dwidth=renderGrid.size()-1;
+  int render3dheight=renderGrid[0].size()-1;
   int render3ddepth=renderGrid[0][0].size()-1;
 
   float isolevel=m_mainrender3dthreshold; //can set at initialization
