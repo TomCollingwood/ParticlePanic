@@ -53,7 +53,7 @@ void Toolbar::drawToolbar(int h) const
   float Width = ((halfheight*2)/h)*65;
   float Height = ((halfheight*2)/h)*50;
 
-  float gap = 0.1f;
+  float gap = ((halfheight*2)/h)*5;
 
   float X = -halfwidth;
   float Y = halfheight-Height-gap;
@@ -255,7 +255,6 @@ void Toolbar::drawToolbar(int h) const
     else
       texX=0.0f;
 
-
     glBegin(GL_QUADS);
     glColor3f(1.0f,1.0f,1.0f);
     glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
@@ -336,6 +335,7 @@ void Toolbar::drawToolbar(int h) const
     }
     else
     {
+      // DROP DOWN MENU
       texY=0.6f;
       texX=0.6f;
       texH=48.f/530.f;
@@ -557,7 +557,7 @@ bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
   float Width = ((halfheight*2)/HEIGHT)*65;
   float Height = ((halfheight*2)/HEIGHT)*50;
 
-  float gap = 0.1f;
+  float gap = ((halfheight*2)/HEIGHT)*5;
 
   float startx = -halfwidth;
   float Y = halfheight-Height-gap;

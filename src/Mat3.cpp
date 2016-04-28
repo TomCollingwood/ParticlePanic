@@ -1,6 +1,7 @@
 ///
-///  @file Commands.cpp
-///  @brief Command objects to be executed inside timerCallback in main.
+///  @file Mat3.cpp
+///  @brief Mat3 only used in Vec3's rotateAroundXAxisf
+///
 
 
 #include "include/Mat3.h"

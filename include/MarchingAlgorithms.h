@@ -1,3 +1,10 @@
+/// \file MarchingAlgorithms.h
+/// \brief Contains the marching cube / square triangle vectors and algorithms to draw and create them
+/// \author Thomas Collingwood
+/// \version 1.0
+/// \date 26/4/16 Updated to NCCA Coding standard
+/// Revision History : See https://github.com/TomCollingwood/ParticlePanic
+
 #ifndef _MARCHINGALGORITHMS_H_
 #define _MARCHINGALGORITHMS_H_
 
@@ -23,7 +30,24 @@ class MarchingAlgorithms
 {
 public:
   MarchingAlgorithms() = default;
-  MarchingAlgorithms(float _render2dThreshold, float _render3dThreshold, float _squaresize, float _renderresolution, float _render3dresolution, float _halfwidth, float _halfheight):
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief MarchingAlgorithms       constructor for MarchingAlgorithms
+  /// \param[in] _render2dThreshold   sets the renderthreshold for which to draw the marching squares with
+  /// \param[in] _render3dThreshold   sets the isolevel for which to draw the marching cubes with
+  /// \param[in] _squaresize          sets the width/height of the square in the rendergrid
+  /// \param[in] _renderresolution    sets the renderresolution for the 2d marching squares
+  /// \param[in] _render3dresolution  sets the renderresolution for the 3d marching squares
+  /// \param[in] _halfwidth           sets the halfwidth - half the screen's width in opengl's coordinate system
+  /// \param[in] _halfheight          sets the halfheight - half the screen's height in opengl's coordinate system
+  //----------------------------------------------------------------------------------------------------------------------
+  MarchingAlgorithms(const float _render2dThreshold,
+                     const float _render3dThreshold,
+                     const float _squaresize,
+                     const float _renderresolution,
+                     const float _render3dresolution,
+                     const float _halfwidth,
+                     const float _halfheight):
     m_snapshotMode(0),
     m_render2dThreshold(_render2dThreshold),
     m_render3dThreshold(_render3dThreshold),
@@ -31,38 +55,111 @@ public:
     m_renderresolution(_renderresolution),
     m_render3dresolution(_render3dresolution),
     m_halfwidth(_halfwidth),
-    m_halfheight(_halfheight){}
+    m_halfheight(_halfheight),
+    m_ishighres(false){}
 
-  void calculateMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner);
-  void calculateMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p);
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief calculateMarchingSquares   fills m_realtime2DTriangles full of triangle verticies and colors
+  /// \param[in] _renderGrid            the 2d rendergrid containing the metaball floats
+  /// \param[in] _p                     particle properties - used for the colour attributes
+  /// \param[in] _inner                 whether to increase the threshold for the outer rim effect for the liquid
+  //----------------------------------------------------------------------------------------------------------------------
+  void calculateMarchingSquares(const std::vector<std::vector<float>> renderGrid,
+                                const ParticleProperties p,
+                                const bool inner);
 
-  Vec3 VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2);
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief calculateMarchingCubes fills m_snapshot3DTriangles or m_realtime3DTriangles with triangle verticies and colors
+  /// \param[in] _renderGrid        the 3d rendergrid containing the metaball floats
+  /// \param[in] _p                 particle properties - used for the colour attributes
+  //----------------------------------------------------------------------------------------------------------------------
+  void calculateMarchingCubes(const std::vector<std::vector<std::vector<float>>> renderGrid, const ParticleProperties p);
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief VertexInterp calculates the position between two points depending on the floats at either point
+  /// \param[in] _p1      point 1 position
+  /// \param[in] _p2      point 2 position
+  /// \param[in] _valp1   float at point 1
+  /// \param[in] _valp2   float at point 2
+  /// \return             the interpolated Vec3 used in calculateMarchingCubes
+  //----------------------------------------------------------------------------------------------------------------------
+  Vec3 VertexInterp(const Vec3 p1, const Vec3 p2, const float valp1, const float valp2);
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief draw2DRealtime draws the m_realtime2DTriangle Vec3s using OpenGL glBegin(GL_TRIANGLES)
+  //----------------------------------------------------------------------------------------------------------------------
   void draw2DRealtime() ;
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief draw3DRealtime draws the m_realtime3DTriangle Vec3s using OpenGL glBegin(GL_TRIANGLES) (calculates normals as well)
+  //----------------------------------------------------------------------------------------------------------------------
   void draw3DRealtime() ;
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief draw3DSnapshot draws the m_snapshot3DTriangle Vec3s using OpenGL glBegin(GL_TRIANGLES) (calculates normals as well)
+  //----------------------------------------------------------------------------------------------------------------------
   void draw3DSnapshot() ;
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief getSnapshotMode  returns the snapshot mode integer
+  /// \return                 returns m_snapshotMode
+  //----------------------------------------------------------------------------------------------------------------------
   int getSnapshotMode();
-  void setSnapshotMode(int _s);
 
-  void setSquareSize(float ss)
-  {
-    m_squaresize=ss;
-  }
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief setSnapshotMode  sets the m_snapshotMode that shows where in the snapshot process we are
+  /// \param _s               the integer to set m_snapshotMode to
+  //----------------------------------------------------------------------------------------------------------------------
+  void setSnapshotMode(const int _s);
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief setSquareSize  sets m_squaresize which is the width/height of the square in the rendergrid
+  /// \param ss             the float to set m_squaresize to
+  //----------------------------------------------------------------------------------------------------------------------
+  void setSquareSize(const float ss);
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief toggle3DResolution either multiplies or divides the 3d render resolution by 6 - used for high poly snapshot
+  //----------------------------------------------------------------------------------------------------------------------
+  void toggle3DResolution();
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief clearRealtime2DTriangles clears the std::vector m_realtime2DTriangles
+  //----------------------------------------------------------------------------------------------------------------------
   void clearRealtime2DTriangles();
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief clearRealtime3DTriangles clears the std::vector m_realtime3DTriangles
+  //----------------------------------------------------------------------------------------------------------------------
   void clearRealtime3DTriangles();
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief clearSnapshot3DTriangles clears the 4d std::vector m_realtime3DTriangles and resizes them to the
+  ///                                 3d render width, height and depth.
+  //----------------------------------------------------------------------------------------------------------------------
   void clearSnapshot3DTriangles();
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief increase2DResolution increases the 2D marching squares resolution by 1
+  //----------------------------------------------------------------------------------------------------------------------
   void increase2DResolution();
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief decrease2DResolution decreases the 2D marching squares resolution by 1 (but not when it is 1)
+  //----------------------------------------------------------------------------------------------------------------------
   void decrease2DResolution();
 
 private:
   int m_snapshotMode;
   float m_render2dThreshold, m_render3dThreshold, m_squaresize, m_renderresolution, m_render3dresolution, m_halfwidth, m_halfheight;
+
+  /// \brief m_snapshot3DTriangles  This vector is four dimensional so that I could easily implement vertex normal calculations.
+  ///                               We are able to check surrounding triangles quite easily using this vector.
   std::vector<std::vector<std::vector<std::vector<Vec3>>>> m_snapshot3DTriangles;
+
   std::vector<Vec3> m_realtime2DTriangles;
   std::vector<Vec3> m_realtime3DTriangles;
+  bool m_ishighres;
 
   /// The following section is from :-
   /// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].

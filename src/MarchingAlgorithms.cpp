@@ -1,5 +1,13 @@
+///
+///  @file    MarchingAlgorithms.cpp
+///  @brief   Contains the marching cube / square triangle vectors and algorithms to draw and create them
+///  @author  Paul Bourke & Thomas Collingwood
+
 #include "include/MarchingAlgorithms.h"
 
+/// The following section is modified from :-
+/// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
+/// Available from: <http://paulbourke.net/geometry/polygonise/>.
 void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vector<float>>> renderGrid, ParticleProperties p)
 {
   float red = p.getRed();
@@ -204,8 +212,11 @@ void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vec
     // */
   }
 }
+/// end of Citation
 
-void MarchingAlgorithms::calculateMarchingSquares(std::vector<std::vector<float>> renderGrid, ParticleProperties p, bool inner)
+void MarchingAlgorithms::calculateMarchingSquares(const std::vector<std::vector<float>> renderGrid,
+                                                  const ParticleProperties p,
+                                                  const bool inner)
 {
   float red = p.getRed();
   float green = p.getGreen();
@@ -566,7 +577,6 @@ void MarchingAlgorithms::draw3DSnapshot()
           glVertex3f(k[l+4][0],k[l+4][1],k[l+4][2]);
           glNormal3f(k[l+5][0],k[l+5][1],k[l+5][2]);
           glVertex3f(k[l+6][0],k[l+6][1],k[l+6][2]);
-          std::cout<<"Hello"<<std::endl;
         }
       }
     }
@@ -584,7 +594,6 @@ void MarchingAlgorithms::draw3DRealtime()
     glVertex3f(m_realtime3DTriangles[i+2][0],m_realtime3DTriangles[i+2][1],m_realtime3DTriangles[i+2][2]);
     glVertex3f(m_realtime3DTriangles[i+3][0],m_realtime3DTriangles[i+3][1],m_realtime3DTriangles[i+3][2]);
     glVertex3f(m_realtime3DTriangles[i+4][0],m_realtime3DTriangles[i+4][1],m_realtime3DTriangles[i+4][2]);
-    std::cout<<"Hi there pops"<<std::endl;
   }
   glEnd();
   clearRealtime3DTriangles();
@@ -606,6 +615,9 @@ void MarchingAlgorithms::draw2DRealtime()
   clearRealtime2DTriangles();
 }
 
+/// The following section is modified from :-
+/// Paul Bourke (1994). Polygonising a scalar field [online]. [Accessed 2016].
+/// Available from: <http://paulbourke.net/geometry/polygonise/>.
 Vec3 MarchingAlgorithms::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2)
 {
   float isolevel = m_render3dThreshold;
@@ -626,6 +638,7 @@ Vec3 MarchingAlgorithms::VertexInterp(Vec3 p1, Vec3 p2, float valp1, float valp2
 
   return p;
 }
+/// end of Citation
 
 void MarchingAlgorithms::clearRealtime2DTriangles()
 {
@@ -677,3 +690,23 @@ void MarchingAlgorithms::decrease2DResolution()
   if(m_renderresolution!=1)
     --m_renderresolution;
 }
+
+void MarchingAlgorithms::setSquareSize(float ss)
+{
+  m_squaresize=ss;
+}
+
+void MarchingAlgorithms::toggle3DResolution()
+{
+  if(!m_ishighres)
+  {
+    m_render3dresolution*=4;
+    m_ishighres=true;
+  }
+  else
+  {
+    m_render3dresolution/=4;
+    m_ishighres=false;
+  }
+}
+

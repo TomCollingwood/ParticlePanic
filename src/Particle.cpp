@@ -34,9 +34,36 @@ void Particle::drawParticle(float pointsize)
   glPopMatrix();
 }
 
-void Particle::updatePosition(double elapsedtime)
+void Particle::updatePosition(double elapsedtime, float halfheight, float halfwidth)
 {
   position+=velocity*elapsedtime;
+
+
+  if(position[0]>halfwidth-0.5f)
+  {
+    position[0] = halfwidth-0.5f;
+  }
+  else if(position[0]<-halfwidth+0.5f)
+  {
+    position[0]= -halfwidth+0.5f;
+  }
+  if(position[1]<-halfheight+0.5f)
+  {
+    position[1]=-halfheight+0.5f;
+  }
+  else if (position[1]>halfheight-1.5f)
+  {
+    position[1]=halfheight-1.5f;
+  }
+  if(position[2]>halfwidth-0.5f)
+  {
+    position[2] = halfwidth-0.5f;
+  }
+  else if(position[2]<-halfwidth+0.5f)
+  {
+    position[2]= -halfwidth+0.5f;
+  }
+  // */
 }
 
 Vec3 Particle::getPosition() const
@@ -99,9 +126,39 @@ void Particle::addVelocity(Vec3 addedvel)
 }
 
 
-void Particle::addPosition(Vec3 pos)
+void Particle::addPosition(Vec3 pos, float halfheight, float halfwidth)
 {
+  if(pos[1]==0)
+  {
+    //position[1]=(rand() % 100 - 50)/ 1000 ;
+  }
   position+=pos;
+
+  if(position[0]>halfwidth-0.5f)
+  {
+    position[0] = halfwidth-0.5f;
+  }
+  else if(position[0]<-halfwidth+0.5f)
+  {
+    position[0]= -halfwidth+0.5f;
+  }
+  if(position[1]<-halfheight+0.5f)
+  {
+    position[1]=-halfheight+0.51f + (((float)(rand() %100) - 50) / 2500);
+  }
+  else if (position[1]>halfheight-1.5f)
+  {
+    position[1]=halfheight-1.5f;
+  }
+  if(position[2]>halfwidth-0.5f)
+  {
+    position[2] = halfwidth-0.5f;
+  }
+  else if(position[2]<-halfwidth+0.5f)
+  {
+    position[2]= -halfwidth+0.5f;
+  }
+  // */
 }
 
 void Particle::updatePrevPosition()

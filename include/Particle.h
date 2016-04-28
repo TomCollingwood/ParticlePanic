@@ -44,11 +44,15 @@ public:
     m_alive(true)
     {}
 
-  void drawParticle(float pointsize);
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief drawParticle   draws the particle with gluSphere
+  /// \param[in] _pointsize size of sphere
+  //----------------------------------------------------------------------------------------------------------------------
+  void drawParticle(float _pointsize);
 
   void setPosition(Vec3 pos);
   Vec3 getPosition() const;
-  void addPosition(Vec3 pos);
+  void addPosition(Vec3 pos, float halfheight, float halfwidth);
 
   void updatePrevPosition();
   Vec3 getPrevPosition() const;
@@ -64,7 +68,7 @@ public:
   void addVelocity(Vec3 addedvel);
 
   void updateVelocity(double elapsedtime);
-  void updatePosition(double elapsedtime);
+  void updatePosition(double elapsedtime, float halfheight, float halfwidth);
 
   bool operator ==(const Particle &_rhs) const;
 

@@ -20,7 +20,6 @@ SOURCES += \
     src/World.cpp \
     src/Toolbar.cpp \
     src/ParticleProperties.cpp \
-    src/Commands.cpp \
     src/Main.cpp \
     src/MarchingAlgorithms.cpp
 

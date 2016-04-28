@@ -23,11 +23,6 @@ class Mat3{
     Mat3(GLfloat _s=1.0f);
     Mat3(float input[9]);
     Mat3(const Mat3 &_r)=default;
-    //void operator *=(const Mat3 &_rhs);
-    //Vec3 operator *(Vec3 &_rhs) const;
-    //Mat3 operator *(const Mat3 &_rhs) const;
-    //void identity();
-    //const Mat3& transpose();
     GLfloat & operator [](int _i);
   union
   {

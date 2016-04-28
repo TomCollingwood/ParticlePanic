@@ -33,7 +33,7 @@ MOVE          = mv -f
 TAR           = tar -cf
 COMPRESS      = gzip -9f
 DISTNAME      = ParticlePanic1.0.0
-DISTDIR = /home/i7449874/ParticlePanic/obj/ParticlePanic1.0.0
+DISTDIR = /home/i7449874/testingplease/ParticlePanic/obj/ParticlePanic1.0.0
 LINK          = clang++
 LFLAGS        = -ccc-gcc-name g++ -Wl,-rpath,/opt/qt/5.5/gcc_64 -Wl,-rpath,/opt/qt/5.5/gcc_64/lib
 LIBS          = $(SUBLIBS) -L/usr/local/lib -Wl,-rpath,/usr/local/lib -lSDL2 -lGLU -lSDL2_image -L/usr/local/lib/ -lGL -L/opt/qt/5.5/gcc_64/lib -lQt5Gui -L/usr/lib64 -lQt5Core -lpthread 
@@ -54,7 +54,6 @@ SOURCES       = src/Vec3.cpp \
 		src/World.cpp \
 		src/Toolbar.cpp \
 		src/ParticleProperties.cpp \
-		src/Commands.cpp \
 		src/Main.cpp \
 		src/MarchingAlgorithms.cpp 
 OBJECTS       = obj/Vec3.o \
@@ -63,7 +62,6 @@ OBJECTS       = obj/Vec3.o \
 		obj/World.o \
 		obj/Toolbar.o \
 		obj/ParticleProperties.o \
-		obj/Commands.o \
 		obj/Main.o \
 		obj/MarchingAlgorithms.o
 DIST          = /opt/qt/5.5/gcc_64/mkspecs/features/spec_pre.prf \
@@ -208,7 +206,6 @@ DIST          = /opt/qt/5.5/gcc_64/mkspecs/features/spec_pre.prf \
 		src/World.cpp \
 		src/Toolbar.cpp \
 		src/ParticleProperties.cpp \
-		src/Commands.cpp \
 		src/Main.cpp \
 		src/MarchingAlgorithms.cpp
 QMAKE_TARGET  = ParticlePanic
@@ -521,7 +518,7 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents include/Particle.h include/Vec3.h include/Mat3.h include/World.h include/Toolbar.h include/ParticleProperties.h include/Commands.h include/MarchingAlgorithms.h $(DISTDIR)/
-	$(COPY_FILE) --parents src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Commands.cpp src/Main.cpp src/MarchingAlgorithms.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents src/Vec3.cpp src/Mat3.cpp src/Particle.cpp src/World.cpp src/Toolbar.cpp src/ParticleProperties.cpp src/Main.cpp src/MarchingAlgorithms.cpp $(DISTDIR)/
 
 
 clean: compiler_clean 
@@ -575,7 +572,8 @@ obj/World.o: src/World.cpp include/World.h \
 		include/Vec3.h \
 		include/Mat3.h \
 		include/Particle.h \
-		include/ParticleProperties.h
+		include/ParticleProperties.h \
+		include/MarchingAlgorithms.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/World.o src/World.cpp
 
 obj/Toolbar.o: src/Toolbar.cpp include/Toolbar.h \
@@ -583,32 +581,27 @@ obj/Toolbar.o: src/Toolbar.cpp include/Toolbar.h \
 		include/Vec3.h \
 		include/Mat3.h \
 		include/Particle.h \
-		include/ParticleProperties.h
+		include/ParticleProperties.h \
+		include/MarchingAlgorithms.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Toolbar.o src/Toolbar.cpp
 
 obj/ParticleProperties.o: src/ParticleProperties.cpp include/ParticleProperties.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/ParticleProperties.o src/ParticleProperties.cpp
-
-obj/Commands.o: src/Commands.cpp include/Commands.h \
-		include/World.h \
-		include/Vec3.h \
-		include/Mat3.h \
-		include/Particle.h \
-		include/ParticleProperties.h
-	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Commands.o src/Commands.cpp
 
 obj/Main.o: src/Main.cpp include/Vec3.h \
 		include/Mat3.h \
 		include/Particle.h \
 		include/ParticleProperties.h \
 		include/World.h \
+		include/MarchingAlgorithms.h \
 		include/Toolbar.h \
 		include/Commands.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/Main.o src/Main.cpp
 
 obj/MarchingAlgorithms.o: src/MarchingAlgorithms.cpp include/MarchingAlgorithms.h \
 		include/Vec3.h \
-		include/Mat3.h
+		include/Mat3.h \
+		include/ParticleProperties.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o obj/MarchingAlgorithms.o src/MarchingAlgorithms.cpp
 
 ####### Install

@@ -26,7 +26,7 @@ World::World() :
   drawwall(false),
   gravity(true),
   springsize(500000),
-  particlesPoolSize(3000),
+  particlesPoolSize(5000),
   m_3d(false),
   m_boundaryMultiplier(1.0f),
   m_boundaryType(0)
@@ -176,6 +176,10 @@ void World::resizeWorld(int w, int h)
   }
   else
   {
+    if(m_marching.getSnapshotMode())
+    {
+      handleKeys('t');
+    }
     grid.resize(gridheight*gridwidth*griddepth);
     cellsContainingParticles.resize(gridheight*gridwidth*griddepth,false);
   }
@@ -272,7 +276,7 @@ void World::draw() {
   glMatrixMode(GL_MODELVIEW);
 
   bool current_3d=m_3d;
-  if(current_3d)
+  if(current_3d )
   {
     glPushMatrix();
     glTranslatef(0.0f,2.0f,-10.0f);
@@ -316,21 +320,11 @@ void World::draw() {
       // SNAPSHOT MODE PROCESSING
       else if(m_marching.getSnapshotMode()==2)
       {
-        render3dresolution*=6;
+        render3dresolution*=4;
         render3dwidth=gridwidth*render3dresolution;
         render3dheight=gridheight*render3dresolution;
-
-        m_snapshotTriangles.clear();
-        m_snapshotTriangles.resize(render3dwidth);
-        for(auto& i : m_snapshotTriangles)
-        {
-          i.resize(render3dheight);
-          for(auto& j : i)
-          {
-            j.resize(render3dwidth);
-          }
-        }
-
+        m_marching.toggle3DResolution();
+        m_marching.clearSnapshot3DTriangles();
         for(auto& i : m_particleTypes)
         {
           std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
@@ -349,7 +343,6 @@ void World::draw() {
       else
       {
         m_marching.clearSnapshot3DTriangles();
-
         for(auto& i : m_particleTypes)
         {
           std::vector<std::vector<std::vector<float>>> waterRender3dGrid = render3dGrid(&i);
@@ -492,7 +485,7 @@ void World::update(bool *updateinprogress) {
     {
       particles[i].updatePrevPosition();
       if(!(particles[i].getDrag())&&!(particles[i].getWall()))
-        particles[i].updatePosition(m_timestep);
+        particles[i].updatePosition(m_timestep,halfheight,halfwidth);                  // HEERERERERE
     }
   }
   hashParticles();
@@ -598,8 +591,8 @@ void World::update(bool *updateinprogress) {
       else{
         rij.normalize();
         Vec3 D = rij*m_timestep*m_timestep*particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
-        particles[i.indexi].addPosition(-D/2);
-        particles[i.indexj].addPosition(D/2);
+        particles[i.indexi].addPosition(-D/2,halfheight,halfwidth);
+        particles[i.indexj].addPosition(D/2,halfheight,halfwidth);   // HERE
       }
 
     }
@@ -681,11 +674,11 @@ void World::update(bool *updateinprogress) {
         {
           rij.normalize();
           Vec3 D = rij*(m_timestep*m_timestep*(P*(1.0f-q))+Pnear*(1.0f-q)*(1.0f-q));
-          if(!(j->getWall())) j->addPosition(D/2);
+          if(!(j->getWall())) j->addPosition(D/2, halfheight, halfwidth); // HERE
           dx-=(D/2);
         }
       }
-      if(!(i->getWall())) i->addPosition(dx);
+      if(!(i->getWall())) i->addPosition(dx, halfheight, halfwidth); // HERE
     }
     count++;
   }
@@ -1013,7 +1006,7 @@ void World::mouseDrag(int x, int y)
 
     for(auto& i : draggedParticles)
     {
-      i->addPosition(Vec3(toaddx,-toaddy,0.0f));
+      i->addPosition(Vec3(toaddx,-toaddy,0.0f),halfheight,halfwidth);
       getbackhere(&(*i));
     }
     hashParticles();
@@ -1088,14 +1081,15 @@ void World::handleKeys(char _input)
       if(renderoption==1) renderoption=2;
       if(m_marching.getSnapshotMode()>2)
       {
-        render3dresolution/=6;
+        render3dresolution/=4;
         render3dwidth=gridwidth*render3dresolution;
         render3dheight=gridheight*render3dresolution;
-        m_snapshotTriangles.clear();
+        m_marching.toggle3DResolution();
         m_marching.setSnapshotMode(0);
       }
       else
       {
+
         m_marching.setSnapshotMode(1);
       }
     }
