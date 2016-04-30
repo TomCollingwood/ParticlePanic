@@ -1,6 +1,6 @@
 ///
-///  @file Commands.cpp
-///  @brief Command objects to be executed inside timerCallback in main.
+///  @file ParticleProperties.cpp
+///  @brief contains the properties of a particle type. Each particle has a pointer to such a class.
 
 #include "include/ParticleProperties.h"
 

@@ -66,7 +66,7 @@ public:
   /// \param[in] _halfheight  makes sure particle does not leave the boundaries
   /// \param[in] _halfwidth   makes sure particle does not leave the boundaries
   //----------------------------------------------------------------------------------------------------------------------
-  void addPosition(const Vec3 _pos, const float _halfheight, const float _halfwidth);
+  void addPosition(const Vec3 _pos, const float _halfheight, const float _halfwidth, bool is3D);
 
   //----------------------------------------------------------------------------------------------------------------------
   /// \brief updatePrevPosition updates the previous position of the particle to current position
@@ -103,7 +103,7 @@ public:
   /// \param[in] _halfheight  makes sure particle does not leave the boundaries
   /// \param[in] _halfwidth   makes sure particle does not leave the boundaries
   //----------------------------------------------------------------------------------------------------------------------
-  void updatePosition(double elapsedtime, float halfheight, float halfwidth);
+  void updatePosition(double elapsedtime, float halfheight, float halfwidth, bool is3D);
 
   //----------------------------------------------------------------------------------------------------------------------
   /// \brief getGridPosition  returns the spatial hash grid index

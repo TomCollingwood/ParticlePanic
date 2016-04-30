@@ -1,6 +1,6 @@
 //
-///  @file Commands.cpp
-///  @brief Command objects to be executed inside timerCallback in main.
+///  @file Particle.cpp
+///  @brief Particle class that includes all attributes of the particle
 
 #include "include/Particle.h"
 
@@ -36,18 +36,20 @@ void Particle::drawParticle(const float _pointsize)
   glPopMatrix();
 }
 
-void Particle::updatePosition(double _elapsedtime, float _halfheight, float _halfwidth)
+void Particle::updatePosition(double _elapsedtime, float _halfheight, float _halfwidth, bool is3D)
 {
   m_position+=m_velocity*_elapsedtime;
 
+  float smallen = 1.0f;
+  if(is3D) smallen = 0.4f;
 
-  if(m_position[0]>_halfwidth-0.5f)
+  if(m_position[0]>(_halfwidth-0.5f)*smallen)
   {
-    m_position[0] = _halfwidth-0.5f;
+    m_position[0] = (_halfwidth-0.5f)*smallen;
   }
-  else if(m_position[0]<-_halfwidth+0.5f)
+  else if(m_position[0]<(-_halfwidth+0.5f)*smallen)
   {
-    m_position[0]= -_halfwidth+0.5f;
+    m_position[0]= (-_halfwidth+0.5f)*smallen;
   }
   if(m_position[1]<-_halfheight+0.5f)
   {
@@ -57,13 +59,13 @@ void Particle::updatePosition(double _elapsedtime, float _halfheight, float _hal
   {
     m_position[1]=_halfheight-1.5f;
   }
-  if(m_position[2]>_halfwidth-0.5f)
+  if(m_position[2]>(_halfwidth-0.5f))
   {
-    m_position[2] = _halfwidth-0.5f;
+    m_position[2] = (_halfwidth-0.5f)*smallen;
   }
-  else if(m_position[2]<-_halfwidth+0.5f)
+  else if(m_position[2]<(-_halfwidth+0.5f))
   {
-    m_position[2]= -_halfwidth+0.5f;
+    m_position[2]= (-_halfwidth+0.5f)*smallen;
   }
   // */
 }
@@ -94,37 +96,36 @@ void Particle::addVelocity(Vec3 _addedvel)
 }
 
 
-void Particle::addPosition(Vec3 _pos, float _halfheight, float _halfwidth)
+void Particle::addPosition(Vec3 _pos, float _halfheight, float _halfwidth, bool is3D)
 {
-  if(_pos[1]==0)
-  {
-    //m_position[1]=(rand() % 100 - 50)/ 1000 ;
-  }
+  float smallen = 1.0f;
+  if(is3D) smallen = 0.4f;
+
   m_position+=_pos;
 
-  if(m_position[0]>_halfwidth-0.5f)
+  if(m_position[0]>(_halfwidth-0.5f)*smallen)
   {
-    m_position[0] = _halfwidth-0.5f;
+    m_position[0] = (_halfwidth-0.5f)*smallen;
   }
-  else if(m_position[0]<-_halfwidth+0.5f)
+  else if(m_position[0]<(-_halfwidth+0.5f)*smallen)
   {
-    m_position[0]= -_halfwidth+0.5f;
+    m_position[0]= (-_halfwidth+0.5f)*smallen;
   }
   if(m_position[1]<-_halfheight+0.5f)
   {
-    m_position[1]=-_halfheight+0.51f + (((float)(rand() %100) - 50) / 2500);
+    m_position[1]=-_halfheight+0.5f;
   }
   else if (m_position[1]>_halfheight-1.5f)
   {
     m_position[1]=_halfheight-1.5f;
   }
-  if(m_position[2]>_halfwidth-0.5f)
+  if(m_position[2]>(_halfwidth-0.5f)*smallen)
   {
-    m_position[2] = _halfwidth-0.5f;
+    m_position[2] = (_halfwidth-0.5f)*smallen;
   }
-  else if(m_position[2]<-_halfwidth+0.5f)
+  else if(m_position[2]<(-_halfwidth+0.5f)*smallen)
   {
-    m_position[2]= -_halfwidth+0.5f;
+    m_position[2]= (-_halfwidth+0.5f)*smallen;
   }
   // */
 }

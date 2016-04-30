@@ -41,7 +41,8 @@ public:
     m_randomize(false),
     m_camera(false),
     m_dropdownopen(false),
-    m_dropdownselect(0){}
+    m_dropdownselect(0),
+    m_helpscreen(false){}
 
   //----------------------------------------------------------------------------------------------------------------------
   /// \brief drawToolbar  draws the toolbar on screen
@@ -134,10 +135,13 @@ public:
   //----------------------------------------------------------------------------------------------------------------------
   void addNumber(char p);
 
+  void drawHelpScreen() const;
+
 private:
   bool m_draw, m_erase, m_drag, m_tap, m_gravity, m_clear, m_help, m_randomize, m_camera;
   bool m_dropdownopen;
   int m_dropdownselect;
+  bool m_helpscreen;
   GLuint m_iconsTexture; //
   int m_clickdownbutton; //
   World *m_world;

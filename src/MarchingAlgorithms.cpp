@@ -141,10 +141,10 @@ void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vec
 
   if(m_snapshotMode==2)
   {
-    /*
+
     std::vector<std::vector<std::vector<std::vector<Vec3>>>> temporarynormals = m_snapshot3DTriangles;
 
-    // CALCULATE NORMALS
+    // CALCULATE VERTEX NORMALS
     for(int w=0; w<render3dwidth; ++w)
     {
       for(int h=0; h<render3dheight; ++h)
@@ -700,12 +700,12 @@ void MarchingAlgorithms::toggle3DResolution()
 {
   if(!m_ishighres)
   {
-    m_render3dresolution*=4;
+    m_render3dresolution*=m_snapshotmultiplier;
     m_ishighres=true;
   }
   else
   {
-    m_render3dresolution/=4;
+    m_render3dresolution/=m_snapshotmultiplier;
     m_ishighres=false;
   }
 }

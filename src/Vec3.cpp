@@ -1,6 +1,6 @@
 ///
-///  @file Commands.cpp
-///  @brief Command objects to be executed inside timerCallback in main.
+///  @file Vec3.cpp
+///  @brief encapsulates a 3d Point / Vector object. Homogenous is not needed.
 
 #include "include/Vec3.h"
 

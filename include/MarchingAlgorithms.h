@@ -47,7 +47,8 @@ public:
                      const float _renderresolution,
                      const float _render3dresolution,
                      const float _halfwidth,
-                     const float _halfheight):
+                     const float _halfheight,
+                     const float _snapshotmultiplier):
     m_snapshotMode(0),
     m_render2dThreshold(_render2dThreshold),
     m_render3dThreshold(_render3dThreshold),
@@ -56,7 +57,8 @@ public:
     m_render3dresolution(_render3dresolution),
     m_halfwidth(_halfwidth),
     m_halfheight(_halfheight),
-    m_ishighres(false){}
+    m_ishighres(false),
+    m_snapshotmultiplier(_snapshotmultiplier){}
 
   //----------------------------------------------------------------------------------------------------------------------
   /// \brief calculateMarchingSquares   fills m_realtime2DTriangles full of triangle verticies and colors
@@ -152,6 +154,7 @@ public:
 private:
   int m_snapshotMode;
   float m_render2dThreshold, m_render3dThreshold, m_squaresize, m_renderresolution, m_render3dresolution, m_halfwidth, m_halfheight;
+  float m_snapshotmultiplier;
 
   /// \brief m_snapshot3DTriangles  This vector is four dimensional so that I could easily implement vertex normal calculations.
   ///                               We are able to check surrounding triangles quite easily using this vector.

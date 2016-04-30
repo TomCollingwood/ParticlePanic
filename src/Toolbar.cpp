@@ -1,11 +1,12 @@
 ///
-///  @file Commands.cpp
-///  @brief Command objects to be executed inside timerCallback in main.
+///  @file Toolbar.cpp
+///  @brief GUI implementation from scratch, includes draw and input interaction.
 
 #include "include/Toolbar.h"
 
 void Toolbar::drawToolbar(int _h) const
 {
+  bool current_3d = m_world->get3D();
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
 
@@ -55,7 +56,7 @@ void Toolbar::drawToolbar(int _h) const
 
   float gap = ((halfheight*2)/_h)*5;
 
-  float X = -halfwidth;
+  float X = -halfwidth + gap;
   float Y = halfheight-Height-gap;
 
   float texX;
@@ -69,7 +70,9 @@ void Toolbar::drawToolbar(int _h) const
 
   if(!m_world->getSnapshotMode())
   {
-    // Button
+    // DRAW
+    if(!current_3d)
+    {
     if(m_draw)
       texX=0.4f;
     else
@@ -158,7 +161,14 @@ void Toolbar::drawToolbar(int _h) const
     glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
     glEnd();
 
+    }
+    else
+    {
+      X+=Width*2+gap*2;
+    }
+
     texY=0.0f;
+
 
     // -------------------TAP -------------
     X+=Width+gap;
@@ -276,7 +286,7 @@ void Toolbar::drawToolbar(int _h) const
 
     // ----------------------_RANDOMIZE-=-----------------------
 
-    X+=Width*5+gap*6;
+    X+=Width*5+gap*7;
 
     if(m_randomize)
       texX=0.4f;
@@ -302,7 +312,7 @@ void Toolbar::drawToolbar(int _h) const
     glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
     glEnd();
 
-    X-=Width*5+gap*6;
+    X-=Width*5+gap*7;
 
     X+=Width+gap;
 
@@ -341,10 +351,10 @@ void Toolbar::drawToolbar(int _h) const
       texH=48.f/530.f;
       glBegin(GL_QUADS);
       glColor3f(1.0f,1.0f,1.0f);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
 
       texH=42.f/530.f;
@@ -352,10 +362,10 @@ void Toolbar::drawToolbar(int _h) const
       Y-=Height*(m_dropdownselect+1);
 
       glBegin(GL_QUADS);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
 
       Y+=Height*(m_dropdownselect+1);
@@ -365,10 +375,10 @@ void Toolbar::drawToolbar(int _h) const
       Y-=Height;
 
       glBegin(GL_QUADS);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
 
 
@@ -377,30 +387,30 @@ void Toolbar::drawToolbar(int _h) const
 
 
       glBegin(GL_QUADS);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
 
       Y-=Height;
 
 
       glBegin(GL_QUADS);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
 
       Y-=Height;
 
 
       glBegin(GL_QUADS);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
 
       Y-=Height;
@@ -408,10 +418,10 @@ void Toolbar::drawToolbar(int _h) const
 
 
       glBegin(GL_QUADS);
-      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -2);
-      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -2);
-      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -2);
-      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -2);
+      glTexCoord2f(texX, texY+texH); glVertex3f(X, Y, -1);
+      glTexCoord2f(texX+texW, texY+texH); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(texX+texW, texY); glVertex3f(X + Width, Y + Height, -1);
+      glTexCoord2f(texX, texY); glVertex3f(X, Y + Height, -1);
       glEnd();
       Y+=Height*5;
 
@@ -419,37 +429,37 @@ void Toolbar::drawToolbar(int _h) const
       X+=0.1f;
 
       glBegin(GL_QUADS); // WATER
-      glTexCoord2f(0, 0.65+texH*0.6); glVertex3f(X, Y, -1);
-      glTexCoord2f(0+texW, 0.65+texH*0.6); glVertex3f(X + Width, Y, -1);
-      glTexCoord2f(0+texW, 0.65); glVertex3f(X + Width, Y + Height*0.45, -1);
-      glTexCoord2f(0, 0.65); glVertex3f(X, Y + Height*0.45, -1);
+      glTexCoord2f(0, 0.65+texH*0.6); glVertex3f(X, Y, -0.5);
+      glTexCoord2f(0+texW, 0.65+texH*0.6); glVertex3f(X + Width, Y, -0.5);
+      glTexCoord2f(0+texW, 0.65); glVertex3f(X + Width, Y + Height*0.45, -0.5);
+      glTexCoord2f(0, 0.65); glVertex3f(X, Y + Height*0.45, -0.5);
       glEnd();
 
       Y-=Height*1.03;
 
       glBegin(GL_QUADS); // SLIME
-      glTexCoord2f(0, 0.7+texH*0.7); glVertex3f(X, Y, -1);
-      glTexCoord2f(0+texW, 0.7+texH*0.7); glVertex3f(X + Width, Y, -1);
-      glTexCoord2f(0+texW, 0.7); glVertex3f(X + Width, Y + Height*0.52, -1);
-      glTexCoord2f(0, 0.7); glVertex3f(X, Y + Height*0.52, -1);
+      glTexCoord2f(0, 0.7+texH*0.7); glVertex3f(X, Y, -0.5);
+      glTexCoord2f(0+texW, 0.7+texH*0.7); glVertex3f(X + Width, Y, -0.5);
+      glTexCoord2f(0+texW, 0.7); glVertex3f(X + Width, Y + Height*0.52, -0.5);
+      glTexCoord2f(0, 0.7); glVertex3f(X, Y + Height*0.52, -0.5);
       glEnd();
 
       Y-=Height;
 
       glBegin(GL_QUADS); // BLOBBY
-      glTexCoord2f(0, 0.75+texH*0.7); glVertex3f(X, Y, -1);
-      glTexCoord2f(0+texW, 0.75+texH*0.7); glVertex3f(X + Width, Y, -1);
-      glTexCoord2f(0+texW, 0.75); glVertex3f(X + Width, Y + Height*0.52, -1);
-      glTexCoord2f(0, 0.75); glVertex3f(X, Y + Height*0.52, -1);
+      glTexCoord2f(0, 0.75+texH*0.7); glVertex3f(X, Y, -0.5);
+      glTexCoord2f(0+texW, 0.75+texH*0.7); glVertex3f(X + Width, Y, -0.5);
+      glTexCoord2f(0+texW, 0.75); glVertex3f(X + Width, Y + Height*0.52, -0.5);
+      glTexCoord2f(0, 0.75); glVertex3f(X, Y + Height*0.52, -0.5);
       glEnd();
 
       Y-=Height;
 
       glBegin(GL_QUADS); // BLOBBY
-      glTexCoord2f(0, 0.8+texH*0.7); glVertex3f(X, Y, -1);
-      glTexCoord2f(0+texW, 0.8+texH*0.7); glVertex3f(X + Width, Y, -1);
-      glTexCoord2f(0+texW, 0.8); glVertex3f(X + Width, Y + Height*0.52, -1);
-      glTexCoord2f(0, 0.8); glVertex3f(X, Y + Height*0.52, -1);
+      glTexCoord2f(0, 0.8+texH*0.7); glVertex3f(X, Y, -0.5);
+      glTexCoord2f(0+texW, 0.8+texH*0.7); glVertex3f(X + Width, Y, -0.5);
+      glTexCoord2f(0+texW, 0.8); glVertex3f(X + Width, Y + Height*0.52, -0.5);
+      glTexCoord2f(0, 0.8); glVertex3f(X, Y + Height*0.52, -0.5);
       glEnd();
 
       Y+=Height*3.75;
@@ -559,7 +569,7 @@ bool Toolbar::handleClickDown(int _x, int _y, int _WIDTH, int _HEIGHT)
 
   float gap = ((halfheight*2)/_HEIGHT)*5;
 
-  float startx = -halfwidth;
+  float startx = -halfwidth + gap;
 
   float worldx = ((float)_x/(float)_WIDTH)*(halfwidth*2) - halfwidth;
   float worldy = - ((float)_y/(float)_HEIGHT)*(halfheight*2) + halfheight;
@@ -637,7 +647,6 @@ bool Toolbar::handleClickDown(int _x, int _y, int _WIDTH, int _HEIGHT)
 void Toolbar::handleClickUp()
 {
   if (m_clickdownbutton==5) toggleBool(&m_clear);
-  if (m_clickdownbutton==6) toggleBool(&m_help);
   if (m_clickdownbutton==8) toggleBool(&m_randomize);
   if (m_clickdownbutton==9)
   {
@@ -931,9 +940,13 @@ void Toolbar::drawNumbers(float _x, float _y, int _h, std::string _numbers) cons
     }
     currentx+=gap;
   }
-
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_LIGHTING);
+
+  if(m_help)
+  {
+    drawHelpScreen();
+  }
 }
 
 bool Toolbar::getdropdownopen()
@@ -1004,4 +1017,53 @@ void Toolbar::removeNumber()
   {
     m_randomSeed.erase( m_randomSeed.size()-1, 1);
   }
+}
+
+void Toolbar::drawHelpScreen() const
+{
+  glDisable(GL_LIGHTING);
+  glEnable(GL_TEXTURE_2D);
+
+  glEnable (GL_BLEND);
+  glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+  // You should probably use CSurface::OnLoad ... ;)
+  //-- and make sure the Surface pointer is good!
+  GLuint titleTextureID = 0;
+  SDL_Surface* Surface = IMG_Load("textures/helpscreen.png");
+  if(!Surface)
+  {
+    printf("IMG_Load: %s\n", IMG_GetError());
+    std::cout<<"error"<<std::endl;
+  }
+
+  glGenTextures(1, &titleTextureID);
+  glBindTexture(GL_TEXTURE_2D, titleTextureID);
+
+  int Mode = GL_RGB;
+
+  if(Surface->format->BytesPerPixel == 4) {
+    Mode = GL_RGBA;
+  }
+
+  glTexImage2D(GL_TEXTURE_2D, 0, Mode, Surface->w, Surface->h, 0, Mode, GL_UNSIGNED_BYTE, Surface->pixels);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  float x = -m_world->getHalfWidth()+0.1f;
+  float y = -m_world->getHalfHeight()+1.f;
+
+  glBegin(GL_QUADS);
+  glColor3f(1.0f,1.0f,1.0f);
+  glTexCoord2f(0, 0); glVertex3f(x,   y+8,-1);
+  glTexCoord2f(1, 0); glVertex3f(x+14, y+8,-1);
+  glTexCoord2f(1, 1); glVertex3f(x+14, y,  -1);
+  glTexCoord2f(0, 1); glVertex3f(x,   y,  -1);
+  glEnd();
+
+  glEnable(GL_LIGHTING);
+  glDisable(GL_TEXTURE_2D);
+
+
 }

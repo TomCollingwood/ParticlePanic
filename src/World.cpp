@@ -1,52 +1,41 @@
+///
+///  @file World.cpp
+///  @brief contains all particles and methods to draw and update them
+
 #include "include/World.h"
 
-///
-///  @file Commands.cpp
-///  @brief Command objects to be executed inside timerCallback in main.
-
-
-
-/**
- * @brief World::World
- */
 World::World() :
   m_isInit(false),
   m_startTime(0.0),
   m_elapsedTime(0.0),
-  interactionradius(1.0f),  //1
-  squaresize(1.0f), //1
+  m_interactionradius(1.0f),
+  m_squaresize(1.0f),
   m_timestep(1.0f),
-  pointsize(10.0f), //10
-  m_mainrender2dthreshold(90.0f),  //90
-  m_mainrender3dthreshold(90.0f),
-  renderresolution(4),
-  render3dresolution(2),
-  renderoption(1),
-  rain(false),
-  drawwall(false),
-  gravity(true),
+  m_pointsize(10.0f),
+  m_mainrender2dthreshold(90.0f),
+  m_mainrender3dthreshold(100.0f),
+  m_render2DResolution(4),
+  m_render3dresolution(2),
+  m_renderoption(1),
+  m_rain(false),
+  m_drawwall(false),
+  m_gravity(true),
   m_springsize(500000),
   m_particlesPoolSize(5000),
   m_3d(false),
   m_boundaryMultiplier(1.0f),
-  m_boundaryType(0)
+  m_boundaryType(2),
+  m_snapshotmultiplier(4)
 {
 }
 
-/**
- * @brief World::~World destructorize this thing. Make sure to eliminate dynamically allocated memory.
- */
 World::~World() {
 }
 
-/**
- * @brief World::init initialises the GL World, enabling features that are needed
- */
 void World::init() {
-  // Sanity check - if we've already initialised this class we shouldn't be here
+
   if (m_isInit) return;
 
-  // Disable texturing
   glEnable(GL_TEXTURE_2D);
 
   // Enable counter clockwise face ordering
@@ -67,7 +56,7 @@ void World::init() {
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_POINT_SIZE);
   glEnable(GL_COLOR_MATERIAL);
-  glPointSize(pointsize);
+  glPointSize(m_pointsize);
 
   // Set the background colour
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -79,18 +68,18 @@ void World::init() {
   srand (time(NULL));
 
   m_particles.clear();
-  springs.clear();
+  m_springs.clear();
 
   Particle defaultparticle;
   defaultparticle.setAlive(false);
   m_particles.resize(m_particlesPoolSize,defaultparticle);
   m_firstFreeParticle=0;
   m_lastTakenParticle=-1;
-  howManyAliveParticles=0;
+  m_howManyAliveParticles=0;
 
   Particle::Spring defaultspring;
   defaultspring.alive=false;
-  springs.resize(m_springsize,defaultspring);
+  m_springs.resize(m_springsize,defaultspring);
   m_firstFreeSpring=0;
   m_lastTakenSpring=-1;
 
@@ -153,26 +142,26 @@ void World::init() {
 
 void World::resizeWorld(int w, int h)
 {
-  pixelheight=h;
-  pixelwidth=w;
+  m_pixelheight=h;
+  m_pixelwidth=w;
 
   float i = 5;
   float ara = float(w)/float(h);
 
-  halfheight=i;
-  halfwidth=i*ara;
+  m_halfheight=i;
+  m_halfwidth=i*ara;
 
-  gridwidth=ceil((halfwidth*2)/squaresize);
-  gridheight=ceil((halfheight*2)/squaresize);
-  griddepth=gridwidth;
+  m_gridwidth=ceil((m_halfwidth*2)/m_squaresize);
+  m_gridheight=ceil((m_halfheight*2)/m_squaresize);
+  m_griddepth=m_gridwidth;
 
-  cellsContainingParticles.clear();
-  grid.clear();
+  m_cellsContainingParticles.clear();
+  m_grid.clear();
 
   if(!m_3d)
   {
-    grid.resize(gridheight*gridwidth);
-    cellsContainingParticles.resize(gridheight*gridwidth,false);
+    m_grid.resize(m_gridheight*m_gridwidth);
+    m_cellsContainingParticles.resize(m_gridheight*m_gridwidth,false);
   }
   else
   {
@@ -180,15 +169,15 @@ void World::resizeWorld(int w, int h)
     {
       handleKeys('t');
     }
-    grid.resize(gridheight*gridwidth*griddepth);
-    cellsContainingParticles.resize(gridheight*gridwidth*griddepth,false);
+    m_grid.resize(m_gridheight*m_gridwidth*m_griddepth);
+    m_cellsContainingParticles.resize(m_gridheight*m_gridwidth*m_griddepth,false);
   }
 
-  renderwidth=gridwidth*renderresolution;
-  renderheight=gridheight*renderresolution;
+  m_render2dwidth=m_gridwidth*m_render2DResolution;
+  m_render2dheight=m_gridheight*m_render2DResolution;
 
-  render3dwidth=gridwidth*render3dresolution;
-  render3dheight=gridheight*render3dresolution;
+  m_render3dwidth=m_gridwidth*m_render3dresolution;
+  m_render3dheight=m_gridheight*m_render3dresolution;
 
   // GHOST PARTICLES
 
@@ -241,28 +230,30 @@ void World::resizeWorld(int w, int h)
 }
 
 void World::resizeWindow(int w, int h) {
-  howmanytimesrandomized=0;
+  m_howmanytimesrandomized=0;
   if (!m_isInit) return;
 
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
 
-  pixelheight=h;
-  pixelwidth=w;
+  m_pixelheight=h;
+  m_pixelwidth=w;
 
   float i = 5;
   float ara = float(w)/float(h);
 
   glOrtho(-i*ara,i*ara,-i,i,0.1, 5000.0);
 
-  halfheight=i;
-  halfwidth=i*ara;
+  m_halfheight=i;
+  m_halfwidth=i*ara;
 
   glViewport(0,0,w,h);
 
   glMatrixMode(GL_MODELVIEW);
 
-  m_marching=MarchingAlgorithms( m_mainrender2dthreshold, m_mainrender3dthreshold, squaresize,renderresolution,render3dresolution,halfwidth,halfheight);
+  m_marching=MarchingAlgorithms( m_mainrender2dthreshold, m_mainrender3dthreshold, m_squaresize,
+                                 m_render2DResolution,m_render3dresolution,m_halfwidth,m_halfheight,
+                                 m_snapshotmultiplier);
 
 
 }
@@ -288,15 +279,15 @@ void World::draw() {
 
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
-  if(renderoption==1){
+  if(m_renderoption==1){
     for(int i=0; i<m_lastTakenParticle+1; ++i){
       if(m_particles[i].getAlive())
-        m_particles[i].drawParticle(pointsize);
+        m_particles[i].drawParticle(m_pointsize);
     }
   }
 
 
-  else if(renderoption==2)
+  else if(m_renderoption==2)
   {
     if(!m_3d)
     {
@@ -320,9 +311,9 @@ void World::draw() {
       // SNAPSHOT MODE PROCESSING
       else if(m_marching.getSnapshotMode()==2)
       {
-        render3dresolution*=4;
-        render3dwidth=gridwidth*render3dresolution;
-        render3dheight=gridheight*render3dresolution;
+        m_render3dresolution*=m_snapshotmultiplier;
+        m_render3dwidth=m_gridwidth*m_render3dresolution;
+        m_render3dheight=m_gridheight*m_render3dresolution;
         m_marching.toggle3DResolution();
         m_marching.clearSnapshot3DTriangles();
         for(auto& i : m_particleTypes)
@@ -381,7 +372,7 @@ void World::update(bool *updateinprogress) {
   static int everyother = 0;
   everyother++;
 
-  if(rain)
+  if(m_rain)
   {
     if(everyother%2==0){
       if(!m_3d)
@@ -389,13 +380,13 @@ void World::update(bool *updateinprogress) {
         for(int i = 0; i<6; ++i)
         {
           Particle newParticle;
-          if(interactionradius==1.0f)
+          if(m_interactionradius==1.0f)
           {
-            newParticle = Particle(Vec3(-3.0f+i*0.3f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
+            newParticle = Particle(Vec3(-3.0f+i*0.3f,m_halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
             newParticle.addVelocity(Vec3(3*0.03f-i*0.03f,-0.1f,0.0f));
           }
           else{
-            newParticle = Particle(Vec3(-3.0f+i*0.1f,halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
+            newParticle = Particle(Vec3(-3.0f+i*0.1f,m_halfheight/2+0.5f,-2.0f),&m_particleTypes[m_todraw]);
             newParticle.addVelocity(Vec3(0,-0.1f,0.0f));
           }
           insertParticle(newParticle);
@@ -407,7 +398,7 @@ void World::update(bool *updateinprogress) {
         {
           for(int i = 0; i<5; ++i)
           {
-            Particle newParticle =Particle(Vec3(i*0.3f,halfheight/5,-2.0+j*0.3f),&m_particleTypes[m_todraw]);
+            Particle newParticle =Particle(Vec3(i*0.3f,m_halfheight/5,-2.0+j*0.3f),&m_particleTypes[m_todraw]);
             newParticle.addVelocity(Vec3(0.0f,0.0f,0.0f));
             insertParticle(newParticle);
           }
@@ -417,7 +408,7 @@ void World::update(bool *updateinprogress) {
   }
 
   // ------------------------------GRAVITY --------------------------------------------
-  if(gravity)
+  if(m_gravity)
   {
     Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
     //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
@@ -435,10 +426,10 @@ void World::update(bool *updateinprogress) {
   int choo = 0;
 
   //#pragma omp parallel for ordered schedule(dynamic)
-  for(auto k = 0; k<(int)grid.size(); ++k)
+  for(auto k = 0; k<(int)m_grid.size(); ++k)
   {
     int ploo = 0;
-    for(auto& i : grid[k])
+    for(auto& i : m_grid[k])
     {
       if(!(i->getWall()))
       {
@@ -450,7 +441,7 @@ void World::update(bool *updateinprogress) {
           {
             Vec3 rij=(j->getPosition()-i->getPosition()); //THFP
             //std::cout<<rij[2]<<std::endl;
-            float q = rij.length()/interactionradius;
+            float q = rij.length()/m_interactionradius;
             if(q<1 && q!=0)
             {
               rij.normalize();
@@ -485,22 +476,22 @@ void World::update(bool *updateinprogress) {
     {
       m_particles[i].updatePrevPosition();
       if(!(m_particles[i].getDrag())&&!(m_particles[i].getWall()))
-        m_particles[i].updatePosition(m_timestep,halfheight,halfwidth);                  // HEERERERERE
+        m_particles[i].updatePosition(m_timestep,m_halfheight,m_halfwidth,m_3d);                  // HEERERERERE
     }
   }
   hashParticles();
 
   //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
 
-  /*
+
   //#pragma omp parallel for ordered
-  for(int k=0; k<gridheight*gridwidth; ++k)
+  for(int k=0; k<m_gridheight*m_gridwidth; ++k)
   {
-    if(cellsContainingParticles[k])
+    if(m_cellsContainingParticles[k])
     {
       std::vector<Particle *> surroundingParticles = getSurroundingParticles(k,3,false);
 
-      for(auto& i : grid[k])
+      for(auto& i : m_grid[k])
       {
         if(i->getProperties()->getSpring() && (!i->isObject() || (i->isObject() && !i->isInit()) ) && !i->getWall())
         {
@@ -510,7 +501,7 @@ void World::update(bool *updateinprogress) {
             {
               Vec3 rij=(j->getPosition()-i->getPosition());
               float rijmag = rij.length();
-              float q = rijmag/interactionradius;
+              float q = rijmag/m_interactionradius;
 
               if(q<1 && q!=0)
               {
@@ -520,24 +511,26 @@ void World::update(bool *updateinprogress) {
 
                 for(auto& spring : i->m_particleSprings)
                 {
-                  if(((springs[spring].indexi==i->getIndex()) && (springs[spring].indexj==j->getIndex())) ||
-                     ((springs[spring].indexi==j->getIndex()) && (springs[spring].indexj==i->getIndex())))
+                  if(((m_springs[spring].indexi==i->getIndex()) && (m_springs[spring].indexj==j->getIndex())) ||
+                     ((m_springs[spring].indexi==j->getIndex()) && (m_springs[spring].indexj==i->getIndex())))
                   {
-                    springs[spring].alive=true;
+                    // FOUND EXISTING SPRING
+                    m_springs[spring].alive=true;
                     thisspring=spring;
-                    quiter=true; // FOUND EXISTING SPRING
+                    quiter=true;
                     break;
                   }
                 }
 
                 if(!quiter)
                 {
+                  // HAVE TO CREATE A NEW SPRING
                   Particle::Spring newspring;
                   newspring.indexi=i->getIndex();
                   newspring.indexj=j->getIndex();
                   newspring.count=everyother-1;
                   newspring.alive=true;
-                  newspring.L = interactionradius; // maybe change this to sum of radius of two particles
+                  newspring.L = m_interactionradius;
 
                   thisspring = insertSpring(newspring);
 
@@ -545,22 +538,22 @@ void World::update(bool *updateinprogress) {
                   j->m_particleSprings.push_back(thisspring);
                 }
 
-                // MAKING SURE EACH SPRING IS ONLY UPDATED ONCE PER FRAME
-                if(springs[thisspring].count!=everyother)
+                // MAKING SURE EACH SPRING IS ONLY UPDATED ONCE PER FRAME with count
+                if(m_springs[thisspring].count!=everyother)
                 {
-                  GLfloat L = springs[thisspring].L;
+                  GLfloat L = m_springs[thisspring].L;
                   GLfloat d= L*i->getProperties()->getGamma();
                   GLfloat alpha = i->getProperties()->getAlpha();
 
                   if(rijmag>L+d)
                   {
-                    springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
+                    m_springs[thisspring].L=L+m_timestep*alpha*(rijmag-L-d);
                   }
                   else if(rijmag<L-d)
                   {
-                    springs[thisspring].L=L-m_timestep*alpha*(L-d-rijmag);
+                    m_springs[thisspring].L=L-m_timestep*alpha*(L-d-rijmag);
                   }
-                  springs[thisspring].count++;
+                  m_springs[thisspring].count++;
                 }
               }
             }
@@ -571,28 +564,28 @@ void World::update(bool *updateinprogress) {
     }
   }
 
-  // delete springs if over rest length?
-
 
   //spring displacements
-
   int count=0;
-  for(auto& i : springs)
+  for(auto& i : m_springs)
   {
     if(i.alive){
       Vec3 rij = (m_particles[i.indexj].getPosition() - m_particles[i.indexi].getPosition());
       float rijmag = rij.length();
 
-      if(rijmag>interactionradius && !particles[i.indexi].isObject())
+      // WE DELETE SPRING IF PARTICLES TOO FAR APART
+      if(rijmag>m_interactionradius && !m_particles[i.indexi].isObject())
       {
         deleteSpring(count);
       }
 
-      else{
+      // ELSE WE MOVE THE PARTICLE ACCORDING TO SPRING
+      else
+      {
         rij.normalize();
-        Vec3 D = rij*m_timestep*m_timestep*m_particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
-        m_particles[i.indexi].addPosition(-D/2,halfheight,halfwidth);
-        m_particles[i.indexj].addPosition(D/2,halfheight,halfwidth);   // HERE
+        Vec3 D = rij*m_timestep*m_timestep*m_particles[i.indexi].getProperties()->getKspring()*(1-(i.L/m_interactionradius))*(i.L-rijmag);
+        m_particles[i.indexi].addPosition(-D/2,m_halfheight,m_halfwidth,m_3d);
+        m_particles[i.indexj].addPosition(D/2,m_halfheight,m_halfwidth,m_3d);   // HERE
       }
 
     }
@@ -602,24 +595,21 @@ void World::update(bool *updateinprogress) {
   // */
 
   //----------------------------------DOUBLEDENSITY------------------------------------------
+  count =0;
 
-
-  int count =0;
-
-  //#pragma omp parallel for ordered
-  for(int k = 0; k<(int)grid.size(); ++k)
+  for(int k = 0; k<(int)m_grid.size(); ++k)
   {
     std::vector<Particle *> neighbours=getSurroundingParticles(count,1,false);
 
-    for(auto& i : grid[k])
+    for(auto& i : m_grid[k])
     {
       float density =0;
       float neardensity=0;
       for(auto& j : neighbours)
       {
-        Vec3 rij = j->getPosition()-i->getPosition(); // THFP
+        Vec3 rij = j->getPosition()-i->getPosition();
         float rijmag = rij.length();
-        float q = rijmag/interactionradius;
+        float q = rijmag/m_interactionradius;
         if(q<1 && q!=0) // q==0 when same particle
         {
           density+=(1.0f-q)*(1.0f-q);
@@ -632,16 +622,16 @@ void World::update(bool *updateinprogress) {
       if(m_boundaryType==1)
       {
         // BOTTOM
-        float distance = halfheight + i->getPosition()[1];
-        float q = distance/(m_boundaryMultiplier*interactionradius);
+        float distance = m_halfheight + i->getPosition()[1];
+        float q = distance/(m_boundaryMultiplier*m_interactionradius);
         if(q<1 && q!=0) // q==0 when same particle
         {
           density+=(1.0f-q)*(1.0f-q);
           neardensity+=(1.0f-q)*(1.0f-q)*(1.0f-q);
         }
         // RIGHT
-        distance = halfwidth - i->getPosition()[0];
-        q = distance/(m_boundaryMultiplier*interactionradius);
+        distance = m_halfwidth - i->getPosition()[0];
+        q = distance/(m_boundaryMultiplier*m_interactionradius);
         if(q<1 && q!=0) // q==0 when same particle
         {
           density+=(1.0f-q)*(1.0f-q);
@@ -649,8 +639,8 @@ void World::update(bool *updateinprogress) {
         }
 
         // LEFT
-        distance = i->getPosition()[0] + halfwidth ;
-        q = distance/(m_boundaryMultiplier*interactionradius);
+        distance = i->getPosition()[0] + m_halfwidth ;
+        q = distance/(m_boundaryMultiplier*m_interactionradius);
         if(q<1 && q!=0) // q==0 when same particle
         {
           density+=(1.0f-q)*(1.0f-q);
@@ -658,7 +648,7 @@ void World::update(bool *updateinprogress) {
         }
       }
 
-      float p0 = i->getProperties()->getP0();             // PROPERTIES <--------------------------------------
+      float p0 = i->getProperties()->getP0();
       float k = i->getProperties()->getK();
       float knear = i->getProperties()->getKnear();
 
@@ -667,26 +657,25 @@ void World::update(bool *updateinprogress) {
       Vec3 dx = Vec3();
       for(auto& j : neighbours)
       {
-        Vec3 rij = j->getPosition()-i->getPosition(); // THFP
+        Vec3 rij = j->getPosition()-i->getPosition();
         float rijmag = rij.length();
-        float q = rijmag/interactionradius;
+        float q = rijmag/m_interactionradius;
         if(q<1 && q!=0)
         {
           rij.normalize();
           Vec3 D = rij*(m_timestep*m_timestep*(P*(1.0f-q))+Pnear*(1.0f-q)*(1.0f-q));
-          if(!(j->getWall())) j->addPosition(D/2, halfheight, halfwidth); // HERE
+          if(!(j->getWall())) j->addPosition(D/2, m_halfheight, m_halfwidth,m_3d);
           dx-=(D/2);
         }
       }
-      if(!(i->getWall())) i->addPosition(dx, halfheight, halfwidth); // HERE
+      if(!(i->getWall())) i->addPosition(dx, m_halfheight, m_halfwidth,m_3d);
     }
     count++;
   }
-  // */
 
   //----------------------------------MAKE NEW VELOCITY-------------------------------------
 
-  for(auto& list : grid)
+  for(auto& list : m_grid)
   {
     for(auto& i : list)
     {
@@ -697,103 +686,108 @@ void World::update(bool *updateinprogress) {
   //----------------------------------BOUNDARIES --------------------------------------------
 
   // 2d/3d different
-
   float smallen = 0.4f;
   if(!m_3d) smallen=1.0f;
 
 
+  // I found that the particles glitch and jump as they are being drawn in the middle of update
+  // So we see the particles before this boundary algorithm has been run.
+
+  // So these boundary algorithms have been replaced by the new and improved
+  // addPosition and updatePosition in Particle.cpp. Means they never leave the boundary when
+  // position is updated.
   for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
     if(m_particles[i].getAlive())
     {
-      // OpenMP <<---
-      // MTSi parallelism for loop as prrallel as you can on an intel.
-
       if(m_boundaryType==0)
       {
         //------------------------------------BOTTOM------------------------------
-        if(m_particles[i].getPosition()[1]-0.5f<-halfheight)
+        if(m_particles[i].getPosition()[1]-0.5f<-m_halfheight)
         {
-          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],-halfheight+0.5f,m_particles[i].getPosition()[2]));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],-m_halfheight+0.5f,m_particles[i].getPosition()[2]));
           m_particles[i].setVelocity(Vec3(m_particles[i].getVelocity()[0],-0.8f*m_particles[i].getVelocity()[1],0.0f));
         }
         //------------------------------------TOP------------------------------
 
-        if(m_particles[i].getPosition()[1]+1.5f>halfheight)
+        if(m_particles[i].getPosition()[1]+1.5f>m_halfheight)
         {
-          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],halfheight-1.5f,m_particles[i].getPosition()[2]));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_halfheight-1.5f,m_particles[i].getPosition()[2]));
           m_particles[i].addVelocity(Vec3(0.0f,-0.8f*m_particles[i].getVelocity()[1],0.0f));
         }
 
         //------------------------------------RIGHT------------------------------
-        if(m_particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
+        if(m_particles[i].getPosition()[0]>(m_halfwidth-0.5f)*smallen)
         {
-          m_particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),m_particles[i].getPosition()[1],m_particles[i].getPosition()[2]));
+          m_particles[i].setPosition(Vec3(smallen*(m_halfwidth-0.5f),m_particles[i].getPosition()[1],m_particles[i].getPosition()[2]));
           m_particles[i].addVelocity(Vec3(-0.8f*m_particles[i].getVelocity()[0],0.0f));
         }
         //------------------------------------LEFT------------------------------
-        if(m_particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
+        if(m_particles[i].getPosition()[0]<(-m_halfwidth+0.5f)*smallen)
         {
-          m_particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),m_particles[i].getPosition()[1],m_particles[i].getPosition()[2]));
+          m_particles[i].setPosition(Vec3(smallen*(-m_halfwidth+0.5f),m_particles[i].getPosition()[1],m_particles[i].getPosition()[2]));
           m_particles[i].addVelocity(Vec3(-0.8f*m_particles[i].getVelocity()[0],0.0f));
         }
 
-        if(m_particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
+        if(m_particles[i].getPosition()[2]<-2-(m_halfwidth+0.5f)*smallen)
         {
-          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_particles[i].getPosition()[1],-2-(m_halfwidth+0.5)*smallen));
           m_particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*m_particles[i].getVelocity()[2]));
         }
-        if(m_particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
+        if(m_particles[i].getPosition()[2]>-2+(m_halfwidth-0.5f)*smallen)
         {
-          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_particles[i].getPosition()[1],-2+(m_halfwidth-0.5f)*smallen));
           m_particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*m_particles[i].getVelocity()[2]));
         }
       }
 
       if(m_boundaryType==1)
       {
+        // This version would have a higher velocity added to the particle as it got closer to the
+        // boundary. However I got lots of unwanted effects to the overall blob of fluid. Such as
+        // a "bubbling" effect like water emerging after a bubble has risen.
 
         float fmult = 1.0f;
 
-        float distance = - m_particles[i].getPosition()[1] + halfheight - 0.5f;
-        if(distance<(m_boundaryMultiplier*interactionradius))
+        float distance = - m_particles[i].getPosition()[1] + m_halfheight - 0.5f;
+        if(distance<(m_boundaryMultiplier*m_interactionradius))
         {
-          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          float force = ((m_boundaryMultiplier*m_interactionradius)-distance)/(m_timestep*m_timestep);
           m_particles[i].addVelocity(Vec3(0.0f,-sqrt(fmult*force),0.0f));
         }
 
-        distance = halfheight + m_particles[i].getPosition()[1];
-        if(distance<(m_boundaryMultiplier*interactionradius))
+        distance = m_halfheight + m_particles[i].getPosition()[1];
+        if(distance<(m_boundaryMultiplier*m_interactionradius))
         {
-          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          float force = ((m_boundaryMultiplier*m_interactionradius)-distance)/(m_timestep*m_timestep);
           m_particles[i].addVelocity(Vec3(0.0f,sqrt(fmult*force),0.0f));
         }
 
-        distance = m_particles[i].getPosition()[0] + halfwidth*smallen;
-        if(distance<(m_boundaryMultiplier*interactionradius))
+        distance = m_particles[i].getPosition()[0] + m_halfwidth*smallen;
+        if(distance<(m_boundaryMultiplier*m_interactionradius))
         {
-          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          float force = ((m_boundaryMultiplier*m_interactionradius)-distance)/(m_timestep*m_timestep);
           m_particles[i].addVelocity(Vec3(sqrt(fmult*force),0.0f,0.0f));
         }
 
-        distance = halfwidth*smallen - m_particles[i].getPosition()[0];
-        if(distance<(m_boundaryMultiplier*interactionradius))
+        distance = m_halfwidth*smallen - m_particles[i].getPosition()[0];
+        if(distance<(m_boundaryMultiplier*m_interactionradius))
         {
-          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          float force = ((m_boundaryMultiplier*m_interactionradius)-distance)/(m_timestep*m_timestep);
           m_particles[i].addVelocity(Vec3(-sqrt(fmult*force),0.0f,0.0f));
         }
 
-        distance = m_particles[i].getPosition()[2] - (-2-halfwidth*smallen);
-        if(distance<(m_boundaryMultiplier*interactionradius))
+        distance = m_particles[i].getPosition()[2] - (-2-m_halfwidth*smallen);
+        if(distance<(m_boundaryMultiplier*m_interactionradius))
         {
-          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          float force = ((m_boundaryMultiplier*m_interactionradius)-distance)/(m_timestep*m_timestep);
           m_particles[i].addVelocity(Vec3(0.0f,0.0f,sqrt(fmult*force)));
         }
 
-        distance = (-2+halfwidth*smallen) - m_particles[i].getPosition()[2] ;
-        if(distance<(m_boundaryMultiplier*interactionradius))
+        distance = (-2+m_halfwidth*smallen) - m_particles[i].getPosition()[2] ;
+        if(distance<(m_boundaryMultiplier*m_interactionradius))
         {
-          float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
+          float force = ((m_boundaryMultiplier*m_interactionradius)-distance)/(m_timestep*m_timestep);
           m_particles[i].addVelocity(Vec3(0.0f,0.0f,-sqrt(fmult*force)));
         }
 
@@ -802,48 +796,21 @@ void World::update(bool *updateinprogress) {
 
     }
   }
-  // */
+
   //----------------------------------CLEANUP ------------------------------------------------
 
   if(everyother%30==0)
   {
-    std::cout<<"Numebr:"<<howManyAliveParticles<<std::endl;
+    std::cout<<"Numebr:"<<m_howManyAliveParticles<<std::endl;
   }
 
-  int howmany=howManyAliveParticles;
-  if(howmany==0) howmany=1;
-  if(((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany) >0.5)
+  int howmany2=m_howManyAliveParticles;
+  if(howmany2==0) howmany2=1;
+  if(((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany2) >0.5)
   {
-    std::cout<<"fraction: "<<((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany)<<std::endl;
+    std::cout<<"fraction: "<<((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany2)<<std::endl;
     std::cout<<"lasttaken: "<<m_lastTakenParticle<<"  firstfree: "<<m_firstFreeParticle<<std::endl;
   }
-
-  /*
-    gettimeofday(&tim, NULL);
-    static double now = tim.tv_sec+(tim.tv_usec * 1e-6);
-    static double now2 = tim.tv_sec+(tim.tv_usec * 1e-6);
-
-    now2=now;
-    now=tim.tv_sec+(tim.tv_usec * 1e-6);
-
-    double calcTimeStep = now-now2;
-    //if(calcTimeStep==0) calcTimeStep=0.03;
-
-    static float total=0;
-    static int howmanys=0;
-    static double max = calcTimeStep;
-    if(calcTimeStep>max) max=calcTimeStep;
-    if(everyother%300==0)
-    {
-      total+=max;
-      howmanys++;
-      std::cout<<total/(float)howmanys<<":"<<howmanys<<std::endl;
-      max=0;
-      particles.clear();
-    }
-    // */
-
-
   *updateinprogress = false;
 }
 
@@ -852,12 +819,12 @@ void World::update(bool *updateinprogress) {
 void World::hashParticles()
 {
   int gridSize;
-  if(!m_3d) gridSize = gridwidth*gridheight;
-  else gridSize = gridwidth*gridheight*griddepth;
+  if(!m_3d) gridSize = m_gridwidth*m_gridheight;
+  else gridSize = m_gridwidth*m_gridheight*m_griddepth;
 
-  cellsContainingParticles.assign(gridSize,false);
+  m_cellsContainingParticles.assign(gridSize,false);
   std::vector<Particle *> newvector;
-  grid.assign(gridSize,newvector);
+  m_grid.assign(gridSize,newvector);
   int grid_cell;
   for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
@@ -867,27 +834,27 @@ void World::hashParticles()
       float positiony = m_particles[i].getPosition()[1];
       float positionz = m_particles[i].getPosition()[2];
 
-      if(positionx<-halfwidth) positionx=halfwidth;
-      else if (positionx>halfwidth) positionx=halfwidth;
-      if(positiony<-halfheight) positiony=halfheight;
-      else if (positiony>halfheight) positiony=halfheight;
-      if(positionz<-2-halfwidth) positionz=-2-halfwidth;
-      else if (positionz>-2+halfwidth) positionz=-2+halfwidth;
+      if(positionx<-m_halfwidth) positionx=m_halfwidth;
+      else if (positionx>m_halfwidth) positionx=m_halfwidth;
+      if(positiony<-m_halfheight) positiony=m_halfheight;
+      else if (positiony>m_halfheight) positiony=m_halfheight;
+      if(positionz<-2-m_halfwidth) positionz=-2-m_halfwidth;
+      else if (positionz>-2+m_halfwidth) positionz=-2+m_halfwidth;
 
 
       grid_cell=
-          floor((positionx+halfwidth)/squaresize)+
-          floor((positiony+halfheight)/squaresize)*gridwidth;
+          floor((positionx+m_halfwidth)/m_squaresize)+
+          floor((positiony+m_halfheight)/m_squaresize)*m_gridwidth;
 
 
-      if(m_3d) grid_cell+=floor((positionz+halfwidth+2)/squaresize)*gridwidth*gridheight;
+      if(m_3d) grid_cell+=floor((positionz+m_halfwidth+2)/m_squaresize)*m_gridwidth*m_gridheight;
 
       m_particles[i].setGridPosition(grid_cell);
 
       if(grid_cell>=0 && grid_cell<gridSize)
       {
-        cellsContainingParticles[grid_cell]=true;
-        grid[grid_cell].push_back(&m_particles[i]);
+        m_cellsContainingParticles[grid_cell]=true;
+        m_grid[grid_cell].push_back(&m_particles[i]);
       }
     }
   }
@@ -903,10 +870,10 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur,
     {
       for(int j = -numSurrounding; j <= numSurrounding; ++j)
       {
-        int grid_cell = thiscell+ i + j*gridwidth;
-        if(grid_cell<(gridwidth*gridheight) && grid_cell>=0)
+        int grid_cell = thiscell+ i + j*m_gridwidth;
+        if(grid_cell<(m_gridwidth*m_gridheight) && grid_cell>=0)
         {
-          for(auto& p : grid[grid_cell])
+          for(auto& p : m_grid[grid_cell])
           {
             if(dragselect && !p->getWall() || !dragselect) surroundingParticles.push_back(p);
           }
@@ -922,11 +889,11 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur,
       {
         for(int k = -numSurrounding; k <= numSurrounding; ++k)
         {
-          int grid_cell = thiscell+ i + j*gridwidth + k*gridwidth*gridheight;
+          int grid_cell = thiscell+ i + j*m_gridwidth + k*m_gridwidth*m_gridheight;
 
-          if(grid_cell<(gridwidth*gridheight*griddepth) && grid_cell>=0)
+          if(grid_cell<(m_gridwidth*m_gridheight*m_griddepth) && grid_cell>=0)
           {
-            for(auto& p : grid[grid_cell])
+            for(auto& p : m_grid[grid_cell])
             {
               if(dragselect && !p->getWall() || !dragselect) surroundingParticles.push_back(p);
             }
@@ -944,8 +911,8 @@ std::vector<Particle *> World::getSurroundingParticles(int thiscell, int numsur,
 
 Vec3 World::getGridColumnRow(int k)
 {
-  int row = floor(k/gridwidth);
-  int column = k - row*gridwidth;
+  int row = floor(k/m_gridwidth);
+  int column = k - row*m_gridwidth;
   return Vec3(column,row);
 }
 
@@ -954,10 +921,10 @@ Vec3 World::getGridColumnRow(int k)
 void World::mouseDraw(int x, int y)
 {
   float objectdensity=0.1f;
-  if(drawwall) objectdensity=0.05f;
+  if(m_drawwall) objectdensity=0.05f;
 
-  float currentx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
-  float currenty = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
+  float currentx = ((float)x/(float)m_pixelwidth)*(m_halfwidth*2) - m_halfwidth;
+  float currenty = -((float)y/(float)m_pixelheight)*(m_halfheight*2) + m_halfheight;
 
   float correctedx = floor(currentx/objectdensity + 0.5f);
   correctedx*=objectdensity;
@@ -966,8 +933,8 @@ void World::mouseDraw(int x, int y)
   correctedy*=objectdensity;
 
   bool drawparticle=true;
-  int grid_cell=floor((correctedx+halfwidth)/squaresize)+floor((correctedy+halfheight)/squaresize)*gridwidth;
-  for(auto& i : grid[grid_cell])
+  int grid_cell=floor((correctedx+m_halfwidth)/m_squaresize)+floor((correctedy+m_halfheight)/m_squaresize)*m_gridwidth;
+  for(auto& i : m_grid[grid_cell])
   {
     if(i->getPosition()[0]==correctedx && i->getPosition()[1]==correctedy)
     {
@@ -979,7 +946,7 @@ void World::mouseDraw(int x, int y)
   if(drawparticle)
   {
     Particle newparticle;
-    if(drawwall)
+    if(m_drawwall)
     {
       int oldm_todraw=m_todraw;
       m_todraw=0;
@@ -1001,12 +968,12 @@ void World::mouseDrag(int x, int y)
   std::cout<<x<<std::endl;
   if(m_previousmousex>0 && m_previousmousey>0)
   {
-    float toaddx = (x-m_previousmousex)*((halfwidth*2)/(float)pixelwidth);
-    float toaddy = (y-m_previousmousey)*((halfwidth*2)/(float)pixelwidth);
+    float toaddx = (x-m_previousmousex)*((m_halfwidth*2)/(float)m_pixelwidth);
+    float toaddy = (y-m_previousmousey)*((m_halfwidth*2)/(float)m_pixelwidth);
 
-    for(auto& i : draggedParticles)
+    for(auto& i : m_draggedParticles)
     {
-      i->addPosition(Vec3(toaddx,-toaddy,0.0f),halfheight,halfwidth);
+      i->addPosition(Vec3(toaddx,-toaddy,0.0f),m_halfheight,m_halfwidth,m_3d);
       getbackhere(&(*i));
     }
     hashParticles();
@@ -1017,13 +984,13 @@ void World::mouseDrag(int x, int y)
 
 void World::selectDraggedParticles(int x, int y)
 {
-  float worldx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
-  float worldy = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
-  int grid_cell=floor((worldx+halfwidth)/squaresize)+floor((worldy+halfheight)/squaresize)*gridwidth;
-  draggedParticles = getSurroundingParticles(grid_cell,2,true);
+  float worldx = ((float)x/(float)m_pixelwidth)*(m_halfwidth*2) - m_halfwidth;
+  float worldy = -((float)y/(float)m_pixelheight)*(m_halfheight*2) + m_halfheight;
+  int grid_cell=floor((worldx+m_halfwidth)/m_squaresize)+floor((worldy+m_halfheight)/m_squaresize)*m_gridwidth;
+  m_draggedParticles = getSurroundingParticles(grid_cell,2,true);
 
   int count = 0;
-  for(auto& i : draggedParticles)
+  for(auto& i : m_draggedParticles)
   {
     i->setDrag(true);
   }
@@ -1033,22 +1000,22 @@ void World::selectDraggedParticles(int x, int y)
 
 void World::getbackhere(Particle * p)
 {
-  if(p->getPosition()[0]>halfwidth-0.5f) p->getPosition()[0]=halfwidth-0.5f;
-  else if(p->getPosition()[0]<-halfwidth+0.5f) p->getPosition()[0]=-halfwidth+0.5f;
-  if(p->getPosition()[1]>halfheight-0.5f) p->getPosition()[1]=halfheight-0.5f;
-  else if(p->getPosition()[1]<-halfheight+0.5f) p->getPosition()[1]=-halfheight+0.5f;
+  if(p->getPosition()[0]>m_halfwidth-0.5f) p->getPosition()[0]=m_halfwidth-0.5f;
+  else if(p->getPosition()[0]<-m_halfwidth+0.5f) p->getPosition()[0]=-m_halfwidth+0.5f;
+  if(p->getPosition()[1]>m_halfheight-0.5f) p->getPosition()[1]=m_halfheight-0.5f;
+  else if(p->getPosition()[1]<-m_halfheight+0.5f) p->getPosition()[1]=-m_halfheight+0.5f;
 }
 
 void World::mouseDragEnd(int x, int y)
 {
   Vec3 newVelocity = Vec3(x-m_previousmousex,m_previousmousey-y);
 
-  for(auto& i : draggedParticles)
+  for(auto& i : m_draggedParticles)
   {
     i->setDrag(false);
     i->addVelocity(newVelocity*0.05f);
   }
-  draggedParticles.clear();
+  m_draggedParticles.clear();
   m_previousmousex=-10;
   m_previousmousey=-10;
 }
@@ -1066,24 +1033,24 @@ void World::handleKeys(char _input)
   case 'w' :
     if(!m_3d)
     {
-      if(drawwall) drawwall=false;
-      else drawwall=true;
+      if(m_drawwall) m_drawwall=false;
+      else m_drawwall=true;
     }
     break;
   case 'r':
-    if(renderoption==1) renderoption=2;
-    else renderoption=1;
+    if(m_renderoption==1) m_renderoption=2;
+    else m_renderoption=1;
     break;
 
   case 't':
     if(m_3d)
     {
-      if(renderoption==1) renderoption=2;
+      if(m_renderoption==1) m_renderoption=2;
       if(m_marching.getSnapshotMode()>2)
       {
-        render3dresolution/=4;
-        render3dwidth=gridwidth*render3dresolution;
-        render3dheight=gridheight*render3dresolution;
+        m_render3dresolution/=m_snapshotmultiplier;
+        m_render3dwidth=m_gridwidth*m_render3dresolution;
+        m_render3dheight=m_gridheight*m_render3dresolution;
         m_marching.toggle3DResolution();
         m_marching.setSnapshotMode(0);
       }
@@ -1098,15 +1065,15 @@ void World::handleKeys(char _input)
   case 'p':
     if(!m_3d)
     {
-      resizeWindow(pixelwidth,pixelheight);
-      if(renderoption==2) renderoption=1;
+      resizeWindow(m_pixelwidth,m_pixelheight);
+      if(m_renderoption==2) m_renderoption=1;
       m_camerarotatex=0.0f;
       m_camerarotatey=0.0f;
     }
     break;
 
   case 'o' :
-    resizeWindow(pixelwidth,pixelheight);
+    resizeWindow(m_pixelwidth,m_pixelheight);
     break;
 
   case 'c' :
@@ -1130,13 +1097,13 @@ void World::handleKeys(char _input)
 void World::mouseErase(int x, int y)
 {
   hashParticles();
-  float worldx = ((float)x/(float)pixelwidth)*(halfwidth*2) - halfwidth;
-  float worldy = -((float)y/(float)pixelheight)*(halfheight*2) + halfheight;
-  int grid_cell=floor((worldx+halfwidth)/squaresize)+floor((worldy+halfheight)/squaresize)*gridwidth;
-  if (cellsContainingParticles[grid_cell])
+  float worldx = ((float)x/(float)m_pixelwidth)*(m_halfwidth*2) - m_halfwidth;
+  float worldy = -((float)y/(float)m_pixelheight)*(m_halfheight*2) + m_halfheight;
+  int grid_cell=floor((worldx+m_halfwidth)/m_squaresize)+floor((worldy+m_halfheight)/m_squaresize)*m_gridwidth;
+  if (m_cellsContainingParticles[grid_cell])
   {
     bool thereisanobject=false;
-    for(auto& i : grid[grid_cell])
+    for(auto& i : m_grid[grid_cell])
     {
       //if(!(i->isObject()))
       deleteParticle(i->getIndex());
@@ -1167,7 +1134,7 @@ void World::insertParticle(Particle particle)
       ++m_firstFreeParticle;
     }
   }
-  ++howManyAliveParticles;
+  ++m_howManyAliveParticles;
 }
 
 void World::deleteParticle(int p)
@@ -1186,7 +1153,7 @@ void World::deleteParticle(int p)
     }
   }
   if(m_firstFreeParticle>p) m_firstFreeParticle=p;
-  --howManyAliveParticles;
+  --m_howManyAliveParticles;
 }
 
 void World::defragParticles()
@@ -1197,8 +1164,8 @@ void World::defragParticles()
     {
       for(auto& j : m_particles[i].m_particleSprings)
       {
-        if(springs[j].indexi==i) springs[j].indexi=m_firstFreeParticle;
-        else if(springs[j].indexj==i) springs[j].indexj=m_firstFreeParticle;
+        if(m_springs[j].indexi==i) m_springs[j].indexi=m_firstFreeParticle;
+        else if(m_springs[j].indexj==i) m_springs[j].indexj=m_firstFreeParticle;
       }
       insertParticle(m_particles[i]);
       deleteParticle(i);
@@ -1211,14 +1178,14 @@ void World::defragParticles()
 int World::insertSpring(Particle::Spring spring)
 {
   int result = m_firstFreeSpring;
-  springs[m_firstFreeSpring]=spring;
+  m_springs[m_firstFreeSpring]=spring;
   if(m_lastTakenSpring<m_firstFreeSpring)
   {
     ++m_lastTakenSpring;
     ++m_firstFreeSpring;
   }
   else{
-    while(springs[m_firstFreeSpring].alive)
+    while(m_springs[m_firstFreeSpring].alive)
     {
       ++m_firstFreeSpring;
     }
@@ -1228,12 +1195,12 @@ int World::insertSpring(Particle::Spring spring)
 
 void World::deleteSpring(int s)
 {
-  springs[s].alive=false;
-  m_particles[springs[s].indexi].updateSpringIndex(s,-1);
-  m_particles[springs[s].indexj].updateSpringIndex(s,-1);
+  m_springs[s].alive=false;
+  m_particles[m_springs[s].indexi].updateSpringIndex(s,-1);
+  m_particles[m_springs[s].indexj].updateSpringIndex(s,-1);
   if(m_lastTakenSpring==s)
   {
-    while(springs[m_lastTakenSpring].alive==false && m_lastTakenSpring>-1)
+    while(m_springs[m_lastTakenSpring].alive==false && m_lastTakenSpring>-1)
     {
       --m_lastTakenSpring;
     }
@@ -1245,11 +1212,11 @@ void World::defragSprings()
 {
   for(int i=m_lastTakenSpring; i>m_firstFreeSpring; --i)
   {
-    if(springs[i].alive)
+    if(m_springs[i].alive)
     {
-      m_particles[springs[i].indexi].updateSpringIndex(i,m_firstFreeSpring);
-      m_particles[springs[i].indexj].updateSpringIndex(i,m_firstFreeSpring);
-      insertSpring(springs[i]);
+      m_particles[m_springs[i].indexi].updateSpringIndex(i,m_firstFreeSpring);
+      m_particles[m_springs[i].indexj].updateSpringIndex(i,m_firstFreeSpring);
+      insertSpring(m_springs[i]);
       deleteSpring(i);
     }
   }
@@ -1258,18 +1225,18 @@ void World::defragSprings()
 
 float World::getHalfHeight() const
 {
-  return halfheight;
+  return m_halfheight;
 }
 
 float World::getHalfWidth() const
 {
-  return halfwidth;
+  return m_halfwidth;
 }
 
 void World::toggleRain()
 {
-  if(rain) rain=false;
-  else rain=true;
+  if(m_rain) m_rain=false;
+  else m_rain=true;
 }
 
 void World::clearWorld()
@@ -1291,8 +1258,8 @@ void World::clearWorld()
 
 void World::toggleGravity()
 {
-  if(gravity) gravity=false;
-  else gravity=true;
+  if(m_gravity) m_gravity=false;
+  else m_gravity=true;
 }
 
 void World::drawWith(int type)
@@ -1305,7 +1272,7 @@ void World::drawWith(int type)
   {
     //random.randomize();
     m_todraw=1;
-    howmanytimesrandomized++;
+    m_howmanytimesrandomized++;
   }
 }
 
@@ -1341,35 +1308,35 @@ std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
 {
   std::vector<std::vector<float>> rendergrid;
   rendergrid.clear();
-  rendergrid.resize(renderheight+1);
+  rendergrid.resize(m_render2dheight+1);
   for(auto& i : rendergrid)
   {
-    i.resize(renderwidth+1,0.0f);
+    i.resize(m_render2dwidth+1,0.0f);
   }
 
-  float rendersquare=squaresize/renderresolution;
+  float rendersquare=m_squaresize/m_render2DResolution;
   for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
     if(m_particles[i].getAlive()&&(m_particles[i].getProperties()==p))
     {
-      Vec3 heightwidth = getGridColumnRow(m_particles[i].getGridPosition())*renderresolution;
-      for(int x = -2*renderresolution; x<=4*renderresolution; ++x)
+      Vec3 heightwidth = getGridColumnRow(m_particles[i].getGridPosition())*m_render2DResolution;
+      for(int x = -2*m_render2DResolution; x<=4*m_render2DResolution; ++x)
       {
-        for(int y = -2*renderresolution; y<=4*renderresolution ; ++y)
+        for(int y = -2*m_render2DResolution; y<=4*m_render2DResolution ; ++y)
         {
           int currentcolumn=heightwidth[0]+x;
           int currentrow=heightwidth[1]+y;
 
-          if(currentcolumn<renderwidth && currentcolumn>0 &&
-             currentrow<renderheight && currentrow>0)
+          if(currentcolumn<m_render2dwidth && currentcolumn>0 &&
+             currentrow<m_render2dheight && currentrow>0)
           {
-            float currentx = rendersquare*(float)currentcolumn - halfwidth;
-            float currenty = rendersquare*(float)currentrow - halfheight;
+            float currentx = rendersquare*(float)currentcolumn - m_halfwidth;
+            float currenty = rendersquare*(float)currentrow - m_halfheight;
 
             float metaballx = currentx-m_particles[i].getPosition()[0];
             float metabally = currenty-m_particles[i].getPosition()[1];
 
-            float metaballfloat = (interactionradius*interactionradius)/(metaballx*metaballx + metabally*metabally);
+            float metaballfloat = (m_interactionradius*m_interactionradius)/(metaballx*metaballx + metabally*metabally);
 
             rendergrid[currentrow][currentcolumn]+=metaballfloat;
           }
@@ -1405,29 +1372,29 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 {
   std::vector<std::vector<std::vector<float>>> rendergrid;
   rendergrid.clear();
-  rendergrid.resize(render3dwidth+1);
+  rendergrid.resize(m_render3dwidth+1);
   for(auto& i : rendergrid)
   {
-    i.resize(render3dheight+1);
+    i.resize(m_render3dheight+1);
     for(auto& j : i)
     {
-      j.resize(render3dwidth+1,0.0f);
+      j.resize(m_render3dwidth+1,0.0f);
     }
   }
 
-  float rendersquare=squaresize/render3dresolution;
+  float rendersquare=m_squaresize/m_render3dresolution;
 
   for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
     if(m_particles[i].getAlive()&&(m_particles[i].getProperties()==p))
     {
-      Vec3 heightwidthdepth = getGridXYZ(m_particles[i].getGridPosition())*render3dresolution; // 3Dify this
+      Vec3 heightwidthdepth = getGridXYZ(m_particles[i].getGridPosition())*m_render3dresolution; // 3Dify this
 
-      for(int x = -2*render3dresolution; x<=4*render3dresolution; ++x)
+      for(int x = -2*m_render3dresolution; x<=4*m_render3dresolution; ++x)
       {
-        for(int y = -2*render3dresolution; y<=4*render3dresolution ; ++y)
+        for(int y = -2*m_render3dresolution; y<=4*m_render3dresolution ; ++y)
         {
-          for(int z = -2*render3dresolution; z<=4*render3dresolution ; ++z)
+          for(int z = -2*m_render3dresolution; z<=4*m_render3dresolution ; ++z)
           {
 
             //std::cout<<"hello"<<std::endl;
@@ -1435,19 +1402,19 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
             int currentrow=heightwidthdepth[1]+y;
             int currentdepth=heightwidthdepth[2]+z;
 
-            if(currentcolumn<render3dwidth && currentcolumn>0 &&
-               currentrow<render3dheight && currentrow>0 &&
-               currentdepth<render3dwidth && currentdepth>0)
+            if(currentcolumn<m_render3dwidth && currentcolumn>0 &&
+               currentrow<m_render3dheight && currentrow>0 &&
+               currentdepth<m_render3dwidth && currentdepth>0)
             {
-              float currentx = rendersquare*(float)currentcolumn - halfwidth;
-              float currenty = rendersquare*(float)currentrow - halfheight;
-              float currentz = rendersquare*(float)currentdepth - 2 - halfwidth;
+              float currentx = rendersquare*(float)currentcolumn - m_halfwidth;
+              float currenty = rendersquare*(float)currentrow - m_halfheight;
+              float currentz = rendersquare*(float)currentdepth - 2 - m_halfwidth;
 
               float metaballx = currentx-m_particles[i].getPosition()[0];
               float metabally = currenty-m_particles[i].getPosition()[1];
               float metaballz = currentz-m_particles[i].getPosition()[2];
 
-              float metaballfloat = (interactionradius*interactionradius)/(metaballx*metaballx + metabally*metabally + metaballz*metaballz);
+              float metaballfloat = (m_interactionradius*m_interactionradius)/(metaballx*metaballx + metabally*metabally + metaballz*metaballz);
               //std::cout<<metaballfloat<<std::endl;
               rendergrid[currentcolumn][currentrow][currentdepth]+=metaballfloat;
             }
@@ -1461,9 +1428,9 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 
 Vec3 World::getGridXYZ(int k) // CHECK THIS
 {
-  int z = floor(k/(gridwidth*gridheight));
-  int y = floor((k - z*gridwidth*gridheight)/gridwidth);
-  int x = k - y*gridwidth - z*gridwidth*gridheight;
+  int z = floor(k/(m_gridwidth*m_gridheight));
+  int y = floor((k - z*m_gridwidth*m_gridheight)/m_gridwidth);
+  int x = k - y*m_gridwidth - z*m_gridwidth*m_gridheight;
 
   return Vec3(x,y,z);
 }
@@ -1538,35 +1505,35 @@ void World::drawCube()
 
 void World::makeParticlesBig()
 {
-    pointsize=10.f;
-    squaresize=1.0f;
+    m_pointsize=10.f;
+    m_squaresize=1.0f;
     m_marching.setSquareSize(1.0f);
-    interactionradius=1.0f;
+    m_interactionradius=1.0f;
     hashParticles();
 }
 
 void World::makeParticlesSmall()
 {
-    pointsize=5.0f;
-    squaresize=0.5f;
+    m_pointsize=5.0f;
+    m_squaresize=0.5f;
     m_marching.setSquareSize(0.5f);
-    interactionradius=0.5f;
+    m_interactionradius=0.5f;
     hashParticles();
 }
 
 void World::increase2DResolutionWORLD()
 {
-  ++renderresolution;
+  ++m_render2DResolution;
   m_marching.increase2DResolution();
-  renderwidth=gridwidth*renderresolution;
-  renderheight=gridheight*renderresolution;
+  m_render2dwidth=m_gridwidth*m_render2DResolution;
+  m_render2dheight=m_gridheight*m_render2DResolution;
 }
 
 void World::decrease2DResolutionWORLD()
 {
   m_marching.decrease2DResolution();
-  if(renderresolution!=1)
-    --renderresolution;
-  renderwidth=gridwidth*renderresolution;
-  renderheight=gridheight*renderresolution;
+  if(m_render2DResolution!=1)
+    --m_render2DResolution;
+  m_render2dwidth=m_gridwidth*m_render2DResolution;
+  m_render2dheight=m_gridheight*m_render2DResolution;
 }
