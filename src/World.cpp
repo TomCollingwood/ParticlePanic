@@ -25,8 +25,8 @@ World::World() :
   rain(false),
   drawwall(false),
   gravity(true),
-  springsize(500000),
-  particlesPoolSize(5000),
+  m_springsize(500000),
+  m_particlesPoolSize(5000),
   m_3d(false),
   m_boundaryMultiplier(1.0f),
   m_boundaryType(0)
@@ -78,21 +78,21 @@ void World::init() {
   m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
   srand (time(NULL));
 
-  particles.clear();
+  m_particles.clear();
   springs.clear();
 
   Particle defaultparticle;
   defaultparticle.setAlive(false);
-  particles.resize(particlesPoolSize,defaultparticle);
-  firstFreeParticle=0;
-  lastTakenParticle=-1;
+  m_particles.resize(m_particlesPoolSize,defaultparticle);
+  m_firstFreeParticle=0;
+  m_lastTakenParticle=-1;
   howManyAliveParticles=0;
 
   Particle::Spring defaultspring;
   defaultspring.alive=false;
-  springs.resize(springsize,defaultspring);
-  firstFreeSpring=0;
-  lastTakenSpring=-1;
+  springs.resize(m_springsize,defaultspring);
+  m_firstFreeSpring=0;
+  m_lastTakenSpring=-1;
 
   // DEFAULT PARTICLE PROPERTIES
   m_particleTypes.push_back(ParticleProperties()); //water
@@ -289,9 +289,9 @@ void World::draw() {
   glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
   if(renderoption==1){
-    for(int i=0; i<lastTakenParticle+1; ++i){
-      if(particles[i].isAlive())
-        particles[i].drawParticle(pointsize);
+    for(int i=0; i<m_lastTakenParticle+1; ++i){
+      if(m_particles[i].getAlive())
+        m_particles[i].drawParticle(pointsize);
     }
   }
 
@@ -422,9 +422,9 @@ void World::update(bool *updateinprogress) {
     Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
     //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
     // PARALLEL
-    for(int i=0; i<lastTakenParticle+1; ++i)
+    for(int i=0; i<m_lastTakenParticle+1; ++i)
     {
-      if(particles[i].isAlive()) particles[i].addVelocity(gravityvel);
+      if(m_particles[i].getAlive()) m_particles[i].addVelocity(gravityvel);
     }
   }
 
@@ -479,20 +479,20 @@ void World::update(bool *updateinprogress) {
 
   //------------------------------------------POSITION----------------------------------------
 
-  for(int i=0; i<lastTakenParticle+1; ++i)
+  for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
-    if(particles[i].isAlive())
+    if(m_particles[i].getAlive())
     {
-      particles[i].updatePrevPosition();
-      if(!(particles[i].getDrag())&&!(particles[i].getWall()))
-        particles[i].updatePosition(m_timestep,halfheight,halfwidth);                  // HEERERERERE
+      m_particles[i].updatePrevPosition();
+      if(!(m_particles[i].getDrag())&&!(m_particles[i].getWall()))
+        m_particles[i].updatePosition(m_timestep,halfheight,halfwidth);                  // HEERERERERE
     }
   }
   hashParticles();
 
   //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
 
-
+  /*
   //#pragma omp parallel for ordered
   for(int k=0; k<gridheight*gridwidth; ++k)
   {
@@ -518,7 +518,7 @@ void World::update(bool *updateinprogress) {
                 bool quiter = false;
                 int thisspring;
 
-                for(auto& spring : i->particleSprings)
+                for(auto& spring : i->m_particleSprings)
                 {
                   if(((springs[spring].indexi==i->getIndex()) && (springs[spring].indexj==j->getIndex())) ||
                      ((springs[spring].indexi==j->getIndex()) && (springs[spring].indexj==i->getIndex())))
@@ -541,8 +541,8 @@ void World::update(bool *updateinprogress) {
 
                   thisspring = insertSpring(newspring);
 
-                  i->particleSprings.push_back(thisspring);
-                  j->particleSprings.push_back(thisspring);
+                  i->m_particleSprings.push_back(thisspring);
+                  j->m_particleSprings.push_back(thisspring);
                 }
 
                 // MAKING SURE EACH SPRING IS ONLY UPDATED ONCE PER FRAME
@@ -580,7 +580,7 @@ void World::update(bool *updateinprogress) {
   for(auto& i : springs)
   {
     if(i.alive){
-      Vec3 rij = (particles[i.indexj].getPosition() - particles[i.indexi].getPosition());
+      Vec3 rij = (m_particles[i.indexj].getPosition() - m_particles[i.indexi].getPosition());
       float rijmag = rij.length();
 
       if(rijmag>interactionradius && !particles[i.indexi].isObject())
@@ -590,9 +590,9 @@ void World::update(bool *updateinprogress) {
 
       else{
         rij.normalize();
-        Vec3 D = rij*m_timestep*m_timestep*particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
-        particles[i.indexi].addPosition(-D/2,halfheight,halfwidth);
-        particles[i.indexj].addPosition(D/2,halfheight,halfwidth);   // HERE
+        Vec3 D = rij*m_timestep*m_timestep*m_particles[i.indexi].getProperties()->getKspring()*(1-(i.L/interactionradius))*(i.L-rijmag);
+        m_particles[i.indexi].addPosition(-D/2,halfheight,halfwidth);
+        m_particles[i.indexj].addPosition(D/2,halfheight,halfwidth);   // HERE
       }
 
     }
@@ -604,7 +604,7 @@ void World::update(bool *updateinprogress) {
   //----------------------------------DOUBLEDENSITY------------------------------------------
 
 
-  count =0;
+  int count =0;
 
   //#pragma omp parallel for ordered
   for(int k = 0; k<(int)grid.size(); ++k)
@@ -702,9 +702,9 @@ void World::update(bool *updateinprogress) {
   if(!m_3d) smallen=1.0f;
 
 
-  for(int i=0; i<lastTakenParticle+1; ++i)
+  for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
-    if(particles[i].isAlive())
+    if(m_particles[i].getAlive())
     {
       // OpenMP <<---
       // MTSi parallelism for loop as prrallel as you can on an intel.
@@ -712,41 +712,41 @@ void World::update(bool *updateinprogress) {
       if(m_boundaryType==0)
       {
         //------------------------------------BOTTOM------------------------------
-        if(particles[i].getPosition()[1]-0.5f<-halfheight)
+        if(m_particles[i].getPosition()[1]-0.5f<-halfheight)
         {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],-halfheight+0.5f,particles[i].getPosition()[2]));
-          particles[i].setVelocity(Vec3(particles[i].getVelocity()[0],-0.8f*particles[i].getVelocity()[1],0.0f));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],-halfheight+0.5f,m_particles[i].getPosition()[2]));
+          m_particles[i].setVelocity(Vec3(m_particles[i].getVelocity()[0],-0.8f*m_particles[i].getVelocity()[1],0.0f));
         }
         //------------------------------------TOP------------------------------
 
-        if(particles[i].getPosition()[1]+1.5f>halfheight)
+        if(m_particles[i].getPosition()[1]+1.5f>halfheight)
         {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],halfheight-1.5f,particles[i].getPosition()[2]));
-          particles[i].addVelocity(Vec3(0.0f,-0.8f*particles[i].getVelocity()[1],0.0f));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],halfheight-1.5f,m_particles[i].getPosition()[2]));
+          m_particles[i].addVelocity(Vec3(0.0f,-0.8f*m_particles[i].getVelocity()[1],0.0f));
         }
 
         //------------------------------------RIGHT------------------------------
-        if(particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
+        if(m_particles[i].getPosition()[0]>(halfwidth-0.5f)*smallen)
         {
-          particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
-          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+          m_particles[i].setPosition(Vec3(smallen*(halfwidth-0.5f),m_particles[i].getPosition()[1],m_particles[i].getPosition()[2]));
+          m_particles[i].addVelocity(Vec3(-0.8f*m_particles[i].getVelocity()[0],0.0f));
         }
         //------------------------------------LEFT------------------------------
-        if(particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
+        if(m_particles[i].getPosition()[0]<(-halfwidth+0.5f)*smallen)
         {
-          particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),particles[i].getPosition()[1],particles[i].getPosition()[2]));
-          particles[i].addVelocity(Vec3(-0.8f*particles[i].getVelocity()[0],0.0f));
+          m_particles[i].setPosition(Vec3(smallen*(-halfwidth+0.5f),m_particles[i].getPosition()[1],m_particles[i].getPosition()[2]));
+          m_particles[i].addVelocity(Vec3(-0.8f*m_particles[i].getVelocity()[0],0.0f));
         }
 
-        if(particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
+        if(m_particles[i].getPosition()[2]<-2-(halfwidth+0.5f)*smallen)
         {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_particles[i].getPosition()[1],-2-(halfwidth+0.5)*smallen));
+          m_particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*m_particles[i].getVelocity()[2]));
         }
-        if(particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
+        if(m_particles[i].getPosition()[2]>-2+(halfwidth-0.5f)*smallen)
         {
-          particles[i].setPosition(Vec3(particles[i].getPosition()[0],particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*particles[i].getVelocity()[2]));
+          m_particles[i].setPosition(Vec3(m_particles[i].getPosition()[0],m_particles[i].getPosition()[1],-2+(halfwidth-0.5f)*smallen));
+          m_particles[i].addVelocity(Vec3(0.0f,0.0f,-0.8f*m_particles[i].getVelocity()[2]));
         }
       }
 
@@ -755,46 +755,46 @@ void World::update(bool *updateinprogress) {
 
         float fmult = 1.0f;
 
-        float distance = - particles[i].getPosition()[1] + halfheight - 0.5f;
+        float distance = - m_particles[i].getPosition()[1] + halfheight - 0.5f;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,-sqrt(fmult*force),0.0f));
+          m_particles[i].addVelocity(Vec3(0.0f,-sqrt(fmult*force),0.0f));
         }
 
-        distance = halfheight + particles[i].getPosition()[1];
+        distance = halfheight + m_particles[i].getPosition()[1];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,sqrt(fmult*force),0.0f));
+          m_particles[i].addVelocity(Vec3(0.0f,sqrt(fmult*force),0.0f));
         }
 
-        distance = particles[i].getPosition()[0] + halfwidth*smallen;
+        distance = m_particles[i].getPosition()[0] + halfwidth*smallen;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(sqrt(fmult*force),0.0f,0.0f));
+          m_particles[i].addVelocity(Vec3(sqrt(fmult*force),0.0f,0.0f));
         }
 
-        distance = halfwidth*smallen - particles[i].getPosition()[0];
+        distance = halfwidth*smallen - m_particles[i].getPosition()[0];
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(-sqrt(fmult*force),0.0f,0.0f));
+          m_particles[i].addVelocity(Vec3(-sqrt(fmult*force),0.0f,0.0f));
         }
 
-        distance = particles[i].getPosition()[2] - (-2-halfwidth*smallen);
+        distance = m_particles[i].getPosition()[2] - (-2-halfwidth*smallen);
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,0.0f,sqrt(fmult*force)));
+          m_particles[i].addVelocity(Vec3(0.0f,0.0f,sqrt(fmult*force)));
         }
 
-        distance = (-2+halfwidth*smallen) - particles[i].getPosition()[2] ;
+        distance = (-2+halfwidth*smallen) - m_particles[i].getPosition()[2] ;
         if(distance<(m_boundaryMultiplier*interactionradius))
         {
           float force = ((m_boundaryMultiplier*interactionradius)-distance)/(m_timestep*m_timestep);
-          particles[i].addVelocity(Vec3(0.0f,0.0f,-sqrt(fmult*force)));
+          m_particles[i].addVelocity(Vec3(0.0f,0.0f,-sqrt(fmult*force)));
         }
 
 
@@ -812,10 +812,10 @@ void World::update(bool *updateinprogress) {
 
   int howmany=howManyAliveParticles;
   if(howmany==0) howmany=1;
-  if(((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany) >0.5)
+  if(((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany) >0.5)
   {
-    std::cout<<"fraction: "<<((float)lastTakenParticle-(float)firstFreeParticle)/((float)howmany)<<std::endl;
-    std::cout<<"lasttaken: "<<lastTakenParticle<<"  firstfree: "<<firstFreeParticle<<std::endl;
+    std::cout<<"fraction: "<<((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany)<<std::endl;
+    std::cout<<"lasttaken: "<<m_lastTakenParticle<<"  firstfree: "<<m_firstFreeParticle<<std::endl;
   }
 
   /*
@@ -859,13 +859,13 @@ void World::hashParticles()
   std::vector<Particle *> newvector;
   grid.assign(gridSize,newvector);
   int grid_cell;
-  for(int i=0; i<lastTakenParticle+1; ++i)
+  for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
-    if(particles[i].isAlive())
+    if(m_particles[i].getAlive())
     {
-      float positionx = particles[i].getPosition()[0];
-      float positiony = particles[i].getPosition()[1];
-      float positionz = particles[i].getPosition()[2];
+      float positionx = m_particles[i].getPosition()[0];
+      float positiony = m_particles[i].getPosition()[1];
+      float positionz = m_particles[i].getPosition()[2];
 
       if(positionx<-halfwidth) positionx=halfwidth;
       else if (positionx>halfwidth) positionx=halfwidth;
@@ -882,12 +882,12 @@ void World::hashParticles()
 
       if(m_3d) grid_cell+=floor((positionz+halfwidth+2)/squaresize)*gridwidth*gridheight;
 
-      particles[i].setGridPosition(grid_cell);
+      m_particles[i].setGridPosition(grid_cell);
 
       if(grid_cell>=0 && grid_cell<gridSize)
       {
         cellsContainingParticles[grid_cell]=true;
-        grid[grid_cell].push_back(&particles[i]);
+        grid[grid_cell].push_back(&m_particles[i]);
       }
     }
   }
@@ -1154,17 +1154,17 @@ void World::mouseErase(int x, int y)
 
 void World::insertParticle(Particle particle)
 {
-  particles[firstFreeParticle]=particle;
-  particles[firstFreeParticle].setIndex(firstFreeParticle);
-  if(lastTakenParticle<firstFreeParticle)
+  m_particles[m_firstFreeParticle]=particle;
+  m_particles[m_firstFreeParticle].setIndex(m_firstFreeParticle);
+  if(m_lastTakenParticle<m_firstFreeParticle)
   {
-    ++lastTakenParticle;
-    ++firstFreeParticle;
+    ++m_lastTakenParticle;
+    ++m_firstFreeParticle;
   }
   else{
-    while(particles[firstFreeParticle].isAlive()==true)
+    while(m_particles[m_firstFreeParticle].getAlive()==true)
     {
-      ++firstFreeParticle;
+      ++m_firstFreeParticle;
     }
   }
   ++howManyAliveParticles;
@@ -1172,35 +1172,35 @@ void World::insertParticle(Particle particle)
 
 void World::deleteParticle(int p)
 {
-  particles[p].setAlive(false);
-  for(auto& i : particles[p].particleSprings)
+  m_particles[p].setAlive(false);
+  for(auto& i : m_particles[p].m_particleSprings)
   {
     deleteSpring(i);
   }
 
-  if(lastTakenParticle==p)
+  if(m_lastTakenParticle==p)
   {
-    while(particles[lastTakenParticle].isAlive()==false && lastTakenParticle>-1)
+    while(m_particles[m_lastTakenParticle].getAlive()==false && m_lastTakenParticle>-1)
     {
-      --lastTakenParticle;
+      --m_lastTakenParticle;
     }
   }
-  if(firstFreeParticle>p) firstFreeParticle=p;
+  if(m_firstFreeParticle>p) m_firstFreeParticle=p;
   --howManyAliveParticles;
 }
 
 void World::defragParticles()
 {
-  for(int i=lastTakenParticle; i>firstFreeParticle; --i)
+  for(int i=m_lastTakenParticle; i>m_firstFreeParticle; --i)
   {
-    if(particles[i].isAlive())
+    if(m_particles[i].getAlive())
     {
-      for(auto& j : particles[i].particleSprings)
+      for(auto& j : m_particles[i].m_particleSprings)
       {
-        if(springs[j].indexi==i) springs[j].indexi=firstFreeParticle;
-        else if(springs[j].indexj==i) springs[j].indexj=firstFreeParticle;
+        if(springs[j].indexi==i) springs[j].indexi=m_firstFreeParticle;
+        else if(springs[j].indexj==i) springs[j].indexj=m_firstFreeParticle;
       }
-      insertParticle(particles[i]);
+      insertParticle(m_particles[i]);
       deleteParticle(i);
     }
   }
@@ -1210,17 +1210,17 @@ void World::defragParticles()
 
 int World::insertSpring(Particle::Spring spring)
 {
-  int result = firstFreeSpring;
-  springs[firstFreeSpring]=spring;
-  if(lastTakenSpring<firstFreeSpring)
+  int result = m_firstFreeSpring;
+  springs[m_firstFreeSpring]=spring;
+  if(m_lastTakenSpring<m_firstFreeSpring)
   {
-    ++lastTakenSpring;
-    ++firstFreeSpring;
+    ++m_lastTakenSpring;
+    ++m_firstFreeSpring;
   }
   else{
-    while(springs[firstFreeSpring].alive)
+    while(springs[m_firstFreeSpring].alive)
     {
-      ++firstFreeSpring;
+      ++m_firstFreeSpring;
     }
   }
   return result;
@@ -1229,26 +1229,26 @@ int World::insertSpring(Particle::Spring spring)
 void World::deleteSpring(int s)
 {
   springs[s].alive=false;
-  particles[springs[s].indexi].updateSpringIndex(s,-1);
-  particles[springs[s].indexj].updateSpringIndex(s,-1);
-  if(lastTakenSpring==s)
+  m_particles[springs[s].indexi].updateSpringIndex(s,-1);
+  m_particles[springs[s].indexj].updateSpringIndex(s,-1);
+  if(m_lastTakenSpring==s)
   {
-    while(springs[lastTakenSpring].alive==false && lastTakenSpring>-1)
+    while(springs[m_lastTakenSpring].alive==false && m_lastTakenSpring>-1)
     {
-      --lastTakenSpring;
+      --m_lastTakenSpring;
     }
   }
-  if(firstFreeSpring>s) firstFreeSpring=s;
+  if(m_firstFreeSpring>s) m_firstFreeSpring=s;
 }
 
 void World::defragSprings()
 {
-  for(int i=lastTakenSpring; i>firstFreeSpring; --i)
+  for(int i=m_lastTakenSpring; i>m_firstFreeSpring; --i)
   {
     if(springs[i].alive)
     {
-      particles[springs[i].indexi].updateSpringIndex(i,firstFreeSpring);
-      particles[springs[i].indexj].updateSpringIndex(i,firstFreeSpring);
+      m_particles[springs[i].indexi].updateSpringIndex(i,m_firstFreeSpring);
+      m_particles[springs[i].indexj].updateSpringIndex(i,m_firstFreeSpring);
       insertSpring(springs[i]);
       deleteSpring(i);
     }
@@ -1274,16 +1274,16 @@ void World::toggleRain()
 
 void World::clearWorld()
 {
-  if(lastTakenParticle<0) lastTakenParticle=0;
-  for(int i=0; i<lastTakenParticle+1; ++i)
+  if(m_lastTakenParticle<0) m_lastTakenParticle=0;
+  for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
     deleteParticle(i);
   }
 
   hashParticles();
 
-  //if(lastTakenSpring<0) lastTakenSpring=0;
-  for(int i=0; i<lastTakenSpring+1; ++i)
+  //if(m_lastTakenSpring<0) m_lastTakenSpring=0;
+  for(int i=0; i<m_lastTakenSpring+1; ++i)
   {
     deleteSpring(i);
   }
@@ -1348,11 +1348,11 @@ std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
   }
 
   float rendersquare=squaresize/renderresolution;
-  for(int i=0; i<lastTakenParticle+1; ++i)
+  for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
-    if(particles[i].isAlive()&&(particles[i].getProperties()==p))
+    if(m_particles[i].getAlive()&&(m_particles[i].getProperties()==p))
     {
-      Vec3 heightwidth = getGridColumnRow(particles[i].getGridPosition())*renderresolution;
+      Vec3 heightwidth = getGridColumnRow(m_particles[i].getGridPosition())*renderresolution;
       for(int x = -2*renderresolution; x<=4*renderresolution; ++x)
       {
         for(int y = -2*renderresolution; y<=4*renderresolution ; ++y)
@@ -1366,8 +1366,8 @@ std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
             float currentx = rendersquare*(float)currentcolumn - halfwidth;
             float currenty = rendersquare*(float)currentrow - halfheight;
 
-            float metaballx = currentx-particles[i].getPosition()[0];
-            float metabally = currenty-particles[i].getPosition()[1];
+            float metaballx = currentx-m_particles[i].getPosition()[0];
+            float metabally = currenty-m_particles[i].getPosition()[1];
 
             float metaballfloat = (interactionradius*interactionradius)/(metaballx*metaballx + metabally*metabally);
 
@@ -1417,11 +1417,11 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
 
   float rendersquare=squaresize/render3dresolution;
 
-  for(int i=0; i<lastTakenParticle+1; ++i)
+  for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
-    if(particles[i].isAlive()&&(particles[i].getProperties()==p))
+    if(m_particles[i].getAlive()&&(m_particles[i].getProperties()==p))
     {
-      Vec3 heightwidthdepth = getGridXYZ(particles[i].getGridPosition())*render3dresolution; // 3Dify this
+      Vec3 heightwidthdepth = getGridXYZ(m_particles[i].getGridPosition())*render3dresolution; // 3Dify this
 
       for(int x = -2*render3dresolution; x<=4*render3dresolution; ++x)
       {
@@ -1443,9 +1443,9 @@ std::vector<std::vector<std::vector<float>>> World::render3dGrid(ParticlePropert
               float currenty = rendersquare*(float)currentrow - halfheight;
               float currentz = rendersquare*(float)currentdepth - 2 - halfwidth;
 
-              float metaballx = currentx-particles[i].getPosition()[0];
-              float metabally = currenty-particles[i].getPosition()[1];
-              float metaballz = currentz-particles[i].getPosition()[2];
+              float metaballx = currentx-m_particles[i].getPosition()[0];
+              float metabally = currenty-m_particles[i].getPosition()[1];
+              float metaballz = currentz-m_particles[i].getPosition()[2];
 
               float metaballfloat = (interactionradius*interactionradius)/(metaballx*metaballx + metabally*metabally + metaballz*metaballz);
               //std::cout<<metaballfloat<<std::endl;

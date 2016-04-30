@@ -44,42 +44,94 @@ public:
     World();
 
     /// A virtual destructor, in case we want to inherit from this class
-    virtual ~World();
+    ~World();
 
-    /// Initialises the scene, called before render().
-    virtual void init();
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief init Initialises the scene, called before render().
+    //----------------------------------------------------------------------------------------------------------------------
+    void init();
 
-    /// Called when the window size changes (for example, if the user maximises the window).
-    virtual void resizeWorld(int w, int h);
-    virtual void resizeWindow(int w, int h);
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief resizeWorld  resizes the spatial hash and world objects when window size changes
+    /// \param[in] _w       new window width in pixels
+    /// \param[in] _h       new window hieght in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void resizeWorld(int _w, int _h);
 
-    /// Called frequently, used if you are using some form of animation
-    virtual void update(bool *updateinprogress);
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief resizeWindow resizes the SDL window & OpenGL
+    /// \param[in] _w       new window width in pixels
+    /// \param[in] _h       new window hieght in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void resizeWindow(int _w, int _h);
 
-    /// Called most frequently, redraws the scene.
-    virtual void draw();
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief update                   updates the particles in the world according to SPH algorithms. Called in timer.
+    /// \param[out] o_updateinprogress  bool that is set when update is in progress
+    //----------------------------------------------------------------------------------------------------------------------
+    void update(bool *o_updateinprogress);
 
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief draw Draws the particles in the world either in spheres, marching cubes or squares
+    //----------------------------------------------------------------------------------------------------------------------
+    void draw();
 
-
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief getHalfHeight  returns half the height of the window in OpenGL coordinates
+    /// \return               value of half the height of the window
+    //----------------------------------------------------------------------------------------------------------------------
     float getHalfHeight() const;
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief getHalfWidth returns half the width of the window in OpenGL coordinates
+    /// \return             value of half the height of the window
+    //----------------------------------------------------------------------------------------------------------------------
     float getHalfWidth() const;
 
-    Vec3 getGridColumnRow(int k);
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief getGridColumnRow returns the grid's column and row number from the spatial hash number
+    /// \param[in] _k           spatial hash grid index
+    /// \return                 Vec3 with column as m_x, and row as m_y
+    //----------------------------------------------------------------------------------------------------------------------
+    Vec3 getGridColumnRow(int _k);
 
-
-
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief getSurroundingParticles  gets all particles in surrounding grids.
+    /// \param[in] _thiscell            the centre cell in which to search for surrounding particles from
+    /// \param[in] _numsur              how far out neightbouring particles can be (counted in grid squares)
+    ///                                 if numsur==1 then it would return all particles in 3x3 grid around thiscell
+    /// \param[in] _withwalls           if true will also include particles that are of wall type
+    /// \return                         returns vector of pointers to the surrounding particles
+    //----------------------------------------------------------------------------------------------------------------------
     std::vector<Particle *> getSurroundingParticles(int thiscell,int numsur, bool withwalls) const;
 
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief getbackhere  if particle is out of boundaries then it's position is changes so it is within boundaries
+    /// \param[inout] io_p  pointer to particle to check
+    //----------------------------------------------------------------------------------------------------------------------
+    void getbackhere(Particle * io_p);
 
-    void getbackhere(Particle * p);
-
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief handleKeys handles keyboard key inputs that affect the particles within the world
+    /// \param[in] _input the inputted key
+    //----------------------------------------------------------------------------------------------------------------------
     void handleKeys(char _input);
 
-    void vectorvslist();
-
-    void drawMenu();
-
     // SPRING AND PARTICLE MAINTENANCE
+
+    // Springs and Particles are stored in a pre-allocated vector of a certain size. When inserting we insert where
+    // we know is the first free particle. We store this attribute in world. As m_firstFreeParticle and
+    // m_firstFreeSpring. Once we inserted we find the next free particle and update this attribute. When deleting
+    // particles / springs we also update the first free particle or spring attribute if we delete one that is before
+    // the current first free particle / spring.
+
+    // We need to defrag the list so that all the alive particles / springs are together and all the dead ones are
+    // together also. As they can become fragmented when we delete particles / springs.
+
+    ///
+    /// \brief deleteSpring deletes a spring from the vector
+    /// \param s
+    ///
     void deleteSpring(int s);
     int insertSpring(Particle::Spring spring);
 
@@ -147,10 +199,10 @@ protected: // Protected means that it is accessible to derived classes
     double m_timestep;
 
     // PARTICLES
-    std::vector<Particle> particles;
-    int particlesPoolSize;
-    int firstFreeParticle;  // These two ints are needed for efficient insert and deletion
-    int lastTakenParticle;  // See: insertParticle() and deleteParticle()
+    std::vector<Particle> m_particles;
+    int m_particlesPoolSize;
+    int m_firstFreeParticle;  // These two ints are needed for efficient insert and deletion
+    int m_lastTakenParticle;  // See: insertParticle() and deleteParticle()
     int howManyAliveParticles;
     std::vector<ParticleProperties> m_particleTypes;
 
@@ -179,9 +231,9 @@ protected: // Protected means that it is accessible to derived classes
 
     // SPRING ATTRIBUTES
     std::vector<Particle::Spring> springs;
-    int firstFreeSpring;
-    int lastTakenSpring;
-    int springsize;
+    int m_firstFreeSpring;
+    int m_lastTakenSpring;
+    int m_springsize;
 
     // INTERACTION ATTRIBUTES
     bool rain;

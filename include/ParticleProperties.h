@@ -81,9 +81,17 @@ public:
   GLfloat getP0() const;
   bool getSpring() const;
   bool getColourEffect() const;
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief printVariables prints the attributes. Used when randomizing ParticleProperties.
+  //----------------------------------------------------------------------------------------------------------------------
   void printVariables() const;
 
-  void randomize(int _seed); // <--- very fun function
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief randomize  randomizes the attributes of the object
+  /// \param[in] _seed  the srand() input, same seed same, ParticleProperties attributes
+  //----------------------------------------------------------------------------------------------------------------------
+  void randomize(int _seed);
 
 private:
   GLfloat m_sigma, m_beta, m_gamma, m_alpha, m_knear, m_k, m_kspring, m_p0, m_red, m_green, m_blue, m_spring, m_coloureffect;

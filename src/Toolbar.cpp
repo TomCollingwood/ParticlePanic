@@ -4,7 +4,7 @@
 
 #include "include/Toolbar.h"
 
-void Toolbar::drawToolbar(int h) const
+void Toolbar::drawToolbar(int _h) const
 {
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
@@ -50,10 +50,10 @@ void Toolbar::drawToolbar(int h) const
   float halfheight = m_world->getHalfHeight();
   float halfwidth = m_world->getHalfWidth();
 
-  float Width = ((halfheight*2)/h)*65;
-  float Height = ((halfheight*2)/h)*50;
+  float Width = ((halfheight*2)/_h)*65;
+  float Height = ((halfheight*2)/_h)*50;
 
-  float gap = ((halfheight*2)/h)*5;
+  float gap = ((halfheight*2)/_h)*5;
 
   float X = -halfwidth;
   float Y = halfheight-Height-gap;
@@ -70,7 +70,7 @@ void Toolbar::drawToolbar(int h) const
   if(!m_world->getSnapshotMode())
   {
     // Button
-    if(draw)
+    if(m_draw)
       texX=0.4f;
     else
       texX=0.0f;
@@ -103,7 +103,7 @@ void Toolbar::drawToolbar(int h) const
     X+=Width+gap;
 
     // Button
-    if(erase)
+    if(m_erase)
       texX=0.4f;
     else
       texX=0.0f;
@@ -134,7 +134,7 @@ void Toolbar::drawToolbar(int h) const
     X+=Width+gap;
 
     // Button
-    if(drag)
+    if(m_drag)
       texX=0.4f;
     else
       texX=0.0f;
@@ -164,7 +164,7 @@ void Toolbar::drawToolbar(int h) const
     X+=Width+gap;
 
     // Button
-    if(tap)
+    if(m_tap)
       texX=0.4f;
     else
       texX=0.0f;
@@ -193,7 +193,7 @@ void Toolbar::drawToolbar(int h) const
 
     // -------------------GRAVITY -------------
     X+=Width+gap;
-    if(gravity)
+    if(m_gravity)
       texX=0.4;
     else
       texX=0.0f;
@@ -221,7 +221,7 @@ void Toolbar::drawToolbar(int h) const
 
     // -------------------CLEAR -------------
     X+=Width+gap;
-    if(clear)
+    if(m_clear)
       texX=0.4f;
     else
       texX=0.0f;
@@ -250,7 +250,7 @@ void Toolbar::drawToolbar(int h) const
 
     // -------------------HELP -------------
     X+=Width+gap;
-    if(help)
+    if(m_help)
       texX=0.4f;
     else
       texX=0.0f;
@@ -278,7 +278,7 @@ void Toolbar::drawToolbar(int h) const
 
     X+=Width*5+gap*6;
 
-    if(randomize)
+    if(m_randomize)
       texX=0.4f;
     else
       texX=0.0f;
@@ -306,7 +306,7 @@ void Toolbar::drawToolbar(int h) const
 
     X+=Width+gap;
 
-    Width=((halfheight*2)/h)*140;
+    Width=((halfheight*2)/_h)*140;
     texW=0.4;
     if(!m_dropdownopen)
     {
@@ -420,7 +420,7 @@ void Toolbar::drawToolbar(int h) const
 
       glBegin(GL_QUADS); // WATER
       glTexCoord2f(0, 0.65+texH*0.6); glVertex3f(X, Y, -1);
-      glTexCoord2f(0+texW, 0.65+texH*0.7); glVertex3f(X + Width, Y, -1);
+      glTexCoord2f(0+texW, 0.65+texH*0.6); glVertex3f(X + Width, Y, -1);
       glTexCoord2f(0+texW, 0.65); glVertex3f(X + Width, Y + Height*0.45, -1);
       glTexCoord2f(0, 0.65); glVertex3f(X, Y + Height*0.45, -1);
       glEnd();
@@ -497,8 +497,8 @@ void Toolbar::drawToolbar(int h) const
   texW = 74.0f/425.0f;
   texH = 0.1f;
 
-  Width = ((halfheight*2)/h)*65;
-  Height = ((halfheight*2)/h)*50;
+  Width = ((halfheight*2)/_h)*65;
+  Height = ((halfheight*2)/_h)*50;
 
   int prevX = X;
   int prevY = Y;
@@ -506,7 +506,7 @@ void Toolbar::drawToolbar(int h) const
   X=halfwidth-1.3;
   Y=-halfheight+0.2f;
 
-  if(camera)
+  if(m_camera)
     texX=0.4f;
   else
     texX=0.0f;
@@ -542,30 +542,29 @@ void Toolbar::drawToolbar(int h) const
   X=prevX;
   }
 
-  if(!m_world->getSnapshotMode()) this->drawNumbers(numbersX+((halfheight*2)/h)*8,numbersY+((halfheight*2)/h)*13,h,m_randomSeed);
+  if(!m_world->getSnapshotMode()) this->drawNumbers(numbersX+((halfheight*2)/_h)*8,numbersY+((halfheight*2)/_h)*13,_h,m_randomSeed);
 
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_LIGHTING);
 }
 
-bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
+bool Toolbar::handleClickDown(int _x, int _y, int _WIDTH, int _HEIGHT)
 {
 
   float halfwidth = m_world->getHalfWidth();
   float halfheight = m_world->getHalfHeight();
 
-  float Width = ((halfheight*2)/HEIGHT)*65;
-  float Height = ((halfheight*2)/HEIGHT)*50;
+  float Width = ((halfheight*2)/_HEIGHT)*65;
+  float Height = ((halfheight*2)/_HEIGHT)*50;
 
-  float gap = ((halfheight*2)/HEIGHT)*5;
+  float gap = ((halfheight*2)/_HEIGHT)*5;
 
   float startx = -halfwidth;
-  float Y = halfheight-Height-gap;
 
-  float worldx = ((float)x/(float)WIDTH)*(halfwidth*2) - halfwidth;
-  float worldy = - ((float)y/(float)HEIGHT)*(halfheight*2) + halfheight;
+  float worldx = ((float)_x/(float)_WIDTH)*(halfwidth*2) - halfwidth;
+  float worldy = - ((float)_y/(float)_HEIGHT)*(halfheight*2) + halfheight;
 
-  if(worldy>halfheight-(halfheight*(4.f/20.f)) && !m_world->getSnapshotMode())
+  if(worldy>halfheight-Height && !m_world->getSnapshotMode())
   {
     if(worldx>startx && worldx<startx+Width)  // draw
     {
@@ -603,7 +602,7 @@ bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
       return true;
     }
 
-    else if(worldx>startx+Width*6+gap*6 && worldx<startx+Width*7+gap*6) //help
+    else if(worldx>startx+Width*6+gap*6 && worldx<startx+Width*7+gap*6) //_help
     {
       pressHelp();
       return true;
@@ -615,7 +614,7 @@ bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
       return true;
     }
 
-    else if(worldx>startx+Width*11.4+gap*7 && worldx<startx+Width*12.4+gap*7) //help
+    else if(worldx>startx+Width*11.4+gap*7 && worldx<startx+Width*12.4+gap*7) //_help
     {
       pressRandomize();
       return true;
@@ -637,102 +636,102 @@ bool Toolbar::handleClickDown(int x, int y, int WIDTH, int HEIGHT)
 
 void Toolbar::handleClickUp()
 {
-  if (clickdownbutton==5) toggleBool(&clear);
-  if (clickdownbutton==6) toggleBool(&help);
-  if (clickdownbutton==8) toggleBool(&randomize);
-  if (clickdownbutton==9)
+  if (m_clickdownbutton==5) toggleBool(&m_clear);
+  if (m_clickdownbutton==6) toggleBool(&m_help);
+  if (m_clickdownbutton==8) toggleBool(&m_randomize);
+  if (m_clickdownbutton==9)
   {
-    toggleBool(&camera);
+    toggleBool(&m_camera);
     m_world->handleKeys('t');
   }
 }
 
-void Toolbar::toggleBool(bool *toggleme)
+void Toolbar::toggleBool(bool *io_toggleme)
 {
-  if(*toggleme) (*toggleme)=false;
-  else (*toggleme)=true;
+  if(*io_toggleme) (*io_toggleme)=false;
+  else (*io_toggleme)=true;
 }
 
 bool Toolbar::getDrag()
 {
-  return drag;
+  return m_drag;
 }
 
 bool Toolbar::getDraw()
 {
-  return draw;
+  return m_draw;
 }
 
 bool Toolbar::getHelp()
 {
-  return help;
+  return m_help;
 }
 
 bool Toolbar::getErase()
 {
-  return erase;
+  return m_erase;
 }
 
 void Toolbar::pressDraw()
 {
-  if(!draw) draw=true;
-  if(drag) drag=false;
-  if(erase) erase=false;
+  if(!m_draw) m_draw=true;
+  if(m_drag) m_drag=false;
+  if(m_erase) m_erase=false;
 }
 
 void Toolbar::pressErase()
 {
-  if(!erase) erase=true;
-  clickdownbutton=1;
-  if(draw) draw=false;
-  if(drag) drag=false;
+  if(!m_erase) m_erase=true;
+  m_clickdownbutton=1;
+  if(m_draw) m_draw=false;
+  if(m_drag) m_drag=false;
 }
 
 void Toolbar::pressDrag()
 {
-  toggleBool(&drag);
-  clickdownbutton=2;
-  if(draw) draw=false;
-  if(erase) erase=false;
+  toggleBool(&m_drag);
+  m_clickdownbutton=2;
+  if(m_draw) m_draw=false;
+  if(m_erase) m_erase=false;
 }
 
 void Toolbar::pressTap()
 {
-  toggleBool(&tap);
+  toggleBool(&m_tap);
   m_world->toggleRain();
-  clickdownbutton=3;
+  m_clickdownbutton=3;
 }
 
 void Toolbar::pressGravity()
 {
-  toggleBool(&gravity);
+  toggleBool(&m_gravity);
   m_world->toggleGravity();
-  clickdownbutton=4;
+  m_clickdownbutton=4;
 }
 
 void Toolbar::pressClear()
 {
-  toggleBool(&clear);
-  clickdownbutton=5;
+  toggleBool(&m_clear);
+  m_clickdownbutton=5;
   m_world->clearWorld();
 }
 
 void Toolbar::pressHelp()
 {
-  toggleBool(&help);
-  clickdownbutton=6;
+  toggleBool(&m_help);
+  m_clickdownbutton=6;
 }
 
 void Toolbar::pressDropDownMenu()
 {
   toggleBool(&m_dropdownopen);
-  clickdownbutton=7;
+  m_clickdownbutton=7;
 }
 
 void Toolbar::pressRandomize()
 {
-  toggleBool(&randomize);
-  clickdownbutton=8;
+  toggleBool(&m_randomize);
+  m_clickdownbutton=8;
   m_randomSeed.clear();
   for(int i=0; i<9; ++i)
   {
@@ -745,8 +744,8 @@ void Toolbar::pressRandomize()
 
 void Toolbar::pressCamera()
 {
-  clickdownbutton=9;
-  toggleBool(&camera);
+  m_clickdownbutton=9;
+  toggleBool(&m_camera);
 }
 
 void Toolbar::setWorld(World *_world)
@@ -795,13 +794,13 @@ void Toolbar::handleKeys(char _input)
   }
 }
 
-void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
+void Toolbar::drawNumbers(float _x, float _y, int _h, std::string _numbers) const
 {
 
   float halfheight = m_world->getHalfHeight();
 
-  float gap = ((halfheight*2)/h)*12;
-  float height = ((halfheight*2)/h)*23;
+  float gap = ((halfheight*2)/_h)*12;
+  float height = ((halfheight*2)/_h)*23;
 
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
@@ -833,7 +832,7 @@ void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  float currentx = x;
+  float currentx = _x;
 
   for(char&c : _numbers)
   {
@@ -842,91 +841,91 @@ void Toolbar::drawNumbers(float x, float y, int h, std::string _numbers) const
     case '1':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.1,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.1, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.1,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.1, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '2':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.1, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.2,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.2, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.1, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.1, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.2,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.2, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.1, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '3':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.2, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.3,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.3, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.2, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.2, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.3,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.3, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.2, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '4':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.3, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.4,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.4, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.3, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.3, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.4,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.4, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.3, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '5':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.4, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.5,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.5, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.4, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.4, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.5,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.5, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.4, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '6':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.5, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.6,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.6, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.5, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.5, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.6,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.6, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.5, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '7':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.6, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.7,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.7, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.6, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.6, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.7,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.7, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.6, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '8':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.7, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.8,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.8, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.7, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.7, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.8,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.8, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.7, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '9':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.8, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(0.9,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(0.9, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.8, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.8, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(0.9,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(0.9, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.8, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     case '0':
       glBegin(GL_QUADS);
       glColor3f(0.0f,0.0f,0.0f);
-      glTexCoord2f(0.9, 1); glVertex3f(currentx, y, -1);
-      glTexCoord2f(1,1); glVertex3f(currentx+gap, y, -1);
-      glTexCoord2f(1, 0); glVertex3f(currentx+gap, y+height, -1);
-      glTexCoord2f(0.9, 0); glVertex3f(currentx, y + height, -1);
+      glTexCoord2f(0.9, 1); glVertex3f(currentx, _y, -1);
+      glTexCoord2f(1,1); glVertex3f(currentx+gap, _y, -1);
+      glTexCoord2f(1, 0); glVertex3f(currentx+gap, _y+height, -1);
+      glTexCoord2f(0.9, 0); glVertex3f(currentx, _y + height, -1);
       glEnd();
       break;
     }
@@ -942,20 +941,20 @@ bool Toolbar::getdropdownopen()
   return m_dropdownopen;
 }
 
-void Toolbar::handleClickDropDown(int x, int y, int WIDTH, int HEIGHT)
+void Toolbar::handleClickDropDown(int _x, int _y, int _WIDTH, int _HEIGHT)
 {
   float halfwidth = m_world->getHalfWidth();
   float halfheight = m_world->getHalfHeight();
 
-  float Width = ((halfheight*2)/HEIGHT)*65;
-  float Height = ((halfheight*2)/HEIGHT)*50;
+  float Width = ((halfheight*2)/_HEIGHT)*65;
+  float Height = ((halfheight*2)/_HEIGHT)*50;
 
   float startx = -halfwidth;
 
   float gap = 0.1f;
 
-  float worldx = ((float)x/(float)WIDTH)*(halfwidth*2) - halfwidth;
-  float worldy = ((float)y/(float)HEIGHT)*(halfheight*2) - halfheight;
+  float worldx = ((float)_x/(float)_WIDTH)*(halfwidth*2) - halfwidth;
+  float worldy = ((float)_y/(float)_HEIGHT)*(halfheight*2) - halfheight;
   if(worldx<startx+Width*7+gap*7 || worldx>startx+Width*9.2+gap*7
      || worldy<-halfheight+Height+gap || worldy>-halfheight+5*Height+gap)
     pressDropDownMenu();
@@ -971,11 +970,13 @@ void Toolbar::handleClickDropDown(int x, int y, int WIDTH, int HEIGHT)
   }
   else if(worldy>-halfheight+Height*2+gap)
   {
+    std::cout<<"slime"<<std::endl;
     m_dropdownselect=1;
     pressDropDownMenu();
   }
   else if(worldy>-halfheight+Height*1+gap)
   {
+    std::cout<<"water"<<std::endl;
     m_dropdownselect=0;
     pressDropDownMenu();
   }

@@ -23,8 +23,6 @@
   //#include <GL/glut.h>
 #endif
 
-#include <signal.h>
-
 
 // Include the header file for our current World
 #include "include/Vec3.h"
@@ -137,11 +135,6 @@ Uint32 timerCallback(Uint32 interval, void *) {
     return interval;
 }
 
-void test( int something)
-{
-  std::cout<<"TROLOL"<<std::endl;
-}
-
 /**
  * @brief main The main opengl loop is managed here
  * @param argc Not used
@@ -149,9 +142,6 @@ void test( int something)
  * @return EXIT_SUCCESS if it went well!
  */
 int main( int argc, char* args[] ) {
-
-
-    signal(SIGABRT,test);
     //Start up SDL and create window
     if( initSDL() == EXIT_FAILURE ) return EXIT_FAILURE;
 

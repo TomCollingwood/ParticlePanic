@@ -31,35 +31,72 @@ class Toolbar
 {
 public:
   Toolbar() :
-    draw(true),
-    drag(false),
-    tap(false),
-    clear(false),
-    help(false),
-    gravity(true),
-    erase(false),
-    randomize(false),
-    camera(false),
+    m_draw(true),
+    m_drag(false),
+    m_tap(false),
+    m_clear(false),
+    m_help(false),
+    m_gravity(true),
+    m_erase(false),
+    m_randomize(false),
+    m_camera(false),
     m_dropdownopen(false),
     m_dropdownselect(0){}
 
-  void drawTitle(float halfheight, float halfwidth) const;
-  void drawToolbar(int h) const;
-  bool handleClickDown(int x, int y, int WIDTH, int HEIGHT);
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief drawToolbar  draws the toolbar on screen
+  /// \param _h           window height in pixels
+  //----------------------------------------------------------------------------------------------------------------------
+  void drawToolbar(int _h) const;
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief handleClickDown  handles click on the toolbar
+  /// \param[in] _x           x coordinate of mouse on screen in pixels
+  /// \param[in] _y           y coordinate of mouse on screen in pixels
+  /// \param[in] _WIDTH       width of window in pixels
+  /// \param[in] _HEIGHT      height of window in pixels
+  /// \return                 if click is on screen returns true else false
+  //----------------------------------------------------------------------------------------------------------------------
+  bool handleClickDown(int _x, int _y, int _WIDTH, int _HEIGHT);
+
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief handleClickUp  used when toolbar button only recesses while clicked down
+  //----------------------------------------------------------------------------------------------------------------------
   void handleClickUp();
 
-  void handleClickDropDown(int x, int y, int WIDTH, int HEIGHT);
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief handleClickDropDown  handles clicks on the dropdown menu
+  /// \param[in] _x           x coordinate of mouse on screen in pixels
+  /// \param[in] _y           y coordinate of mouse on screen in pixels
+  /// \param[in] _WIDTH       width of window in pixels
+  /// \param[in] _HEIGHT      height of window in pixels
+  //----------------------------------------------------------------------------------------------------------------------
+  void handleClickDropDown(int _x, int _y, int _WIDTH, int _HEIGHT);
 
-  void toggleBool(bool *toggleme);
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief toggleBool         toggles the bool
+  /// \param[inout] io_toggleme pointer to the bool to toggle
+  //----------------------------------------------------------------------------------------------------------------------
+  void toggleBool(bool *io_toggleme);
+
   bool getDrag();
   bool getDraw();
   bool getHelp();
   bool getErase();
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief getdropdownopen  returns bool saying whether the dropdown menu is open
+  /// \return                 bool saying whether the dropdown menu is open
+  //----------------------------------------------------------------------------------------------------------------------
   bool getdropdownopen();
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief setWorld   sets m_world to the pointer input
+  /// \param[in] _world the pointer to set m_world to
+  //----------------------------------------------------------------------------------------------------------------------
   void setWorld(World *_world);
 
+  // Functions below are called to toggle bools when button is pressed
   void pressDraw();
   void pressDrag();
   void pressErase();
@@ -71,20 +108,38 @@ public:
   void pressRandomize();
   void pressCamera();
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief removeNumber removes number from the seed for the randomised particle
+  //----------------------------------------------------------------------------------------------------------------------
   void removeNumber();
 
-  void drawNumbers(float x, float y, int h, std::string _numbers) const;
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief drawNumbers  draws the random seed numbers on screen
+  /// \param[in] _x       x coordinate of mouse on screen in pixels
+  /// \param[in] _y       y coordinate of mouse on screen in pixels
+  /// \param[in] _h       height of window in pixels
+  /// \param[in] _numbers numbers to draw
+  //----------------------------------------------------------------------------------------------------------------------
+  void drawNumbers(float _x, float _y, int _h, std::string _numbers) const;
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief handleKeys makes sure relevant keys affect the toolbar buttons
+  /// \param[in] _input the character to handle
+  //----------------------------------------------------------------------------------------------------------------------
   void handleKeys(char _input);
 
+  //----------------------------------------------------------------------------------------------------------------------
+  /// \brief addNumber  adds number to the random seed (in char form)
+  /// \param[in] _p     character to add
+  //----------------------------------------------------------------------------------------------------------------------
   void addNumber(char p);
 
 private:
-  bool draw, erase, drag, tap, gravity, clear, help, randomize, camera;
+  bool m_draw, m_erase, m_drag, m_tap, m_gravity, m_clear, m_help, m_randomize, m_camera;
   bool m_dropdownopen;
   int m_dropdownselect;
-  GLuint iconsTexture, titleTexture;
-  int clickdownbutton;
+  GLuint m_iconsTexture; //
+  int m_clickdownbutton; //
   World *m_world;
   std::string m_randomSeed;
 

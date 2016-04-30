@@ -1,15 +1,17 @@
-///
+//
 ///  @file Commands.cpp
 ///  @brief Command objects to be executed inside timerCallback in main.
 
 #include "include/Particle.h"
 
-void Particle::drawParticle(float pointsize)
+void Particle::drawParticle(const float _pointsize)
 {
-  if(!wall)
+  if(!m_wall)
   {
-    float fast=velocity.length()*5;
+    float fast=m_velocity.length()*5;
+
     if(fast>1.0f) fast=1.0f;
+
     if(m_properties->getColourEffect())
       glColor3f(m_properties->getRed()+fast,m_properties->getGreen()+fast,m_properties->getBlue()+fast);
     else
@@ -23,188 +25,148 @@ void Particle::drawParticle(float pointsize)
   glMatrixMode(GL_MODELVIEW);
 
   glPushMatrix();
-  glTranslatef(position[0], position[1], position[2]); // move back to focus of gluLookAt
+  glTranslatef(m_position[0], m_position[1], m_position[2]);
 
   GLUquadricObj *quadric;
   quadric = gluNewQuadric();
   gluQuadricDrawStyle(quadric, GLU_FILL );
-  gluSphere( quadric , 0.25*(pointsize/10.f) , 16 , 16 );
+  gluSphere( quadric , 0.25*(_pointsize/10.f) , 16 , 16 );
   gluDeleteQuadric(quadric);
 
   glPopMatrix();
 }
 
-void Particle::updatePosition(double elapsedtime, float halfheight, float halfwidth)
+void Particle::updatePosition(double _elapsedtime, float _halfheight, float _halfwidth)
 {
-  position+=velocity*elapsedtime;
+  m_position+=m_velocity*_elapsedtime;
 
 
-  if(position[0]>halfwidth-0.5f)
+  if(m_position[0]>_halfwidth-0.5f)
   {
-    position[0] = halfwidth-0.5f;
+    m_position[0] = _halfwidth-0.5f;
   }
-  else if(position[0]<-halfwidth+0.5f)
+  else if(m_position[0]<-_halfwidth+0.5f)
   {
-    position[0]= -halfwidth+0.5f;
+    m_position[0]= -_halfwidth+0.5f;
   }
-  if(position[1]<-halfheight+0.5f)
+  if(m_position[1]<-_halfheight+0.5f)
   {
-    position[1]=-halfheight+0.5f;
+    m_position[1]=-_halfheight+0.5f;
   }
-  else if (position[1]>halfheight-1.5f)
+  else if (m_position[1]>_halfheight-1.5f)
   {
-    position[1]=halfheight-1.5f;
+    m_position[1]=_halfheight-1.5f;
   }
-  if(position[2]>halfwidth-0.5f)
+  if(m_position[2]>_halfwidth-0.5f)
   {
-    position[2] = halfwidth-0.5f;
+    m_position[2] = _halfwidth-0.5f;
   }
-  else if(position[2]<-halfwidth+0.5f)
+  else if(m_position[2]<-_halfwidth+0.5f)
   {
-    position[2]= -halfwidth+0.5f;
+    m_position[2]= -_halfwidth+0.5f;
   }
   // */
 }
 
 Vec3 Particle::getPosition() const
 {
-  return position;
+  return m_position;
 }
 
-void Particle::setPosition(Vec3 pos)
+void Particle::setPosition(Vec3 _pos)
 {
-  position=pos;
+  m_position=_pos;
 }
 
-void Particle::setVelocity(Vec3 newvel)
+void Particle::setVelocity(Vec3 _newvel)
 {
-  velocity = newvel;
+  m_velocity = _newvel;
 }
 
 Vec3 Particle::getVelocity() const
 {
-  return velocity;
+  return m_velocity;
 }
 
-void Particle::clearForces()
+void Particle::addVelocity(Vec3 _addedvel)
 {
-  force=Vec3();
-}
-
-void Particle::applyGravity(float m_timestep)
-{
-  velocity+=Vec3(0.0f,-0.008*m_timestep,0.0f);
-}
-
-void Particle::setForce(Vec3 newforce)
-{
-  force=newforce;
-}
-
-void Particle::addForce(Vec3 addedforce)
-{
-  force+=addedforce;
-}
-
-Vec3 Particle::getForce() const
-{
-  return force;
-}
-
-bool Particle::collision(Particle p) const
-{
-  Vec3 difference = position - p.getPosition();
-
-  if(std::abs(difference[0])<0.5f && std::abs(difference[1])<0.5f)
-    return true;
-  else return false;
-}
-
-void Particle::addVelocity(Vec3 addedvel)
-{
-  velocity+=addedvel;
+  m_velocity+=_addedvel;
 }
 
 
-void Particle::addPosition(Vec3 pos, float halfheight, float halfwidth)
+void Particle::addPosition(Vec3 _pos, float _halfheight, float _halfwidth)
 {
-  if(pos[1]==0)
+  if(_pos[1]==0)
   {
-    //position[1]=(rand() % 100 - 50)/ 1000 ;
+    //m_position[1]=(rand() % 100 - 50)/ 1000 ;
   }
-  position+=pos;
+  m_position+=_pos;
 
-  if(position[0]>halfwidth-0.5f)
+  if(m_position[0]>_halfwidth-0.5f)
   {
-    position[0] = halfwidth-0.5f;
+    m_position[0] = _halfwidth-0.5f;
   }
-  else if(position[0]<-halfwidth+0.5f)
+  else if(m_position[0]<-_halfwidth+0.5f)
   {
-    position[0]= -halfwidth+0.5f;
+    m_position[0]= -_halfwidth+0.5f;
   }
-  if(position[1]<-halfheight+0.5f)
+  if(m_position[1]<-_halfheight+0.5f)
   {
-    position[1]=-halfheight+0.51f + (((float)(rand() %100) - 50) / 2500);
+    m_position[1]=-_halfheight+0.51f + (((float)(rand() %100) - 50) / 2500);
   }
-  else if (position[1]>halfheight-1.5f)
+  else if (m_position[1]>_halfheight-1.5f)
   {
-    position[1]=halfheight-1.5f;
+    m_position[1]=_halfheight-1.5f;
   }
-  if(position[2]>halfwidth-0.5f)
+  if(m_position[2]>_halfwidth-0.5f)
   {
-    position[2] = halfwidth-0.5f;
+    m_position[2] = _halfwidth-0.5f;
   }
-  else if(position[2]<-halfwidth+0.5f)
+  else if(m_position[2]<-_halfwidth+0.5f)
   {
-    position[2]= -halfwidth+0.5f;
+    m_position[2]= -_halfwidth+0.5f;
   }
   // */
 }
 
 void Particle::updatePrevPosition()
 {
-  prevPosition=Vec3(position[0],position[1],position[2]);
+  m_prevPosition=Vec3(m_position[0],m_position[1],m_position[2]);
 }
 
 Vec3 Particle::getPrevPosition() const
 {
-  return prevPosition;
+  return m_prevPosition;
 }
 
-bool Particle::operator ==(const Particle &_rhs) const
+void Particle::setGridPosition(int _p)
 {
-  if(position==_rhs.position && velocity==_rhs.velocity) return true;
-  else return false;
-}
-
-void Particle::setGridPosition(int p)
-{
-  gridPosition=p;
+  m_gridPosition=_p;
 }
 
 int Particle::getGridPosition() const
 {
-  return gridPosition;
+  return m_gridPosition;
 }
 
-void Particle::setDrag(bool drag)
+void Particle::setDrag(bool _drag)
 {
-  dragged=drag;
+  m_dragged=_drag;
 }
 
 bool Particle::getDrag() const
 {
-  return dragged;
+  return m_dragged;
 }
 
 bool Particle::getWall() const
 {
-  return wall;
+  return m_wall;
 }
 
-void Particle::setWall(bool newwall)
+void Particle::setWall(bool _newwall)
 {
-  wall=newwall;
+  m_wall=_newwall;
 }
 
 ParticleProperties *Particle::getProperties() const
@@ -232,19 +194,19 @@ bool Particle::isObject()
   return m_isPartOfObject;
 }
 
-void Particle::setAlive(bool i)
+void Particle::setAlive(bool _i)
 {
-  m_alive=i;
+  m_alive=_i;
 }
 
-bool Particle::isAlive()
+bool Particle::getAlive()
 {
   return m_alive;
 }
 
-void Particle::setIndex(int i)
+void Particle::setIndex(int _i)
 {
-  m_index=i;
+  m_index=_i;
 }
 
 int Particle::getIndex()
@@ -252,20 +214,15 @@ int Particle::getIndex()
   return m_index;
 }
 
-void Particle::updateSpringIndex(int from, int to)
+void Particle::updateSpringIndex(int _from, int _to)
 {
-  for(int i=0; i<(int)particleSprings.size(); ++i)
+  for(int i=0; i<(int)m_particleSprings.size(); ++i)
   {
-    if(particleSprings[i]==from)
+    if(m_particleSprings[i]==_from)
     {
-      if(to>-1) particleSprings[i]=to;
-      else particleSprings.erase(particleSprings.begin()+i);
+      if(_to>-1) m_particleSprings[i]=_to;
+      else m_particleSprings.erase(m_particleSprings.begin()+i);
       break;
     }
   }
-}
-
-void Particle::clearParticleSprings()
-{
-  particleSprings.clear();
 }
