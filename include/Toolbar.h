@@ -135,7 +135,7 @@ public:
   //----------------------------------------------------------------------------------------------------------------------
   void addNumber(char p);
 
-  void drawHelpScreen() const;
+  void drawHelpScreen(float _buttonwidth) const;
 
 private:
   bool m_draw, m_erase, m_drag, m_tap, m_gravity, m_clear, m_help, m_randomize, m_camera;

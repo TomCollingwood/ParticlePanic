@@ -172,49 +172,118 @@ public:
     void hashParticles();
 
     // INPUTS
-    bool isLeftButtonPressed();
-    void mouseDraw(int x, int y);
-    void mouseDrag(int x, int y);
-    void mouseErase(int x, int y);
-    void mouseDragEnd(int x, int y);
-    void selectDraggedParticles(int x, int y);
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief mouseDraw  creates particles at mouse location
+    /// \param[in] _x     x coordinate of mouse in pixels
+    /// \param[in] _y     y coordinate of mouse in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void mouseDraw(int _x, int _y);
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief mouseDrag  drags the m_draggedparticles to mouse location
+    /// \param[in] _x     x coordinate of mouse in pixels
+    /// \param[in] _y     y coordinate of mouse in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void mouseDrag(int _x, int _y);
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief mouseErase erases particles in grid square at mouse location
+    /// \param[in] _x     x coordinate of mouse in pixels
+    /// \param[in] _y     y coordinate of mouse in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void mouseErase(int _x, int _y);
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief mouseDragEnd called at end of a drag to calculate which direction to fling particles
+    /// \param[in] _x       x coordinate of mouse in pixels
+    /// \param[in] _y       y coordinate of mouse in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void mouseDragEnd(int _x, int _y);
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief selectDraggedParticles selects the particles to drag - called once at beginning of drag
+    /// \param[in] _x                 x coordinate of mouse in pixels
+    /// \param[in] _y                 y coordinate of mouse in pixels
+    //----------------------------------------------------------------------------------------------------------------------
+    void selectDraggedParticles(int _x, int _y);
 
     void toggleRain();
     void toggleGravity();
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief clearWorld deletes all particles in the world
+    //----------------------------------------------------------------------------------------------------------------------
     void clearWorld();
 
     void set3D(bool b);
     bool get3D();
 
-    void drawWith(int type);
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief drawWith   sets m_todraw to the input. m_todraw determines which particle type to draw, is index of m_particleTypes
+    /// \param[in] _type  value to set m_todraw to
+    //----------------------------------------------------------------------------------------------------------------------
+    void drawWith(int _type);
 
-    void mouseMove(const int &x, const int &y, bool leftclick, bool rightclick);
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief mouseMove  used to rotate world in 3D according to mouse movement
+    /// \param x          x position of mouse on screen in pixels
+    /// \param y          y position of mouse on screen in pixels
+    /// \param leftclick  true if left mouse button is pressed
+    /// \param rightclick true if right mouse button is pressed
+    //----------------------------------------------------------------------------------------------------------------------
+    void mouseMove(const int &x, const int &y, bool leftclick);
 
-    void drawchar();
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief setToDraw  used by Toolbar.h 's dropdown menu to set which particle type to draw with
+    /// \param _todraw    int to set m_todraw to
+    //----------------------------------------------------------------------------------------------------------------------
     void setToDraw(int _todraw);
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief setRandomType  randomizes the random type particle (m_particleTypes[3])
+    /// \param _randomSeed    seed to set srand() to
+    //----------------------------------------------------------------------------------------------------------------------
     void setRandomType(int _randomSeed);
 
     void makeParticlesBig();
     void makeParticlesSmall();
 
     // RENDER GRIDS
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief renderGrid creates a 2D vector containing floats that are calculated with a metaball function.
+    ///                   The grid is specific to the particle type. The grid is used to create marching squares.
+    /// \param p          ParticleProperties to create the grid for
+    /// \return           the render grid
+    //----------------------------------------------------------------------------------------------------------------------
     std::vector<std::vector<float>> renderGrid(ParticleProperties *p);
+
+    //----------------------------------------------------------------------------------------------------------------------
+    /// \brief render3dGrid creates a 3D vector containing floats that are calculated with a metaball function.
+    ///                     The grid is specific to the particle type. The grid is used to create marching cubes.
+    /// \param p            ParticleProperties to create the grid for
+    /// \return             the render grid
+    //----------------------------------------------------------------------------------------------------------------------
     std::vector<std::vector<std::vector<float>>> render3dGrid(ParticleProperties *p);
+
     Vec3 getGridXYZ(int k);
     int getrenderoption();
     void drawLoading();
 
+    /// called when down arrow is pressed - increases resolution of marching squares render
     void increase2DResolutionWORLD();
+
+    /// called when up arrow is pressed - increases resolution of marching squares render
     void decrease2DResolutionWORLD();
 
+    /// returns m_snapshotMode
     int getSnapshotMode();
 
-    // DRAWS A SQUARE OF m_particleType(todraw)
+    /// DRAWS A SQUARE OF m_particleTypes[todraw]
     void drawCube();
 
 
 
-protected: // Protected means that it is accessible to derived classes
+private:
     /// Keep track of whether this has been initialised - otherwise it won't be ready to draw!
     bool m_isInit;
 
@@ -271,12 +340,13 @@ protected: // Protected means that it is accessible to derived classes
     int m_previousmousex, m_previousmousey;
 
     // FUN PARTICLE TYPES
+    /// Determines which particle type to draw, is index of m_particleTypes
     int m_todraw;
     int m_howmanytimesrandomized;
 
     // 3D ATTRIBUTES
     bool m_3d;
-    float m_camerarotatey, m_camerarotatex, m_camerazoom;
+    float m_camerarotatey, m_camerarotatex;
     int m_snapshotMode;
 
     // BOUNDARYS

@@ -5,13 +5,7 @@ CONFIG += opengl
 INCLUDEPATH += .
 OBJECTS_DIR = obj
 
-QMAKE_CC = gcc
-QMAKE_CXX = g++
-
 QMAKE_CXXFLAGS += -std=c++11
-
-#QMAKE_CXXFLAGS += -fopenmp
-#LIBS += -fopenmp
 
 SOURCES += \
     src/Vec3.cpp \

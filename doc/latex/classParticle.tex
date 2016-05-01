@@ -1,0 +1,455 @@
+\hypertarget{classParticle}{\section{Particle Class Reference}
+\label{classParticle}\index{Particle@{Particle}}
+}
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+struct \hyperlink{structParticle_1_1spring}{spring}
+\end{DoxyCompactItemize}
+\subsection*{Public Types}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classParticle_a342eb4023785fdd39529f8ca5b994bff}{typedef struct \hyperlink{structParticle_1_1spring}{Particle\-::spring} {\bfseries Spring}}\label{classParticle_a342eb4023785fdd39529f8ca5b994bff}
+
+\end{DoxyCompactItemize}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classParticle_aed0e1cc39738cf096db2b4d5f9876ac4}{{\bfseries Particle} (const \hyperlink{classParticle}{Particle} \&\-\_\-p)=default}\label{classParticle_aed0e1cc39738cf096db2b4d5f9876ac4}
+
+\item 
+\hypertarget{classParticle_a26524259b848fff0b502f6b921eef46d}{{\bfseries Particle} (\hyperlink{classVec3}{Vec3} pos=\hyperlink{classVec3}{Vec3}(), \hyperlink{classParticleProperties}{Particle\-Properties} $\ast$\-\_\-properties=N\-U\-L\-L)}\label{classParticle_a26524259b848fff0b502f6b921eef46d}
+
+\item 
+void \hyperlink{classParticle_a229585bba32aeaa9d17f66312379c015}{draw\-Particle} (const float \-\_\-pointsize)
+\begin{DoxyCompactList}\small\item\em draw\-Particle draws the particle with glu\-Sphere \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_a308e091286c7c498080aa290243bf70d}{set\-Position} (const \hyperlink{classVec3}{Vec3} \-\_\-pos)
+\begin{DoxyCompactList}\small\item\em set\-Position sets the \hyperlink{classVec3}{Vec3} position of the particle \end{DoxyCompactList}\item 
+\hyperlink{classVec3}{Vec3} \hyperlink{classParticle_a471c13f167fe56ac9b5fbea5b66c07d1}{get\-Position} () const 
+\begin{DoxyCompactList}\small\item\em get\-Position returns the value of the \hyperlink{classVec3}{Vec3} position of the particle \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_add0cb538c87ab21ba3345595adaf810e}{add\-Position} (const \hyperlink{classVec3}{Vec3} \-\_\-pos, const float \-\_\-halfheight, const float \-\_\-halfwidth, bool is3\-D)
+\begin{DoxyCompactList}\small\item\em add\-Position adds a \hyperlink{classVec3}{Vec3} to current position \end{DoxyCompactList}\item 
+\hypertarget{classParticle_a6b0a3046a4ab31cf0f02f883eb57acec}{void \hyperlink{classParticle_a6b0a3046a4ab31cf0f02f883eb57acec}{update\-Prev\-Position} ()}\label{classParticle_a6b0a3046a4ab31cf0f02f883eb57acec}
+
+\begin{DoxyCompactList}\small\item\em update\-Prev\-Position updates the previous position of the particle to current position \end{DoxyCompactList}\item 
+\hyperlink{classVec3}{Vec3} \hyperlink{classParticle_aebf5efcc9e99de91af2d728180017d48}{get\-Prev\-Position} () const 
+\begin{DoxyCompactList}\small\item\em get\-Prev\-Position returns the previous position of the particle. Is needed to calculate particle's velocity. \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_ab91e3c3df102e08aa0394b2c7bd2df0e}{set\-Velocity} (const \hyperlink{classVec3}{Vec3} \-\_\-newvel)
+\begin{DoxyCompactList}\small\item\em set\-Velocity sets the \hyperlink{classVec3}{Vec3} velocity of the particle \end{DoxyCompactList}\item 
+\hyperlink{classVec3}{Vec3} \hyperlink{classParticle_a0fe52fbebe971ff5c4219f0ecf3b8941}{get\-Velocity} () const 
+\begin{DoxyCompactList}\small\item\em get\-Velocity returns the current velocity of the particle \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_af86bd61b41085f3bb390bb6ddc0734d7}{add\-Velocity} (const \hyperlink{classVec3}{Vec3} addedvel)
+\begin{DoxyCompactList}\small\item\em add\-Velocity adds a \hyperlink{classVec3}{Vec3} to current velocity of particle \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_ad316202f5c32510b970c2142c6ca65d1}{update\-Position} (double elapsedtime, float halfheight, float halfwidth, bool is3\-D)
+\begin{DoxyCompactList}\small\item\em update\-Position updates the position according to particle's velocity \end{DoxyCompactList}\item 
+int \hyperlink{classParticle_afcae0c2dba5f4158384448b9004ee88a}{get\-Grid\-Position} () const 
+\begin{DoxyCompactList}\small\item\em get\-Grid\-Position returns the spatial hash grid index \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_a4cb304dc5863a08d7f3d1c456bccb598}{set\-Grid\-Position} (int p)
+\begin{DoxyCompactList}\small\item\em set\-Grid\-Position sets the value inside the particle representing the spatial hash grid index \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_aa715f6f18f8257fb31a7755c18cfda22}{set\-Drag} (bool drag)
+\begin{DoxyCompactList}\small\item\em set\-Drag sets the drag bool which shows whether the particle is being dragged by the mouse or not \end{DoxyCompactList}\item 
+bool \hyperlink{classParticle_a57c96039de3e090bfd9fc3fcc5923ab0}{get\-Drag} () const 
+\begin{DoxyCompactList}\small\item\em get\-Drag sets the drag bool which shows whether the particle is being dragged by the mouse or not \end{DoxyCompactList}\item 
+bool \hyperlink{classParticle_af8a2db33e42e0e4ed3da7dfe04e67b05}{get\-Wall} () const 
+\begin{DoxyCompactList}\small\item\em get\-Wall returns the bool that shows whether the particle is static or not \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_a930c48cf6e8fe1212409f92c68774e0f}{set\-Wall} (bool newwall)
+\begin{DoxyCompactList}\small\item\em set\-Wall returns the bool that shows whether the particle is static or not \end{DoxyCompactList}\item 
+\hypertarget{classParticle_a96d696c7db5c7f96ee2d5d9fae5cee52}{void \hyperlink{classParticle_a96d696c7db5c7f96ee2d5d9fae5cee52}{set\-Is\-Object} ()}\label{classParticle_a96d696c7db5c7f96ee2d5d9fae5cee52}
+
+\begin{DoxyCompactList}\small\item\em set\-Is\-Object sets the object bool on the particle. This means it keeps it's springs and makes no new one. \end{DoxyCompactList}\item 
+bool \hyperlink{classParticle_aa4b116b621e88c3dd422520d6631e6d9}{is\-Object} ()
+\begin{DoxyCompactList}\small\item\em is\-Object returns the object bool on the particle. \end{DoxyCompactList}\item 
+\hypertarget{classParticle_a65da6bc58018b897087371b3db4606e9}{void \hyperlink{classParticle_a65da6bc58018b897087371b3db4606e9}{set\-Init} ()}\label{classParticle_a65da6bc58018b897087371b3db4606e9}
+
+\begin{DoxyCompactList}\small\item\em set\-Init m\-\_\-init is set when the particle's springs have been made. Is used only when particle is part of an object (m\-\_\-is\-Part\-Of\-Object==true); \end{DoxyCompactList}\item 
+bool \hyperlink{classParticle_ae1b9331af6c436952ebe3a748703355b}{is\-Init} ()
+\begin{DoxyCompactList}\small\item\em is\-Init returns the value of m\-\_\-init \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_ae84d5233185dda1df8d92b31988c5790}{set\-Alive} (bool \-\_\-i)
+\begin{DoxyCompactList}\small\item\em set\-Alive sets m\-\_\-alive to new bool. \end{DoxyCompactList}\item 
+bool \hyperlink{classParticle_aca953a26773ae228530de02c2becf6d7}{get\-Alive} ()
+\begin{DoxyCompactList}\small\item\em get\-Alive returns value of m\-\_\-alive \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_a984ce8220a48ee851bfaa443cc98ae96}{set\-Index} (int \-\_\-i)
+\begin{DoxyCompactList}\small\item\em set\-Index sets m\-\_\-index which is index of particle inside world's vector m\-\_\-particles \end{DoxyCompactList}\item 
+int \hyperlink{classParticle_a0cb31e8c8a445894f2f5b68b148135d2}{get\-Index} ()
+\begin{DoxyCompactList}\small\item\em get\-Index returns m\-\_\-index which is index of particle inside world's vector m\-\_\-particles \end{DoxyCompactList}\item 
+void \hyperlink{classParticle_ae82fd88a76aa1c0aaa6c6d2149401ed2}{update\-Spring\-Index} (int \-\_\-from, int \-\_\-to)
+\begin{DoxyCompactList}\small\item\em update\-Spring\-Index checks if there is a spring with index from and if so changes it to to if to == -\/1 then it deletes that spring index from particle\-Springs \end{DoxyCompactList}\item 
+\hyperlink{classParticleProperties}{Particle\-Properties} $\ast$ \hyperlink{classParticle_aa8d3d0b59174d90b174497a2b0eecf53}{get\-Properties} () const 
+\begin{DoxyCompactList}\small\item\em get\-Properties returns pointer to the \hyperlink{classParticleProperties}{Particle\-Properties} object the particle has \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classParticle_a915dc46195fba62472c8322976fb4c3f}{std\-::vector$<$ int $>$ \hyperlink{classParticle_a915dc46195fba62472c8322976fb4c3f}{m\-\_\-particle\-Springs}}\label{classParticle_a915dc46195fba62472c8322976fb4c3f}
+
+\begin{DoxyCompactList}\small\item\em particle\-Springs vector of spring indexes that the particle is attached to. It is public as we need to loop through these inside of world. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classParticle_add0cb538c87ab21ba3345595adaf810e}{\index{Particle@{Particle}!add\-Position@{add\-Position}}
+\index{add\-Position@{add\-Position}!Particle@{Particle}}
+\subsubsection[{add\-Position}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::add\-Position (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vec3}}]{\-\_\-pos, }
+\item[{const float}]{\-\_\-halfheight, }
+\item[{const float}]{\-\_\-halfwidth, }
+\item[{bool}]{is3\-D}
+\end{DoxyParamCaption}
+)}}\label{classParticle_add0cb538c87ab21ba3345595adaf810e}
+
+
+add\-Position adds a \hyperlink{classVec3}{Vec3} to current position 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-pos} & \hyperlink{classVec3}{Vec3} to add to particle's position \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-halfheight} & makes sure particle does not leave the boundaries \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-halfwidth} & makes sure particle does not leave the boundaries \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_af86bd61b41085f3bb390bb6ddc0734d7}{\index{Particle@{Particle}!add\-Velocity@{add\-Velocity}}
+\index{add\-Velocity@{add\-Velocity}!Particle@{Particle}}
+\subsubsection[{add\-Velocity}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::add\-Velocity (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vec3}}]{addedvel}
+\end{DoxyParamCaption}
+)}}\label{classParticle_af86bd61b41085f3bb390bb6ddc0734d7}
+
+
+add\-Velocity adds a \hyperlink{classVec3}{Vec3} to current velocity of particle 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-addedvel} & \hyperlink{classVec3}{Vec3} to add to particle's velocity \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_a229585bba32aeaa9d17f66312379c015}{\index{Particle@{Particle}!draw\-Particle@{draw\-Particle}}
+\index{draw\-Particle@{draw\-Particle}!Particle@{Particle}}
+\subsubsection[{draw\-Particle}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::draw\-Particle (
+\begin{DoxyParamCaption}
+\item[{const float}]{\-\_\-pointsize}
+\end{DoxyParamCaption}
+)}}\label{classParticle_a229585bba32aeaa9d17f66312379c015}
+
+
+draw\-Particle draws the particle with glu\-Sphere 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-pointsize} & size of sphere \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_aca953a26773ae228530de02c2becf6d7}{\index{Particle@{Particle}!get\-Alive@{get\-Alive}}
+\index{get\-Alive@{get\-Alive}!Particle@{Particle}}
+\subsubsection[{get\-Alive}]{\setlength{\rightskip}{0pt plus 5cm}bool Particle\-::get\-Alive (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classParticle_aca953a26773ae228530de02c2becf6d7}
+
+
+get\-Alive returns value of m\-\_\-alive 
+
+\begin{DoxyReturn}{Returns}
+m\-\_\-alive value 
+\end{DoxyReturn}
+\hypertarget{classParticle_a57c96039de3e090bfd9fc3fcc5923ab0}{\index{Particle@{Particle}!get\-Drag@{get\-Drag}}
+\index{get\-Drag@{get\-Drag}!Particle@{Particle}}
+\subsubsection[{get\-Drag}]{\setlength{\rightskip}{0pt plus 5cm}bool Particle\-::get\-Drag (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_a57c96039de3e090bfd9fc3fcc5923ab0}
+
+
+get\-Drag sets the drag bool which shows whether the particle is being dragged by the mouse or not 
+
+\begin{DoxyReturn}{Returns}
+drag bool 
+\end{DoxyReturn}
+\hypertarget{classParticle_afcae0c2dba5f4158384448b9004ee88a}{\index{Particle@{Particle}!get\-Grid\-Position@{get\-Grid\-Position}}
+\index{get\-Grid\-Position@{get\-Grid\-Position}!Particle@{Particle}}
+\subsubsection[{get\-Grid\-Position}]{\setlength{\rightskip}{0pt plus 5cm}int Particle\-::get\-Grid\-Position (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_afcae0c2dba5f4158384448b9004ee88a}
+
+
+get\-Grid\-Position returns the spatial hash grid index 
+
+\begin{DoxyReturn}{Returns}
+spatial hash index for particle 
+\end{DoxyReturn}
+\hypertarget{classParticle_a0cb31e8c8a445894f2f5b68b148135d2}{\index{Particle@{Particle}!get\-Index@{get\-Index}}
+\index{get\-Index@{get\-Index}!Particle@{Particle}}
+\subsubsection[{get\-Index}]{\setlength{\rightskip}{0pt plus 5cm}int Particle\-::get\-Index (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classParticle_a0cb31e8c8a445894f2f5b68b148135d2}
+
+
+get\-Index returns m\-\_\-index which is index of particle inside world's vector m\-\_\-particles 
+
+\begin{DoxyReturn}{Returns}
+bool value of m\-\_\-index 
+\end{DoxyReturn}
+\hypertarget{classParticle_a471c13f167fe56ac9b5fbea5b66c07d1}{\index{Particle@{Particle}!get\-Position@{get\-Position}}
+\index{get\-Position@{get\-Position}!Particle@{Particle}}
+\subsubsection[{get\-Position}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vec3} Particle\-::get\-Position (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_a471c13f167fe56ac9b5fbea5b66c07d1}
+
+
+get\-Position returns the value of the \hyperlink{classVec3}{Vec3} position of the particle 
+
+\begin{DoxyReturn}{Returns}
+\hyperlink{classVec3}{Vec3} position of particle 
+\end{DoxyReturn}
+\hypertarget{classParticle_aebf5efcc9e99de91af2d728180017d48}{\index{Particle@{Particle}!get\-Prev\-Position@{get\-Prev\-Position}}
+\index{get\-Prev\-Position@{get\-Prev\-Position}!Particle@{Particle}}
+\subsubsection[{get\-Prev\-Position}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vec3} Particle\-::get\-Prev\-Position (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_aebf5efcc9e99de91af2d728180017d48}
+
+
+get\-Prev\-Position returns the previous position of the particle. Is needed to calculate particle's velocity. 
+
+\begin{DoxyReturn}{Returns}
+\hyperlink{classVec3}{Vec3} of previous position 
+\end{DoxyReturn}
+\hypertarget{classParticle_aa8d3d0b59174d90b174497a2b0eecf53}{\index{Particle@{Particle}!get\-Properties@{get\-Properties}}
+\index{get\-Properties@{get\-Properties}!Particle@{Particle}}
+\subsubsection[{get\-Properties}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Particle\-Properties}$\ast$ Particle\-::get\-Properties (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_aa8d3d0b59174d90b174497a2b0eecf53}
+
+
+get\-Properties returns pointer to the \hyperlink{classParticleProperties}{Particle\-Properties} object the particle has 
+
+\begin{DoxyReturn}{Returns}
+$\ast$\-Particle\-Properties of the particle 
+\end{DoxyReturn}
+\hypertarget{classParticle_a0fe52fbebe971ff5c4219f0ecf3b8941}{\index{Particle@{Particle}!get\-Velocity@{get\-Velocity}}
+\index{get\-Velocity@{get\-Velocity}!Particle@{Particle}}
+\subsubsection[{get\-Velocity}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vec3} Particle\-::get\-Velocity (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_a0fe52fbebe971ff5c4219f0ecf3b8941}
+
+
+get\-Velocity returns the current velocity of the particle 
+
+\begin{DoxyReturn}{Returns}
+\hyperlink{classVec3}{Vec3} velocity of particle 
+\end{DoxyReturn}
+\hypertarget{classParticle_af8a2db33e42e0e4ed3da7dfe04e67b05}{\index{Particle@{Particle}!get\-Wall@{get\-Wall}}
+\index{get\-Wall@{get\-Wall}!Particle@{Particle}}
+\subsubsection[{get\-Wall}]{\setlength{\rightskip}{0pt plus 5cm}bool Particle\-::get\-Wall (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classParticle_af8a2db33e42e0e4ed3da7dfe04e67b05}
+
+
+get\-Wall returns the bool that shows whether the particle is static or not 
+
+\begin{DoxyReturn}{Returns}
+the wall bool 
+\end{DoxyReturn}
+\hypertarget{classParticle_ae1b9331af6c436952ebe3a748703355b}{\index{Particle@{Particle}!is\-Init@{is\-Init}}
+\index{is\-Init@{is\-Init}!Particle@{Particle}}
+\subsubsection[{is\-Init}]{\setlength{\rightskip}{0pt plus 5cm}bool Particle\-::is\-Init (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classParticle_ae1b9331af6c436952ebe3a748703355b}
+
+
+is\-Init returns the value of m\-\_\-init 
+
+\begin{DoxyReturn}{Returns}
+m\-\_\-init bool value 
+\end{DoxyReturn}
+\hypertarget{classParticle_aa4b116b621e88c3dd422520d6631e6d9}{\index{Particle@{Particle}!is\-Object@{is\-Object}}
+\index{is\-Object@{is\-Object}!Particle@{Particle}}
+\subsubsection[{is\-Object}]{\setlength{\rightskip}{0pt plus 5cm}bool Particle\-::is\-Object (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classParticle_aa4b116b621e88c3dd422520d6631e6d9}
+
+
+is\-Object returns the object bool on the particle. 
+
+\begin{DoxyReturn}{Returns}
+bool that shows whether particle is an object 
+\end{DoxyReturn}
+\hypertarget{classParticle_ae84d5233185dda1df8d92b31988c5790}{\index{Particle@{Particle}!set\-Alive@{set\-Alive}}
+\index{set\-Alive@{set\-Alive}!Particle@{Particle}}
+\subsubsection[{set\-Alive}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Alive (
+\begin{DoxyParamCaption}
+\item[{bool}]{\-\_\-i}
+\end{DoxyParamCaption}
+)}}\label{classParticle_ae84d5233185dda1df8d92b31988c5790}
+
+
+set\-Alive sets m\-\_\-alive to new bool. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-i} & bool to set m\-\_\-alive to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_aa715f6f18f8257fb31a7755c18cfda22}{\index{Particle@{Particle}!set\-Drag@{set\-Drag}}
+\index{set\-Drag@{set\-Drag}!Particle@{Particle}}
+\subsubsection[{set\-Drag}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Drag (
+\begin{DoxyParamCaption}
+\item[{bool}]{drag}
+\end{DoxyParamCaption}
+)}}\label{classParticle_aa715f6f18f8257fb31a7755c18cfda22}
+
+
+set\-Drag sets the drag bool which shows whether the particle is being dragged by the mouse or not 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-drag} & the bool to set m\-\_\-drag to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_a4cb304dc5863a08d7f3d1c456bccb598}{\index{Particle@{Particle}!set\-Grid\-Position@{set\-Grid\-Position}}
+\index{set\-Grid\-Position@{set\-Grid\-Position}!Particle@{Particle}}
+\subsubsection[{set\-Grid\-Position}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Grid\-Position (
+\begin{DoxyParamCaption}
+\item[{int}]{p}
+\end{DoxyParamCaption}
+)}}\label{classParticle_a4cb304dc5863a08d7f3d1c456bccb598}
+
+
+set\-Grid\-Position sets the value inside the particle representing the spatial hash grid index 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-p} & int to set the index to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_a984ce8220a48ee851bfaa443cc98ae96}{\index{Particle@{Particle}!set\-Index@{set\-Index}}
+\index{set\-Index@{set\-Index}!Particle@{Particle}}
+\subsubsection[{set\-Index}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Index (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-i}
+\end{DoxyParamCaption}
+)}}\label{classParticle_a984ce8220a48ee851bfaa443cc98ae96}
+
+
+set\-Index sets m\-\_\-index which is index of particle inside world's vector m\-\_\-particles 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-i} & new value of m\-\_\-index to be set \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_a308e091286c7c498080aa290243bf70d}{\index{Particle@{Particle}!set\-Position@{set\-Position}}
+\index{set\-Position@{set\-Position}!Particle@{Particle}}
+\subsubsection[{set\-Position}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Position (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vec3}}]{\-\_\-pos}
+\end{DoxyParamCaption}
+)}}\label{classParticle_a308e091286c7c498080aa290243bf70d}
+
+
+set\-Position sets the \hyperlink{classVec3}{Vec3} position of the particle 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em pos} & position to be set to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_ab91e3c3df102e08aa0394b2c7bd2df0e}{\index{Particle@{Particle}!set\-Velocity@{set\-Velocity}}
+\index{set\-Velocity@{set\-Velocity}!Particle@{Particle}}
+\subsubsection[{set\-Velocity}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Velocity (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vec3}}]{\-\_\-newvel}
+\end{DoxyParamCaption}
+)}}\label{classParticle_ab91e3c3df102e08aa0394b2c7bd2df0e}
+
+
+set\-Velocity sets the \hyperlink{classVec3}{Vec3} velocity of the particle 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-newvel} & \hyperlink{classVec3}{Vec3} velocity to set particle's velocity \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_a930c48cf6e8fe1212409f92c68774e0f}{\index{Particle@{Particle}!set\-Wall@{set\-Wall}}
+\index{set\-Wall@{set\-Wall}!Particle@{Particle}}
+\subsubsection[{set\-Wall}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::set\-Wall (
+\begin{DoxyParamCaption}
+\item[{bool}]{newwall}
+\end{DoxyParamCaption}
+)}}\label{classParticle_a930c48cf6e8fe1212409f92c68774e0f}
+
+
+set\-Wall returns the bool that shows whether the particle is static or not 
+
+
+\begin{DoxyParams}{Parameters}
+{\em newwall} & the bool to set m\-\_\-wall to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_ad316202f5c32510b970c2142c6ca65d1}{\index{Particle@{Particle}!update\-Position@{update\-Position}}
+\index{update\-Position@{update\-Position}!Particle@{Particle}}
+\subsubsection[{update\-Position}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::update\-Position (
+\begin{DoxyParamCaption}
+\item[{double}]{elapsedtime, }
+\item[{float}]{halfheight, }
+\item[{float}]{halfwidth, }
+\item[{bool}]{is3\-D}
+\end{DoxyParamCaption}
+)}}\label{classParticle_ad316202f5c32510b970c2142c6ca65d1}
+
+
+update\-Position updates the position according to particle's velocity 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-elapsedtime} & multiplies the velocity according to this timestep \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-halfheight} & makes sure particle does not leave the boundaries \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-halfwidth} & makes sure particle does not leave the boundaries \\
+\hline
+\end{DoxyParams}
+\hypertarget{classParticle_ae82fd88a76aa1c0aaa6c6d2149401ed2}{\index{Particle@{Particle}!update\-Spring\-Index@{update\-Spring\-Index}}
+\index{update\-Spring\-Index@{update\-Spring\-Index}!Particle@{Particle}}
+\subsubsection[{update\-Spring\-Index}]{\setlength{\rightskip}{0pt plus 5cm}void Particle\-::update\-Spring\-Index (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-from, }
+\item[{int}]{\-\_\-to}
+\end{DoxyParamCaption}
+)}}\label{classParticle_ae82fd88a76aa1c0aaa6c6d2149401ed2}
+
+
+update\-Spring\-Index checks if there is a spring with index from and if so changes it to to if to == -\/1 then it deletes that spring index from particle\-Springs 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-from} & index of spring to change \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-to} & index of spring to change to \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{Particle_8h}{Particle.\-h}\end{DoxyCompactItemize}

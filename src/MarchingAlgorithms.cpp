@@ -161,15 +161,16 @@ void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vec
                 {
                   for(int da=-1; da<2; ++da)
                   {
+                    if(w+wa<render3dwidth && w+wa>=0 &&
+                       h+ha<render3dheight && h+ha>=0 &&
+                       d+da<render3ddepth && d+da>=0)
+                    {
                       for(int p=0; p<m_snapshot3DTriangles[w+wa][h+ha][d+da].size(); p+=7)
                       {
                         for(int l=1; l<7; l+=2)
                         {
                           //std::cout<<"HERE3"<<std::endl;
-                          if(w+wa<render3dwidth && w+wa>=0 &&
-                             h+ha<render3dheight && h+ha>=0 &&
-                             d+da<render3ddepth && d+da>=0 &&
-                             !(da==0 && wa==0 && da==0 && (k+j==p+l)))
+                          if(!(da==0 && wa==0 && da==0 && (k+j==p+l)))
                           {
                             //std::cout<<"HERE2"<<std::endl;
                             if(m_snapshot3DTriangles[w+wa][h+ha][d+da][p+l+1]==m_snapshot3DTriangles[w][h][d][k+j+1])
@@ -180,6 +181,7 @@ void MarchingAlgorithms::calculateMarchingCubes(std::vector<std::vector<std::vec
                           }
                         }
                       }
+                    }
                   }
                 }
               }

@@ -24,7 +24,7 @@ World::World() :
   m_particlesPoolSize(5000),
   m_3d(false),
   m_boundaryMultiplier(1.0f),
-  m_boundaryType(2),
+  m_boundaryType(2),  // Have a go at changing if you want (values 0, 1, 2)
   m_snapshotmultiplier(4)
 {
 }
@@ -36,13 +36,12 @@ void World::init() {
 
   if (m_isInit) return;
 
+
   glEnable(GL_TEXTURE_2D);
 
-  // Enable counter clockwise face ordering
-  glFrontFace(GL_CCW); // front face - determines normal in order you specify vertices
+  glFrontFace(GL_CCW);
 
-  //glEnable(GL_LIGHTING);
-  glEnable(GL_LIGHTING); // no longer need normals or lights
+  glEnable(GL_LIGHTING);
   glEnable(GL_NORMALIZE);
   glEnable(GL_LIGHT0);
   glEnable(GL_LIGHT_MODEL_AMBIENT);
@@ -50,22 +49,13 @@ void World::init() {
   GLfloat ambientColor[] = {0.2f, 0.2f, 0.2f, 1.0f}; //Color(0.2, 0.2, 0.2)
   glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambientColor);
 
-  // Make our points lovely and smooth
-  glEnable( GL_POINT_SMOOTH );
   glEnable( GL_MULTISAMPLE_ARB);
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_POINT_SIZE);
   glEnable(GL_COLOR_MATERIAL);
   glPointSize(m_pointsize);
 
   // Set the background colour
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-
-  // Set our start time by using the gettimeofday function (accurate to 10 nanosecs)
-  struct timeval tim;
-  gettimeofday(&tim, NULL);
-  m_startTime = tim.tv_sec+(tim.tv_usec * 1e-6);
-  srand (time(NULL));
 
   m_particles.clear();
   m_springs.clear();
@@ -85,17 +75,12 @@ void World::init() {
 
   // DEFAULT PARTICLE PROPERTIES
   m_particleTypes.push_back(ParticleProperties()); //water
-  m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.2f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //slime
-  m_particleTypes.push_back(ParticleProperties(false,0.3f,0.2f,0.004f,0.01f,0.01f,0.004f,0.3f,10.0f,0.8f,0.52f,0.25f,false)); //blobby
+  m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.2f,0.01f,0.004f,0.3f,10.0f,0.1f,0.3f,0.1f,true)); //slime
+  m_particleTypes.push_back(ParticleProperties(false,0.303f,0.2952f,0.004f,0.2f,0.096337f,0.0787213f,0.3f,2.957f,0.2f,0.52f,0.8f,true)); //blobby
   m_particleTypes.push_back(ParticleProperties()); //random
   m_particleTypes.push_back(ParticleProperties(true,0.3f,0.2f,0.004f,0.2f,0.01f,0.004f,0.7f,10.0f,0.8f,0.52f,0.25f,false)); // cube
                                               //     sig, bet, gamma,alph, knear, k,   kspri,p0,  red,  green,  blue
 
-  //water=ParticleProperties(true, 0.6f,0.8f,0.4,0.8f,0.01f,0.004,0.3,10.0f,0.5f,0.27f,0.07f,false);
-  //water=ParticleProperties(false,0.0175,0.3472,0.0004,0.3,0.007336,0.0038962,0.3,2.368,0.1f,0.5,0.8f,true);
-
-  //random=ParticleProperties();
-  //random.randomize();
   m_todraw=0; // This is the liquid to draw (tap or mouse)
 
   m_previousmousex=-10;
@@ -104,44 +89,13 @@ void World::init() {
   m_camerarotatey=0.0f;
   m_camerarotatex=0.0f;
 
-  //m_marching = new MarchingAlgorithms(m_mainrender2dthreshold, m_mainrender3dthreshold);
-
-  // create start two blocks of particles
-  /*
-    for(int i = 0; i<10; ++i)
-    {
-      for(int j=0; j<10; ++j)
-      {
-        Particle newparticle = Particle(Vec3(-3.0f+i*0.1f,3.0f-j*0.1f,-2.0f),&m_particleTypes[m_todraw]);
-        newparticle.setIsObject();
-        insertParticle(newparticle);
-      }
-    }
-    */
-
-
-
-  /*
-    for(int i = 0; i<10; ++i)
-    {
-      for(int j=0; j<10; ++j)
-        particles.push_back(Particle(Vec3(3.0f+i*0.2f,3.0f-j*0.2f)));
-    }
-    for(auto& i : particles)
-      i.addVelocity(Vec3(((float)(rand() % 100 - 50)*0.001f),((float)(rand() % 10000 - 50))*0.001f));
-*/
-
   m_isInit = true;
 }
 
-/**
- * @brief World::resize needs to set up the camera paramaters (i.e. projection matrix) and the viewport
- * @param w Width of window
- * @param h Height of window
- */
-
 void World::resizeWorld(int w, int h)
 {
+  // I have to clear world otherwise will crash when marching cubes are being rendered
+  clearWorld();
   m_pixelheight=h;
   m_pixelwidth=w;
 
@@ -165,7 +119,7 @@ void World::resizeWorld(int w, int h)
   }
   else
   {
-    if(m_marching.getSnapshotMode())
+    if(m_marching.getSnapshotMode()==3)
     {
       handleKeys('t');
     }
@@ -179,57 +133,12 @@ void World::resizeWorld(int w, int h)
   m_render3dwidth=m_gridwidth*m_render3dresolution;
   m_render3dheight=m_gridheight*m_render3dresolution;
 
-  // GHOST PARTICLES
-
-  //particles.push_back(Particle(Vec3(0.0f,0.0f,-2.0f),m_todraw));
-  //particles.back().setWall(true);
-
-  /*
-
-  int density = 70;
-  float gap = (halfwidth*2)/(float)density;
-  int prevm_todraw=m_todraw;
-  int m_todraw=0;
-  for(int i = 0; i<density+1; ++i)
-  {
-    for(int j=0; j<3; ++j)
-    {
-      Particle newparticle = Particle(Vec3(-halfwidth+i*gap,-halfheight+0.5f-j*gap,-2.0f),&m_particleTypes[m_todraw]);
-      newparticle.setWall(true);
-      insertParticle(newparticle);
-    }
-  }
-
-  density = 50;
-  gap = (halfheight*2)/(float)density;
-  for(int i = 0; i<density+1; ++i)
-  {
-    for(int j=0; j<3; ++j)
-    {
-      Particle newparticle = Particle(Vec3(-halfwidth-j*gap,-halfheight+i*gap,-2.0f),&m_particleTypes[m_todraw]);
-      newparticle.setWall(true);
-      insertParticle(newparticle);
-    }
-  }
-
-  density = 80;
-  gap = (halfheight*2)/(float)density;
-  for(int i = 0; i<density+1; ++i)
-  {
-    for(int j=0; j<3; ++j)
-    {
-      Particle newparticle = Particle(Vec3(halfwidth+j*gap,-halfheight+i*gap,-2.0f),&m_particleTypes[m_todraw]);
-      newparticle.setWall(true);
-      insertParticle(newparticle);
-    }
-  }
-  m_todraw=prevm_todraw;
-  // */
   hashParticles();
 
 }
 
 void World::resizeWindow(int w, int h) {
+
   m_howmanytimesrandomized=0;
   if (!m_isInit) return;
 
@@ -255,19 +164,15 @@ void World::resizeWindow(int w, int h) {
                                  m_render2DResolution,m_render3dresolution,m_halfwidth,m_halfheight,
                                  m_snapshotmultiplier);
 
+  }
 
-}
-
-/**
- * @brief World::draw draws the World to the current GL context. Called a lot - make this fast!
- */
 void World::draw() {
   if (!m_isInit) return;
 
   glMatrixMode(GL_MODELVIEW);
 
   bool current_3d=m_3d;
-  if(current_3d )
+  if(current_3d && m_marching.getSnapshotMode()!=1)
   {
     glPushMatrix();
     glTranslatef(0.0f,2.0f,-10.0f);
@@ -347,10 +252,6 @@ void World::draw() {
   if(current_3d) glPopMatrix();
 }
 
-
-/**
- * @brief World::update updates the World based on a timer. Used for animation.
- */
 void World::update(bool *updateinprogress) {
   if (!m_isInit) return;
   *updateinprogress = true;
@@ -411,8 +312,10 @@ void World::update(bool *updateinprogress) {
   if(m_gravity)
   {
     Vec3 gravityvel = Vec3(0.0f,-0.008*m_timestep,0.0f);
-    //gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
-    // PARALLEL
+
+    // The line below rotates the gravity when in 3D according to how far you tip the box.
+    // gravityvel.rotateAroundXAxisf(-m_camerarotatey*(M_PI/180.0f));
+
     for(int i=0; i<m_lastTakenParticle+1; ++i)
     {
       if(m_particles[i].getAlive()) m_particles[i].addVelocity(gravityvel);
@@ -439,16 +342,15 @@ void World::update(bool *updateinprogress) {
         {
           if(cloo>ploo && !(j->getWall()))
           {
-            Vec3 rij=(j->getPosition()-i->getPosition()); //THFP
-            //std::cout<<rij[2]<<std::endl;
+            Vec3 rij=(j->getPosition()-i->getPosition());
             float q = rij.length()/m_interactionradius;
             if(q<1 && q!=0)
             {
               rij.normalize();
-              float u = (i->getVelocity()-j->getVelocity()).dot(rij); //THFP
+              float u = (i->getVelocity()-j->getVelocity()).dot(rij);
               if(u>0)
               {
-                ParticleProperties *thisproperties = i->getProperties(); // fiddle with this!!!
+                ParticleProperties *thisproperties = i->getProperties();
                 float sig = thisproperties->getSigma();
                 float bet = thisproperties->getBeta();
                 Vec3 impulse = rij*((1-q)*(sig*u + bet*u*u))*m_timestep;
@@ -476,15 +378,13 @@ void World::update(bool *updateinprogress) {
     {
       m_particles[i].updatePrevPosition();
       if(!(m_particles[i].getDrag())&&!(m_particles[i].getWall()))
-        m_particles[i].updatePosition(m_timestep,m_halfheight,m_halfwidth,m_3d);                  // HEERERERERE
+        m_particles[i].updatePosition(m_timestep,m_halfheight,m_halfwidth,m_3d);
     }
   }
   hashParticles();
 
   //--------------------------------------SPRING ALGORITMNS-----------------------------------------------
 
-
-  //#pragma omp parallel for ordered
   for(int k=0; k<m_gridheight*m_gridwidth; ++k)
   {
     if(m_cellsContainingParticles[k])
@@ -533,6 +433,7 @@ void World::update(bool *updateinprogress) {
                   newspring.L = m_interactionradius;
 
                   thisspring = insertSpring(newspring);
+                  if(thisspring==-1) break;
 
                   i->m_particleSprings.push_back(thisspring);
                   j->m_particleSprings.push_back(thisspring);
@@ -564,8 +465,6 @@ void World::update(bool *updateinprogress) {
     }
   }
 
-
-  //spring displacements
   int count=0;
   for(auto& i : m_springs)
   {
@@ -592,7 +491,6 @@ void World::update(bool *updateinprogress) {
     count++;
   }
   defragSprings();
-  // */
 
   //----------------------------------DOUBLEDENSITY------------------------------------------
   count =0;
@@ -618,7 +516,7 @@ void World::update(bool *updateinprogress) {
       }
 
 
-      // MODIFY DENSITY AT BOUNDARIES
+      // MODIFY DENSITY AT BOUNDARIES when boundary type == 1
       if(m_boundaryType==1)
       {
         // BOTTOM
@@ -804,13 +702,6 @@ void World::update(bool *updateinprogress) {
     std::cout<<"Numebr:"<<m_howManyAliveParticles<<std::endl;
   }
 
-  int howmany2=m_howManyAliveParticles;
-  if(howmany2==0) howmany2=1;
-  if(((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany2) >0.5)
-  {
-    std::cout<<"fraction: "<<((float)m_lastTakenParticle-(float)m_firstFreeParticle)/((float)howmany2)<<std::endl;
-    std::cout<<"lasttaken: "<<m_lastTakenParticle<<"  firstfree: "<<m_firstFreeParticle<<std::endl;
-  }
   *updateinprogress = false;
 }
 
@@ -963,13 +854,13 @@ void World::mouseDraw(int x, int y)
   }
 }
 
-void World::mouseDrag(int x, int y)
+void World::mouseDrag(int _x, int _y)
 {
   std::cout<<x<<std::endl;
   if(m_previousmousex>0 && m_previousmousey>0)
   {
-    float toaddx = (x-m_previousmousex)*((m_halfwidth*2)/(float)m_pixelwidth);
-    float toaddy = (y-m_previousmousey)*((m_halfwidth*2)/(float)m_pixelwidth);
+    float toaddx = (_x-m_previousmousex)*((m_halfwidth*2)/(float)m_pixelwidth);
+    float toaddy = (_y-m_previousmousey)*((m_halfwidth*2)/(float)m_pixelwidth);
 
     for(auto& i : m_draggedParticles)
     {
@@ -978,24 +869,27 @@ void World::mouseDrag(int x, int y)
     }
     hashParticles();
   }
-  m_previousmousex=x;
-  m_previousmousey=y;
+  m_previousmousex=_x;
+  m_previousmousey=_y;
 }
 
-void World::selectDraggedParticles(int x, int y)
+void World::selectDraggedParticles(int _x, int _y)
 {
-  float worldx = ((float)x/(float)m_pixelwidth)*(m_halfwidth*2) - m_halfwidth;
-  float worldy = -((float)y/(float)m_pixelheight)*(m_halfheight*2) + m_halfheight;
+  // find OpenGL coordinates from window coordinates
+  float worldx = ((float)_x/(float)m_pixelwidth)*(m_halfwidth*2) - m_halfwidth;
+  float worldy = -((float)_y/(float)m_pixelheight)*(m_halfheight*2) + m_halfheight;
+
+  // find spatial hash index
   int grid_cell=floor((worldx+m_halfwidth)/m_squaresize)+floor((worldy+m_halfheight)/m_squaresize)*m_gridwidth;
+  // get surrounding particles
   m_draggedParticles = getSurroundingParticles(grid_cell,2,true);
 
-  int count = 0;
   for(auto& i : m_draggedParticles)
   {
     i->setDrag(true);
   }
-  m_previousmousex=x;
-  m_previousmousey=y;
+  m_previousmousex=_x;
+  m_previousmousey=_y;
 }
 
 void World::getbackhere(Particle * p)
@@ -1006,9 +900,9 @@ void World::getbackhere(Particle * p)
   else if(p->getPosition()[1]<-m_halfheight+0.5f) p->getPosition()[1]=-m_halfheight+0.5f;
 }
 
-void World::mouseDragEnd(int x, int y)
+void World::mouseDragEnd(int _x, int _y)
 {
-  Vec3 newVelocity = Vec3(x-m_previousmousex,m_previousmousey-y);
+  Vec3 newVelocity = Vec3(_x-m_previousmousex,m_previousmousey-_y);
 
   for(auto& i : m_draggedParticles)
   {
@@ -1080,14 +974,6 @@ void World::handleKeys(char _input)
     drawCube();
     break;
 
-  case '>':
-    makeParticlesBig();
-    break;
-  case '<':
-    makeParticlesSmall();
-    std::cout<<"YOO"<<std::endl;
-    break;
-
   default:
     break;
 
@@ -1121,20 +1007,23 @@ void World::mouseErase(int x, int y)
 
 void World::insertParticle(Particle particle)
 {
-  m_particles[m_firstFreeParticle]=particle;
-  m_particles[m_firstFreeParticle].setIndex(m_firstFreeParticle);
-  if(m_lastTakenParticle<m_firstFreeParticle)
+  if(m_firstFreeParticle<m_particlesPoolSize-1)
   {
-    ++m_lastTakenParticle;
-    ++m_firstFreeParticle;
-  }
-  else{
-    while(m_particles[m_firstFreeParticle].getAlive()==true)
+    m_particles[m_firstFreeParticle]=particle;
+    m_particles[m_firstFreeParticle].setIndex(m_firstFreeParticle);
+    if(m_lastTakenParticle<m_firstFreeParticle)
     {
+      ++m_lastTakenParticle;
       ++m_firstFreeParticle;
     }
+    else{
+      while(m_particles[m_firstFreeParticle].getAlive()==true && m_firstFreeParticle!=m_particlesPoolSize)
+      {
+        ++m_firstFreeParticle;
+      }
+    }
+    ++m_howManyAliveParticles;
   }
-  ++m_howManyAliveParticles;
 }
 
 void World::deleteParticle(int p)
@@ -1177,20 +1066,28 @@ void World::defragParticles()
 
 int World::insertSpring(Particle::Spring spring)
 {
-  int result = m_firstFreeSpring;
-  m_springs[m_firstFreeSpring]=spring;
-  if(m_lastTakenSpring<m_firstFreeSpring)
+
+  if(m_firstFreeSpring<m_springsize-1)
   {
-    ++m_lastTakenSpring;
-    ++m_firstFreeSpring;
-  }
-  else{
-    while(m_springs[m_firstFreeSpring].alive)
+    int result = m_firstFreeSpring;
+    m_springs[m_firstFreeSpring]=spring;
+    if(m_lastTakenSpring<m_firstFreeSpring)
     {
+      ++m_lastTakenSpring;
       ++m_firstFreeSpring;
     }
+    else{
+      while(m_springs[m_firstFreeSpring].alive)
+      {
+        ++m_firstFreeSpring;
+      }
+    }
+    return result;
   }
-  return result;
+  else
+  {
+    return -1;
+  }
 }
 
 void World::deleteSpring(int s)
@@ -1244,16 +1141,11 @@ void World::clearWorld()
   if(m_lastTakenParticle<0) m_lastTakenParticle=0;
   for(int i=0; i<m_lastTakenParticle+1; ++i)
   {
+    // This also deletes all springs
     deleteParticle(i);
   }
 
   hashParticles();
-
-  //if(m_lastTakenSpring<0) m_lastTakenSpring=0;
-  for(int i=0; i<m_lastTakenSpring+1; ++i)
-  {
-    deleteSpring(i);
-  }
 }
 
 void World::toggleGravity()
@@ -1270,7 +1162,6 @@ void World::drawWith(int type)
   }
   else if(type==1)
   {
-    //random.randomize();
     m_todraw=1;
     m_howmanytimesrandomized++;
   }
@@ -1278,7 +1169,7 @@ void World::drawWith(int type)
 
 //--------------------------3D STUFF ------------------------------------------------
 
-void World::mouseMove(const int &x, const int &y, bool leftclick, bool rightclick) {
+void World::mouseMove(const int &x, const int &y, bool leftclick) {
   if(m_3d)
   {
     // only called when clicked
@@ -1292,18 +1183,11 @@ void World::mouseMove(const int &x, const int &y, bool leftclick, bool rightclic
       std::cout<<m_camerarotatey<<std::endl;
     }
 
-    else if(rightclick)
-    {
-      m_camerazoom+=dx*0.1f;
-      //std::cout<<m_camerazoom<<std::endl;
-    }
-
     m_previousmousex=x;
     m_previousmousey=y;
   }
 }
 
-// keep in world
 std::vector<std::vector<float>> World::renderGrid(ParticleProperties *p)
 {
   std::vector<std::vector<float>> rendergrid;
@@ -1442,14 +1326,16 @@ int World::getSnapshotMode()
 
 void World::drawLoading()
 {
+
+  /// The following section is modified from :-
+  /// Tim Jones (2011). SDL Tip - SDL Surface to OpenGL Texture [online]. [Accessed 2016].
+  /// Available from: <http://www.sdltutorials.com/sdl-tip-sdl-surface-to-opengl-texture>.
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
 
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  // You should probably use CSurface::OnLoad ... ;)
-  //-- and make sure the Surface pointer is good!
   GLuint titleTextureID = 0;
   SDL_Surface* Surface = IMG_Load("textures/buttons.png");
   if(!Surface)
@@ -1467,6 +1353,8 @@ void World::drawLoading()
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  // end of Citation
 
   float texH = 0.1f;
   float texW = 0.6f;
@@ -1495,7 +1383,7 @@ void World::drawCube()
     {
       for(int j=0; j<10; ++j)
       {
-        Particle newparticle = Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f,-2.0f),&m_particleTypes[0]);
+        Particle newparticle = Particle(Vec3(-3.0f+i*0.2f,3.0f-j*0.2f,-2.0f),&m_particleTypes[m_todraw]);
         newparticle.setIsObject();
         insertParticle(newparticle);
       }

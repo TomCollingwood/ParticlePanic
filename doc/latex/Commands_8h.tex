@@ -1,0 +1,42 @@
+\hypertarget{Commands_8h}{\section{include/\-Commands.h File Reference}
+\label{Commands_8h}\index{include/\-Commands.\-h@{include/\-Commands.\-h}}
+}
+
+
+\hyperlink{classCommand}{Command} objects to be executed inside timer\-Callback in main. The purpose of this is to make sure the commands are not executed in the middle of update() when outside the timer.  
+
+
+{\ttfamily \#include \char`\"{}include/\-World.\-h\char`\"{}}\\*
+\subsection*{Classes}
+\begin{DoxyCompactItemize}
+\item 
+class \hyperlink{classCommand}{Command}
+\item 
+class \hyperlink{classClearWorld}{Clear\-World}
+\item 
+class \hyperlink{classMouseErase}{Mouse\-Erase}
+\item 
+class \hyperlink{classMouseDraw}{Mouse\-Draw}
+\item 
+class \hyperlink{classMouseDrag}{Mouse\-Drag}
+\item 
+class \hyperlink{classSelectDraggedParticles}{Select\-Dragged\-Particles}
+\item 
+class \hyperlink{classMouseDragEnd}{Mouse\-Drag\-End}
+\item 
+class \hyperlink{classResizeWorld}{Resize\-World}
+\item 
+class \hyperlink{classSet3D}{Set3\-D}
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+\hyperlink{classCommand}{Command} objects to be executed inside timer\-Callback in main. The purpose of this is to make sure the commands are not executed in the middle of update() when outside the timer. \begin{DoxyAuthor}{Author}
+Thomas Collingwood 
+\end{DoxyAuthor}
+\begin{DoxyVersion}{Version}
+1.\-0 
+\end{DoxyVersion}
+\begin{DoxyDate}{Date}
+26/4/16 Updated to N\-C\-C\-A Coding standard Revision History \-: See \href{https://github.com/TomCollingwood/ParticlePanic}{\tt https\-://github.\-com/\-Tom\-Collingwood/\-Particle\-Panic} 
+\end{DoxyDate}

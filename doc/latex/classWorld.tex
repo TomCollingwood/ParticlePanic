@@ -1,0 +1,540 @@
+\hypertarget{classWorld}{\section{World Class Reference}
+\label{classWorld}\index{World@{World}}
+}
+
+
+The Scene class.  
+
+
+
+
+{\ttfamily \#include $<$World.\-h$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classWorld_afa39d4e6f714a7a3691ac0c656f5e8a8}{\hyperlink{classWorld_afa39d4e6f714a7a3691ac0c656f5e8a8}{World} ()}\label{classWorld_afa39d4e6f714a7a3691ac0c656f5e8a8}
+
+\begin{DoxyCompactList}\small\item\em A constructor, called when this class is instanced in the form of an object. \end{DoxyCompactList}\item 
+\hypertarget{classWorld_a8c73fba541a5817fff65147ba47cd827}{\hyperlink{classWorld_a8c73fba541a5817fff65147ba47cd827}{$\sim$\-World} ()}\label{classWorld_a8c73fba541a5817fff65147ba47cd827}
+
+\begin{DoxyCompactList}\small\item\em A virtual destructor, in case we want to inherit from this class. \end{DoxyCompactList}\item 
+\hypertarget{classWorld_a0150607a49c2400d5c848159dd02d533}{void \hyperlink{classWorld_a0150607a49c2400d5c848159dd02d533}{init} ()}\label{classWorld_a0150607a49c2400d5c848159dd02d533}
+
+\begin{DoxyCompactList}\small\item\em init Initialises the scene, called before render(). \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_aed4b52aa267ebcebe7087119529639f3}{resize\-World} (int \-\_\-w, int \-\_\-h)
+\begin{DoxyCompactList}\small\item\em resize\-World resizes the spatial hash and world objects when window size changes \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_a64d27720442ce140c8095566e8035b54}{resize\-Window} (int \-\_\-w, int \-\_\-h)
+\begin{DoxyCompactList}\small\item\em resize\-Window resizes the S\-D\-L window \& Open\-G\-L \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_ab3f32d708c9f53e337f8352ac3b0641d}{update} (bool $\ast$o\-\_\-updateinprogress)
+\begin{DoxyCompactList}\small\item\em update updates the particles in the world according to S\-P\-H algorithms. Called in timer. \end{DoxyCompactList}\item 
+\hypertarget{classWorld_ab51a17ccbb108616daacd0c34973dc8d}{void \hyperlink{classWorld_ab51a17ccbb108616daacd0c34973dc8d}{draw} ()}\label{classWorld_ab51a17ccbb108616daacd0c34973dc8d}
+
+\begin{DoxyCompactList}\small\item\em draw Draws the particles in the world either in spheres, marching cubes or squares \end{DoxyCompactList}\item 
+float \hyperlink{classWorld_abf6fa37003722e1fba8862f6eb299c2d}{get\-Half\-Height} () const 
+\begin{DoxyCompactList}\small\item\em get\-Half\-Height returns half the height of the window in Open\-G\-L coordinates \end{DoxyCompactList}\item 
+float \hyperlink{classWorld_a68605fd591772396a7ffbc3dcc1802a2}{get\-Half\-Width} () const 
+\begin{DoxyCompactList}\small\item\em get\-Half\-Width returns half the width of the window in Open\-G\-L coordinates \end{DoxyCompactList}\item 
+\hyperlink{classVec3}{Vec3} \hyperlink{classWorld_ae87279ec231161c8e41f1839f47c8dac}{get\-Grid\-Column\-Row} (int \-\_\-k)
+\begin{DoxyCompactList}\small\item\em get\-Grid\-Column\-Row returns the grid's column and row number from the spatial hash number \end{DoxyCompactList}\item 
+std\-::vector$<$ \hyperlink{classParticle}{Particle} $\ast$ $>$ \hyperlink{classWorld_a0c93ff0f6b57f9f45160e3fc985f318f}{get\-Surrounding\-Particles} (int thiscell, int numsur, bool withwalls) const 
+\begin{DoxyCompactList}\small\item\em get\-Surrounding\-Particles gets all particles in surrounding grids. \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_a0847c4e3dc1a17791949ac49aaba449b}{getbackhere} (\hyperlink{classParticle}{Particle} $\ast$io\-\_\-p)
+\begin{DoxyCompactList}\small\item\em getbackhere if particle is out of boundaries then it's position is changes so it is within boundaries \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_a738c729dace44a14ec64529eb47aae3b}{handle\-Keys} (char \-\_\-input)
+\begin{DoxyCompactList}\small\item\em handle\-Keys handles keyboard key inputs that affect the particles within the world \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_a5b90e83051311490ea6e9a7862cb7aae}{delete\-Spring} (int \-\_\-s)
+\begin{DoxyCompactList}\small\item\em delete\-Spring deletes a spring from the vector m\-\_\-springs while updating m\-\_\-last\-Free\-Spring and m\-\_\-last\-Taken\-Spring \end{DoxyCompactList}\item 
+int \hyperlink{classWorld_ad28f7d1bd3a6b181513ce92d0b76a9d6}{insert\-Spring} (\hyperlink{structParticle_1_1spring}{Particle\-::\-Spring} \-\_\-spring)
+\begin{DoxyCompactList}\small\item\em insert\-Spring Inserts a spring to the vector m\-\_\-springs while updating m\-\_\-last\-Free\-Spring and m\-\_\-last\-Taken\-Spring \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_ae1850c34d62127f1864c0c031e882c63}{delete\-Particle} (int \-\_\-p)
+\begin{DoxyCompactList}\small\item\em delete\-Particle deletes a particle from the vector m\-\_\-particles while updating m\-\_\-last\-Free\-Particle and m\-\_\-last\-Taken\-Particle \end{DoxyCompactList}\item 
+void \hyperlink{classWorld_aa962526ce57792d47848c5dc24530097}{insert\-Particle} (\hyperlink{classParticle}{Particle} \-\_\-particle)
+\begin{DoxyCompactList}\small\item\em insert\-Particle inserts a particle to the vector m\-\_\-particles while updating m\-\_\-last\-Free\-Particle and m\-\_\-last\-Taken\-Particle \end{DoxyCompactList}\item 
+\hypertarget{classWorld_abf37c2bf5e92f910a963153f46f9af41}{void \hyperlink{classWorld_abf37c2bf5e92f910a963153f46f9af41}{defrag\-Particles} ()}\label{classWorld_abf37c2bf5e92f910a963153f46f9af41}
+
+\begin{DoxyCompactList}\small\item\em defrag\-Particles reorders the particles within m\-\_\-particles so all alive particles are to the left \end{DoxyCompactList}\item 
+\hypertarget{classWorld_a3036437a8edfd623efa899e1ee9438a0}{void \hyperlink{classWorld_a3036437a8edfd623efa899e1ee9438a0}{defrag\-Springs} ()}\label{classWorld_a3036437a8edfd623efa899e1ee9438a0}
+
+\begin{DoxyCompactList}\small\item\em defrag\-Springs reorders the springs within m\-\_\-springs so that all alive springs are to the left \end{DoxyCompactList}\item 
+\hypertarget{classWorld_ae27fe9607ae7b01b911568759862bbd5}{void \hyperlink{classWorld_ae27fe9607ae7b01b911568759862bbd5}{hash\-Particles} ()}\label{classWorld_ae27fe9607ae7b01b911568759862bbd5}
+
+\begin{DoxyCompactList}\small\item\em hash\-Particles takes m\-\_\-grid and m\-\_\-particles, using spatial hash organises the particles into buckets / squares as pointers \end{DoxyCompactList}\item 
+\hypertarget{classWorld_aae7e186e5bfedcc4c119346733de2a80}{bool {\bfseries is\-Left\-Button\-Pressed} ()}\label{classWorld_aae7e186e5bfedcc4c119346733de2a80}
+
+\item 
+\hypertarget{classWorld_a28f2d9a8e63dd01cca8dc7c102457fc6}{void {\bfseries mouse\-Draw} (int x, int y)}\label{classWorld_a28f2d9a8e63dd01cca8dc7c102457fc6}
+
+\item 
+\hypertarget{classWorld_a55549f4354974b87fc03759ce15ba7af}{void {\bfseries mouse\-Drag} (int x, int y)}\label{classWorld_a55549f4354974b87fc03759ce15ba7af}
+
+\item 
+\hypertarget{classWorld_a3a343bef6ff44293b3c394e50f711436}{void {\bfseries mouse\-Erase} (int x, int y)}\label{classWorld_a3a343bef6ff44293b3c394e50f711436}
+
+\item 
+\hypertarget{classWorld_aa2adabb735614bed42f0dcc6333e28b9}{void {\bfseries mouse\-Drag\-End} (int x, int y)}\label{classWorld_aa2adabb735614bed42f0dcc6333e28b9}
+
+\item 
+\hypertarget{classWorld_afb61fbb93e58ddda9acab26f67b2de26}{void {\bfseries select\-Dragged\-Particles} (int x, int y)}\label{classWorld_afb61fbb93e58ddda9acab26f67b2de26}
+
+\item 
+\hypertarget{classWorld_ae5cb0a8dd0696ed65284ce0e8560ddf5}{void {\bfseries toggle\-Rain} ()}\label{classWorld_ae5cb0a8dd0696ed65284ce0e8560ddf5}
+
+\item 
+\hypertarget{classWorld_aa8efd033209cbf9e0391f3adf1ddf4dc}{void {\bfseries toggle\-Gravity} ()}\label{classWorld_aa8efd033209cbf9e0391f3adf1ddf4dc}
+
+\item 
+\hypertarget{classWorld_aa6e788d15f389d634ccd1148f47cfb96}{void {\bfseries clear\-World} ()}\label{classWorld_aa6e788d15f389d634ccd1148f47cfb96}
+
+\item 
+\hypertarget{classWorld_a464e5e41c3cf428b4ac97b67c826c8eb}{void {\bfseries set3\-D} (bool b)}\label{classWorld_a464e5e41c3cf428b4ac97b67c826c8eb}
+
+\item 
+\hypertarget{classWorld_a561567c6a539a240f3ed54ff228f5271}{bool {\bfseries get3\-D} ()}\label{classWorld_a561567c6a539a240f3ed54ff228f5271}
+
+\item 
+\hypertarget{classWorld_a7eb707b21072c77214420804e662d906}{void {\bfseries draw\-With} (int type)}\label{classWorld_a7eb707b21072c77214420804e662d906}
+
+\item 
+\hypertarget{classWorld_a0cd51e0a2125d62aa76c29359785e0f5}{void {\bfseries mouse\-Move} (const int \&x, const int \&y, bool leftclick, bool rightclick)}\label{classWorld_a0cd51e0a2125d62aa76c29359785e0f5}
+
+\item 
+\hypertarget{classWorld_a6fcdae48d4867a7f42d7c49c57433ab3}{void {\bfseries drawchar} ()}\label{classWorld_a6fcdae48d4867a7f42d7c49c57433ab3}
+
+\item 
+\hypertarget{classWorld_a2306bf46e36020f35a7d3bc2527434fb}{void {\bfseries set\-To\-Draw} (int \-\_\-todraw)}\label{classWorld_a2306bf46e36020f35a7d3bc2527434fb}
+
+\item 
+\hypertarget{classWorld_aadab7988ffe1e55c10ad34f85199e385}{void {\bfseries set\-Random\-Type} (int \-\_\-random\-Seed)}\label{classWorld_aadab7988ffe1e55c10ad34f85199e385}
+
+\item 
+\hypertarget{classWorld_a37363e2d9fb17fa31691af105c6e6a8c}{void {\bfseries make\-Particles\-Big} ()}\label{classWorld_a37363e2d9fb17fa31691af105c6e6a8c}
+
+\item 
+\hypertarget{classWorld_a0c111bf57420a13120baca933b9f250f}{void {\bfseries make\-Particles\-Small} ()}\label{classWorld_a0c111bf57420a13120baca933b9f250f}
+
+\item 
+\hypertarget{classWorld_a4967d249f71084117a4b6a84a58dba9f}{std\-::vector$<$ std\-::vector$<$ float $>$ $>$ {\bfseries render\-Grid} (\hyperlink{classParticleProperties}{Particle\-Properties} $\ast$p)}\label{classWorld_a4967d249f71084117a4b6a84a58dba9f}
+
+\item 
+\hypertarget{classWorld_a119745daabbf33b5eea16f6c1fa13539}{std\-::vector$<$ std\-::vector\\*
+$<$ std\-::vector$<$ float $>$ $>$ $>$ {\bfseries render3d\-Grid} (\hyperlink{classParticleProperties}{Particle\-Properties} $\ast$p)}\label{classWorld_a119745daabbf33b5eea16f6c1fa13539}
+
+\item 
+\hypertarget{classWorld_a79bfda3d3ee02e561f37fa3ef65e72ff}{\hyperlink{classVec3}{Vec3} {\bfseries get\-Grid\-X\-Y\-Z} (int k)}\label{classWorld_a79bfda3d3ee02e561f37fa3ef65e72ff}
+
+\item 
+\hypertarget{classWorld_a1a2aab6852fd79ee5d661ee45e2c3b7a}{int {\bfseries getrenderoption} ()}\label{classWorld_a1a2aab6852fd79ee5d661ee45e2c3b7a}
+
+\item 
+\hypertarget{classWorld_acdaeb9fef04e92b52562b630475e1553}{void {\bfseries draw\-Loading} ()}\label{classWorld_acdaeb9fef04e92b52562b630475e1553}
+
+\item 
+\hypertarget{classWorld_a557bf718ffb5976ae4a35daf526b6bbb}{void {\bfseries increase2\-D\-Resolution\-W\-O\-R\-L\-D} ()}\label{classWorld_a557bf718ffb5976ae4a35daf526b6bbb}
+
+\item 
+\hypertarget{classWorld_a7c0c14a57f64e4e3ffd5a5ef9f5c8156}{void {\bfseries decrease2\-D\-Resolution\-W\-O\-R\-L\-D} ()}\label{classWorld_a7c0c14a57f64e4e3ffd5a5ef9f5c8156}
+
+\item 
+\hypertarget{classWorld_a1d31371f414e6b21e584873aed9ccc22}{int {\bfseries get\-Snapshot\-Mode} ()}\label{classWorld_a1d31371f414e6b21e584873aed9ccc22}
+
+\item 
+\hypertarget{classWorld_ab035312321b021858d62e8235f8b9e02}{void {\bfseries draw\-Cube} ()}\label{classWorld_ab035312321b021858d62e8235f8b9e02}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classWorld_a8d2c7904c78772cd416046f17e8fde9a}{bool \hyperlink{classWorld_a8d2c7904c78772cd416046f17e8fde9a}{m\-\_\-is\-Init}}\label{classWorld_a8d2c7904c78772cd416046f17e8fde9a}
+
+\begin{DoxyCompactList}\small\item\em Keep track of whether this has been initialised -\/ otherwise it won't be ready to draw! \end{DoxyCompactList}\item 
+\hypertarget{classWorld_aea913074e52f86a713d2fd2e3ab4c84f}{double \hyperlink{classWorld_aea913074e52f86a713d2fd2e3ab4c84f}{m\-\_\-start\-Time}}\label{classWorld_aea913074e52f86a713d2fd2e3ab4c84f}
+
+\begin{DoxyCompactList}\small\item\em The time since the object was initialised, which is used for animation purposes. \end{DoxyCompactList}\item 
+\hypertarget{classWorld_a96627a74533eb71253e347b1d5754380}{double \hyperlink{classWorld_a96627a74533eb71253e347b1d5754380}{m\-\_\-elapsed\-Time}}\label{classWorld_a96627a74533eb71253e347b1d5754380}
+
+\begin{DoxyCompactList}\small\item\em A member that is updated when \hyperlink{classWorld_ab3f32d708c9f53e337f8352ac3b0641d}{update()} is called indicating the elapsed time. \end{DoxyCompactList}\item 
+\hypertarget{classWorld_ac07d502be70b521c99aee1876919d5dd}{double {\bfseries m\-\_\-timestep}}\label{classWorld_ac07d502be70b521c99aee1876919d5dd}
+
+\item 
+\hypertarget{classWorld_a927cf4a925c2e45a5994fdf4ed935088}{std\-::vector$<$ \hyperlink{classParticle}{Particle} $>$ {\bfseries m\-\_\-particles}}\label{classWorld_a927cf4a925c2e45a5994fdf4ed935088}
+
+\item 
+\hypertarget{classWorld_a29c3c75f7459ce8fd396885cd2cf508d}{int {\bfseries m\-\_\-particles\-Pool\-Size}}\label{classWorld_a29c3c75f7459ce8fd396885cd2cf508d}
+
+\item 
+\hypertarget{classWorld_a8aa72ceb0053b37ebf3bfc9dfa3f7d67}{int {\bfseries m\-\_\-first\-Free\-Particle}}\label{classWorld_a8aa72ceb0053b37ebf3bfc9dfa3f7d67}
+
+\item 
+\hypertarget{classWorld_ac3a684ea22c602344a61fc3ff7c8f444}{int {\bfseries m\-\_\-last\-Taken\-Particle}}\label{classWorld_ac3a684ea22c602344a61fc3ff7c8f444}
+
+\item 
+\hypertarget{classWorld_a0e8bf89890e6e1874e53ed8db76e885c}{int {\bfseries m\-\_\-how\-Many\-Alive\-Particles}}\label{classWorld_a0e8bf89890e6e1874e53ed8db76e885c}
+
+\item 
+\hypertarget{classWorld_af3a83d8820ece274292746482991d9a0}{std\-::vector$<$ \hyperlink{classParticleProperties}{Particle\-Properties} $>$ {\bfseries m\-\_\-particle\-Types}}\label{classWorld_af3a83d8820ece274292746482991d9a0}
+
+\item 
+\hypertarget{classWorld_a4f43c7ae20726ca36a2438fc05dba9e6}{std\-::vector$<$ std\-::vector\\*
+$<$ \hyperlink{classParticle}{Particle} $\ast$ $>$ $>$ {\bfseries m\-\_\-grid}}\label{classWorld_a4f43c7ae20726ca36a2438fc05dba9e6}
+
+\item 
+\hypertarget{classWorld_aa57d6923952272b039a5c21a3e6825aa}{std\-::vector$<$ bool $>$ {\bfseries m\-\_\-cells\-Containing\-Particles}}\label{classWorld_aa57d6923952272b039a5c21a3e6825aa}
+
+\item 
+\hypertarget{classWorld_a666e2c46e2cf9783797590fd75cafcc9}{float {\bfseries m\-\_\-halfwidth}}\label{classWorld_a666e2c46e2cf9783797590fd75cafcc9}
+
+\item 
+\hypertarget{classWorld_a0aa12b651999b6f3a2750d97f78387e8}{float {\bfseries m\-\_\-halfheight}}\label{classWorld_a0aa12b651999b6f3a2750d97f78387e8}
+
+\item 
+\hypertarget{classWorld_addb51e059703e6f0955645740acef336}{float {\bfseries m\-\_\-interactionradius}}\label{classWorld_addb51e059703e6f0955645740acef336}
+
+\item 
+\hypertarget{classWorld_aff556d4e76e843b54c25fbeece28fee7}{float {\bfseries m\-\_\-squaresize}}\label{classWorld_aff556d4e76e843b54c25fbeece28fee7}
+
+\item 
+\hypertarget{classWorld_a75317dfa26c389097ec33eaaeec8fb4c}{int {\bfseries m\-\_\-gridheight}}\label{classWorld_a75317dfa26c389097ec33eaaeec8fb4c}
+
+\item 
+\hypertarget{classWorld_ae607046130457c6d74a882071a6255ef}{int {\bfseries m\-\_\-gridwidth}}\label{classWorld_ae607046130457c6d74a882071a6255ef}
+
+\item 
+\hypertarget{classWorld_acce2c6f4c4d7841dd2464a9b01b54d8a}{int {\bfseries m\-\_\-griddepth}}\label{classWorld_acce2c6f4c4d7841dd2464a9b01b54d8a}
+
+\item 
+\hypertarget{classWorld_a3aca11a629a5f7c0a994bcd125abbb01}{int {\bfseries m\-\_\-pixelwidth}}\label{classWorld_a3aca11a629a5f7c0a994bcd125abbb01}
+
+\item 
+\hypertarget{classWorld_ad073f66d707ed8b628de22baf34f2653}{int {\bfseries m\-\_\-pixelheight}}\label{classWorld_ad073f66d707ed8b628de22baf34f2653}
+
+\item 
+\hypertarget{classWorld_a6f4ecaeca3e48d93a562702aa25b25bb}{float {\bfseries m\-\_\-pointsize}}\label{classWorld_a6f4ecaeca3e48d93a562702aa25b25bb}
+
+\item 
+\hypertarget{classWorld_a8a4a12d65982956fd609587857288c93}{float {\bfseries m\-\_\-mainrender3dthreshold}}\label{classWorld_a8a4a12d65982956fd609587857288c93}
+
+\item 
+\hypertarget{classWorld_a73ff711f99e69ef8a56034867350e324}{float {\bfseries m\-\_\-mainrender2dthreshold}}\label{classWorld_a73ff711f99e69ef8a56034867350e324}
+
+\item 
+\hypertarget{classWorld_a6e26cd343dc738b135b8a9717358fd89}{int {\bfseries m\-\_\-render2\-D\-Resolution}}\label{classWorld_a6e26cd343dc738b135b8a9717358fd89}
+
+\item 
+\hypertarget{classWorld_a3fc863ab1f8f43fb4273d019d9eb13d7}{int {\bfseries m\-\_\-render2dwidth}}\label{classWorld_a3fc863ab1f8f43fb4273d019d9eb13d7}
+
+\item 
+\hypertarget{classWorld_a432b07c10f25465df847b320d3230b0b}{int {\bfseries m\-\_\-render2dheight}}\label{classWorld_a432b07c10f25465df847b320d3230b0b}
+
+\item 
+\hypertarget{classWorld_ab117c6a9b7722174eaca306d31efe659}{int {\bfseries m\-\_\-render3dresolution}}\label{classWorld_ab117c6a9b7722174eaca306d31efe659}
+
+\item 
+\hypertarget{classWorld_a3420fa4e56c238d9ecfde566f6ed4fe1}{int {\bfseries m\-\_\-render3dwidth}}\label{classWorld_a3420fa4e56c238d9ecfde566f6ed4fe1}
+
+\item 
+\hypertarget{classWorld_a48cd762877e2d73e9351bd10e414a30a}{int {\bfseries m\-\_\-render3dheight}}\label{classWorld_a48cd762877e2d73e9351bd10e414a30a}
+
+\item 
+\hypertarget{classWorld_aa0e29bebd009b72fdf09d50bd169ed43}{int {\bfseries m\-\_\-renderoption}}\label{classWorld_aa0e29bebd009b72fdf09d50bd169ed43}
+
+\item 
+\hypertarget{classWorld_aed6bdbf56ce063a3e9835c8603de3a0a}{int {\bfseries m\-\_\-snapshotmultiplier}}\label{classWorld_aed6bdbf56ce063a3e9835c8603de3a0a}
+
+\item 
+\hypertarget{classWorld_a1f70eb1cad67b3d25bbd54388afab9b7}{std\-::vector$<$ \hyperlink{structParticle_1_1spring}{Particle\-::\-Spring} $>$ {\bfseries m\-\_\-springs}}\label{classWorld_a1f70eb1cad67b3d25bbd54388afab9b7}
+
+\item 
+\hypertarget{classWorld_a9f0cee184af137125a5aa1a3df490201}{int {\bfseries m\-\_\-first\-Free\-Spring}}\label{classWorld_a9f0cee184af137125a5aa1a3df490201}
+
+\item 
+\hypertarget{classWorld_aaca3ba1d3c6ba3eacf3e4b8f41938118}{int {\bfseries m\-\_\-last\-Taken\-Spring}}\label{classWorld_aaca3ba1d3c6ba3eacf3e4b8f41938118}
+
+\item 
+\hypertarget{classWorld_ad8ebe97063711ce9d61329cad0c0e1c1}{int {\bfseries m\-\_\-springsize}}\label{classWorld_ad8ebe97063711ce9d61329cad0c0e1c1}
+
+\item 
+\hypertarget{classWorld_a9ef5d83750b22cef2e093bb3bd6f20d4}{bool {\bfseries m\-\_\-rain}}\label{classWorld_a9ef5d83750b22cef2e093bb3bd6f20d4}
+
+\item 
+\hypertarget{classWorld_abfd22f9148bb879c907e003116fbee3b}{bool {\bfseries m\-\_\-drawwall}}\label{classWorld_abfd22f9148bb879c907e003116fbee3b}
+
+\item 
+\hypertarget{classWorld_a78803ecd09fbfff6f9718a3336878649}{bool {\bfseries m\-\_\-gravity}}\label{classWorld_a78803ecd09fbfff6f9718a3336878649}
+
+\item 
+\hypertarget{classWorld_ac917a625a89a72df932fda9854f64810}{std\-::vector$<$ \hyperlink{classParticle}{Particle} $\ast$ $>$ {\bfseries m\-\_\-dragged\-Particles}}\label{classWorld_ac917a625a89a72df932fda9854f64810}
+
+\item 
+\hypertarget{classWorld_adea44f96d6180e72ff2295803b5cce59}{int {\bfseries m\-\_\-previousmousex}}\label{classWorld_adea44f96d6180e72ff2295803b5cce59}
+
+\item 
+\hypertarget{classWorld_ab5ec42bbbfba3521bcd6cd5677815fbc}{int {\bfseries m\-\_\-previousmousey}}\label{classWorld_ab5ec42bbbfba3521bcd6cd5677815fbc}
+
+\item 
+\hypertarget{classWorld_a28a5a1395a3bcebf7998b94a943663aa}{int {\bfseries m\-\_\-todraw}}\label{classWorld_a28a5a1395a3bcebf7998b94a943663aa}
+
+\item 
+\hypertarget{classWorld_a33c2781113b1aec49f85e2394eedba1b}{int {\bfseries m\-\_\-howmanytimesrandomized}}\label{classWorld_a33c2781113b1aec49f85e2394eedba1b}
+
+\item 
+\hypertarget{classWorld_a632d84e10772c852923815311c431bfe}{bool {\bfseries m\-\_\-3d}}\label{classWorld_a632d84e10772c852923815311c431bfe}
+
+\item 
+\hypertarget{classWorld_a897ea3cc1bafd8b58ca2ef3ecfa7e802}{float {\bfseries m\-\_\-camerarotatey}}\label{classWorld_a897ea3cc1bafd8b58ca2ef3ecfa7e802}
+
+\item 
+\hypertarget{classWorld_ae99f08429ff35eb072fc76885637464e}{float {\bfseries m\-\_\-camerarotatex}}\label{classWorld_ae99f08429ff35eb072fc76885637464e}
+
+\item 
+\hypertarget{classWorld_a5a558d51a33eca665118159294a69568}{float {\bfseries m\-\_\-camerazoom}}\label{classWorld_a5a558d51a33eca665118159294a69568}
+
+\item 
+\hypertarget{classWorld_ab63c82cf6d69d44d88b9217a92ab515c}{int {\bfseries m\-\_\-snapshot\-Mode}}\label{classWorld_ab63c82cf6d69d44d88b9217a92ab515c}
+
+\item 
+\hypertarget{classWorld_a141d58ebc2bceeed2b2d3d42d2b74882}{float {\bfseries m\-\_\-boundary\-Multiplier}}\label{classWorld_a141d58ebc2bceeed2b2d3d42d2b74882}
+
+\item 
+\hypertarget{classWorld_a8fc92611c5c8de6d63568d46e5f4de79}{int {\bfseries m\-\_\-boundary\-Type}}\label{classWorld_a8fc92611c5c8de6d63568d46e5f4de79}
+
+\item 
+\hypertarget{classWorld_a3f95b449501febb8b3bd8e1ccf321c58}{\hyperlink{classMarchingAlgorithms}{Marching\-Algorithms} {\bfseries m\-\_\-marching}}\label{classWorld_a3f95b449501febb8b3bd8e1ccf321c58}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+The Scene class. 
+
+\subsection{Member Function Documentation}
+\hypertarget{classWorld_ae1850c34d62127f1864c0c031e882c63}{\index{World@{World}!delete\-Particle@{delete\-Particle}}
+\index{delete\-Particle@{delete\-Particle}!World@{World}}
+\subsubsection[{delete\-Particle}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::delete\-Particle (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-p}
+\end{DoxyParamCaption}
+)}}\label{classWorld_ae1850c34d62127f1864c0c031e882c63}
+
+
+delete\-Particle deletes a particle from the vector m\-\_\-particles while updating m\-\_\-last\-Free\-Particle and m\-\_\-last\-Taken\-Particle 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-p} & Index of particle to delete \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_a5b90e83051311490ea6e9a7862cb7aae}{\index{World@{World}!delete\-Spring@{delete\-Spring}}
+\index{delete\-Spring@{delete\-Spring}!World@{World}}
+\subsubsection[{delete\-Spring}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::delete\-Spring (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-s}
+\end{DoxyParamCaption}
+)}}\label{classWorld_a5b90e83051311490ea6e9a7862cb7aae}
+
+
+delete\-Spring deletes a spring from the vector m\-\_\-springs while updating m\-\_\-last\-Free\-Spring and m\-\_\-last\-Taken\-Spring 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-s} & index of spring to delete \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_a0847c4e3dc1a17791949ac49aaba449b}{\index{World@{World}!getbackhere@{getbackhere}}
+\index{getbackhere@{getbackhere}!World@{World}}
+\subsubsection[{getbackhere}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::getbackhere (
+\begin{DoxyParamCaption}
+\item[{{\bf Particle} $\ast$}]{io\-\_\-p}
+\end{DoxyParamCaption}
+)}}\label{classWorld_a0847c4e3dc1a17791949ac49aaba449b}
+
+
+getbackhere if particle is out of boundaries then it's position is changes so it is within boundaries 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in,out}  & {\em io\-\_\-p} & pointer to particle to check \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_ae87279ec231161c8e41f1839f47c8dac}{\index{World@{World}!get\-Grid\-Column\-Row@{get\-Grid\-Column\-Row}}
+\index{get\-Grid\-Column\-Row@{get\-Grid\-Column\-Row}!World@{World}}
+\subsubsection[{get\-Grid\-Column\-Row}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vec3} World\-::get\-Grid\-Column\-Row (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-k}
+\end{DoxyParamCaption}
+)}}\label{classWorld_ae87279ec231161c8e41f1839f47c8dac}
+
+
+get\-Grid\-Column\-Row returns the grid's column and row number from the spatial hash number 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-k} & spatial hash grid index \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+\hyperlink{classVec3}{Vec3} with column as m\-\_\-x, and row as m\-\_\-y 
+\end{DoxyReturn}
+\hypertarget{classWorld_abf6fa37003722e1fba8862f6eb299c2d}{\index{World@{World}!get\-Half\-Height@{get\-Half\-Height}}
+\index{get\-Half\-Height@{get\-Half\-Height}!World@{World}}
+\subsubsection[{get\-Half\-Height}]{\setlength{\rightskip}{0pt plus 5cm}float World\-::get\-Half\-Height (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classWorld_abf6fa37003722e1fba8862f6eb299c2d}
+
+
+get\-Half\-Height returns half the height of the window in Open\-G\-L coordinates 
+
+\begin{DoxyReturn}{Returns}
+value of half the height of the window 
+\end{DoxyReturn}
+\hypertarget{classWorld_a68605fd591772396a7ffbc3dcc1802a2}{\index{World@{World}!get\-Half\-Width@{get\-Half\-Width}}
+\index{get\-Half\-Width@{get\-Half\-Width}!World@{World}}
+\subsubsection[{get\-Half\-Width}]{\setlength{\rightskip}{0pt plus 5cm}float World\-::get\-Half\-Width (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+) const}}\label{classWorld_a68605fd591772396a7ffbc3dcc1802a2}
+
+
+get\-Half\-Width returns half the width of the window in Open\-G\-L coordinates 
+
+\begin{DoxyReturn}{Returns}
+value of half the height of the window 
+\end{DoxyReturn}
+\hypertarget{classWorld_a0c93ff0f6b57f9f45160e3fc985f318f}{\index{World@{World}!get\-Surrounding\-Particles@{get\-Surrounding\-Particles}}
+\index{get\-Surrounding\-Particles@{get\-Surrounding\-Particles}!World@{World}}
+\subsubsection[{get\-Surrounding\-Particles}]{\setlength{\rightskip}{0pt plus 5cm}std\-::vector$<${\bf Particle} $\ast$$>$ World\-::get\-Surrounding\-Particles (
+\begin{DoxyParamCaption}
+\item[{int}]{thiscell, }
+\item[{int}]{numsur, }
+\item[{bool}]{withwalls}
+\end{DoxyParamCaption}
+) const}}\label{classWorld_a0c93ff0f6b57f9f45160e3fc985f318f}
+
+
+get\-Surrounding\-Particles gets all particles in surrounding grids. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-thiscell} & the centre cell in which to search for surrounding particles from \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-numsur} & how far out neightbouring particles can be (counted in grid squares) if numsur==1 then it would return all particles in 3x3 grid around thiscell \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-withwalls} & if true will also include particles that are of wall type \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+returns vector of pointers to the surrounding particles 
+\end{DoxyReturn}
+\hypertarget{classWorld_a738c729dace44a14ec64529eb47aae3b}{\index{World@{World}!handle\-Keys@{handle\-Keys}}
+\index{handle\-Keys@{handle\-Keys}!World@{World}}
+\subsubsection[{handle\-Keys}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::handle\-Keys (
+\begin{DoxyParamCaption}
+\item[{char}]{\-\_\-input}
+\end{DoxyParamCaption}
+)}}\label{classWorld_a738c729dace44a14ec64529eb47aae3b}
+
+
+handle\-Keys handles keyboard key inputs that affect the particles within the world 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-input} & the inputted key \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_aa962526ce57792d47848c5dc24530097}{\index{World@{World}!insert\-Particle@{insert\-Particle}}
+\index{insert\-Particle@{insert\-Particle}!World@{World}}
+\subsubsection[{insert\-Particle}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::insert\-Particle (
+\begin{DoxyParamCaption}
+\item[{{\bf Particle}}]{\-\_\-particle}
+\end{DoxyParamCaption}
+)}}\label{classWorld_aa962526ce57792d47848c5dc24530097}
+
+
+insert\-Particle inserts a particle to the vector m\-\_\-particles while updating m\-\_\-last\-Free\-Particle and m\-\_\-last\-Taken\-Particle 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-particle} & particle to insert \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_ad28f7d1bd3a6b181513ce92d0b76a9d6}{\index{World@{World}!insert\-Spring@{insert\-Spring}}
+\index{insert\-Spring@{insert\-Spring}!World@{World}}
+\subsubsection[{insert\-Spring}]{\setlength{\rightskip}{0pt plus 5cm}int World\-::insert\-Spring (
+\begin{DoxyParamCaption}
+\item[{{\bf Particle\-::\-Spring}}]{\-\_\-spring}
+\end{DoxyParamCaption}
+)}}\label{classWorld_ad28f7d1bd3a6b181513ce92d0b76a9d6}
+
+
+insert\-Spring Inserts a spring to the vector m\-\_\-springs while updating m\-\_\-last\-Free\-Spring and m\-\_\-last\-Taken\-Spring 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-spring} & Spring to insert \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Index of the inserted spring in m\-\_\-springs 
+\end{DoxyReturn}
+\hypertarget{classWorld_a64d27720442ce140c8095566e8035b54}{\index{World@{World}!resize\-Window@{resize\-Window}}
+\index{resize\-Window@{resize\-Window}!World@{World}}
+\subsubsection[{resize\-Window}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::resize\-Window (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-w, }
+\item[{int}]{\-\_\-h}
+\end{DoxyParamCaption}
+)}}\label{classWorld_a64d27720442ce140c8095566e8035b54}
+
+
+resize\-Window resizes the S\-D\-L window \& Open\-G\-L 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-w} & new window width in pixels \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-h} & new window hieght in pixels \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_aed4b52aa267ebcebe7087119529639f3}{\index{World@{World}!resize\-World@{resize\-World}}
+\index{resize\-World@{resize\-World}!World@{World}}
+\subsubsection[{resize\-World}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::resize\-World (
+\begin{DoxyParamCaption}
+\item[{int}]{\-\_\-w, }
+\item[{int}]{\-\_\-h}
+\end{DoxyParamCaption}
+)}}\label{classWorld_aed4b52aa267ebcebe7087119529639f3}
+
+
+resize\-World resizes the spatial hash and world objects when window size changes 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-w} & new window width in pixels \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-h} & new window hieght in pixels \\
+\hline
+\end{DoxyParams}
+\hypertarget{classWorld_ab3f32d708c9f53e337f8352ac3b0641d}{\index{World@{World}!update@{update}}
+\index{update@{update}!World@{World}}
+\subsubsection[{update}]{\setlength{\rightskip}{0pt plus 5cm}void World\-::update (
+\begin{DoxyParamCaption}
+\item[{bool $\ast$}]{o\-\_\-updateinprogress}
+\end{DoxyParamCaption}
+)}}\label{classWorld_ab3f32d708c9f53e337f8352ac3b0641d}
+
+
+update updates the particles in the world according to S\-P\-H algorithms. Called in timer. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt out}  & {\em o\-\_\-updateinprogress} & bool that is set when update is in progress \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{World_8h}{World.\-h}\end{DoxyCompactItemize}

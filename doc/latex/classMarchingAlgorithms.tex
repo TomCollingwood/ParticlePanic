@@ -1,0 +1,208 @@
+\hypertarget{classMarchingAlgorithms}{\section{Marching\-Algorithms Class Reference}
+\label{classMarchingAlgorithms}\index{Marching\-Algorithms@{Marching\-Algorithms}}
+}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{classMarchingAlgorithms_af884d18ba13d54b68c3148d859219a31}{Marching\-Algorithms} (const float \-\_\-render2d\-Threshold, const float \-\_\-render3d\-Threshold, const float \-\_\-squaresize, const float \-\_\-renderresolution, const float \-\_\-render3dresolution, const float \-\_\-halfwidth, const float \-\_\-halfheight, const float \-\_\-snapshotmultiplier)
+\begin{DoxyCompactList}\small\item\em \hyperlink{classMarchingAlgorithms}{Marching\-Algorithms} constructor for \hyperlink{classMarchingAlgorithms}{Marching\-Algorithms}. \end{DoxyCompactList}\item 
+void \hyperlink{classMarchingAlgorithms_a0b6fb536f84f8cd573110c8568d8978f}{calculate\-Marching\-Squares} (const std\-::vector$<$ std\-::vector$<$ float $>$$>$ render\-Grid, const \hyperlink{classParticleProperties}{Particle\-Properties} p, const bool inner)
+\begin{DoxyCompactList}\small\item\em calculate\-Marching\-Squares fills m\-\_\-realtime2\-D\-Triangles full of triangle verticies and colors \end{DoxyCompactList}\item 
+void \hyperlink{classMarchingAlgorithms_ad3ea84f528558c3057eb71598ace118a}{calculate\-Marching\-Cubes} (const std\-::vector$<$ std\-::vector$<$ std\-::vector$<$ float $>$$>$$>$ render\-Grid, const \hyperlink{classParticleProperties}{Particle\-Properties} p)
+\begin{DoxyCompactList}\small\item\em calculate\-Marching\-Cubes fills m\-\_\-snapshot3\-D\-Triangles or m\-\_\-realtime3\-D\-Triangles with triangle verticies and colors \end{DoxyCompactList}\item 
+\hyperlink{classVec3}{Vec3} \hyperlink{classMarchingAlgorithms_afe2a91dcd2b7948e0980acd2f2a73322}{Vertex\-Interp} (const \hyperlink{classVec3}{Vec3} p1, const \hyperlink{classVec3}{Vec3} p2, const float valp1, const float valp2)
+\begin{DoxyCompactList}\small\item\em Vertex\-Interp calculates the position between two points depending on the floats at either point. \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_ad3b6c48ca79f9e91837a0760d6683674}{void \hyperlink{classMarchingAlgorithms_ad3b6c48ca79f9e91837a0760d6683674}{draw2\-D\-Realtime} ()}\label{classMarchingAlgorithms_ad3b6c48ca79f9e91837a0760d6683674}
+
+\begin{DoxyCompactList}\small\item\em draw2\-D\-Realtime draws the m\-\_\-realtime2\-D\-Triangle Vec3s using Open\-G\-L gl\-Begin(\-G\-L\-\_\-\-T\-R\-I\-A\-N\-G\-L\-E\-S) \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_aceccb617c45738f065a38634a8ddb896}{void \hyperlink{classMarchingAlgorithms_aceccb617c45738f065a38634a8ddb896}{draw3\-D\-Realtime} ()}\label{classMarchingAlgorithms_aceccb617c45738f065a38634a8ddb896}
+
+\begin{DoxyCompactList}\small\item\em draw3\-D\-Realtime draws the m\-\_\-realtime3\-D\-Triangle Vec3s using Open\-G\-L gl\-Begin(\-G\-L\-\_\-\-T\-R\-I\-A\-N\-G\-L\-E\-S) (calculates normals as well) \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_a53c874fc236e6a1da1c26f6c0dd9747a}{void \hyperlink{classMarchingAlgorithms_a53c874fc236e6a1da1c26f6c0dd9747a}{draw3\-D\-Snapshot} ()}\label{classMarchingAlgorithms_a53c874fc236e6a1da1c26f6c0dd9747a}
+
+\begin{DoxyCompactList}\small\item\em draw3\-D\-Snapshot draws the m\-\_\-snapshot3\-D\-Triangle Vec3s using Open\-G\-L gl\-Begin(\-G\-L\-\_\-\-T\-R\-I\-A\-N\-G\-L\-E\-S) (calculates normals as well) \end{DoxyCompactList}\item 
+int \hyperlink{classMarchingAlgorithms_a36c86931558ec0de770baf06f6a8e2a5}{get\-Snapshot\-Mode} ()
+\begin{DoxyCompactList}\small\item\em get\-Snapshot\-Mode returns the snapshot mode integer \end{DoxyCompactList}\item 
+void \hyperlink{classMarchingAlgorithms_a9fafe791d5a20410bce4200709fa666a}{set\-Snapshot\-Mode} (const int \-\_\-s)
+\begin{DoxyCompactList}\small\item\em set\-Snapshot\-Mode sets the m\-\_\-snapshot\-Mode that shows where in the snapshot process we are \end{DoxyCompactList}\item 
+void \hyperlink{classMarchingAlgorithms_a4b80a9c0f5d814ed1d931655b3472c38}{set\-Square\-Size} (const float ss)
+\begin{DoxyCompactList}\small\item\em set\-Square\-Size sets m\-\_\-squaresize which is the width/height of the square in the rendergrid \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_a2c340f6b3e3fc8ce8c06d7df8dfc3d1c}{void \hyperlink{classMarchingAlgorithms_a2c340f6b3e3fc8ce8c06d7df8dfc3d1c}{toggle3\-D\-Resolution} ()}\label{classMarchingAlgorithms_a2c340f6b3e3fc8ce8c06d7df8dfc3d1c}
+
+\begin{DoxyCompactList}\small\item\em toggle3\-D\-Resolution either multiplies or divides the 3d render resolution by 6 -\/ used for high poly snapshot \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_a55306a1801044ba00de5211f2408ad92}{void \hyperlink{classMarchingAlgorithms_a55306a1801044ba00de5211f2408ad92}{clear\-Realtime2\-D\-Triangles} ()}\label{classMarchingAlgorithms_a55306a1801044ba00de5211f2408ad92}
+
+\begin{DoxyCompactList}\small\item\em clear\-Realtime2\-D\-Triangles clears the std\-::vector m\-\_\-realtime2\-D\-Triangles \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_a15e0be9c959ad5b35cc92f91546af3d2}{void \hyperlink{classMarchingAlgorithms_a15e0be9c959ad5b35cc92f91546af3d2}{clear\-Realtime3\-D\-Triangles} ()}\label{classMarchingAlgorithms_a15e0be9c959ad5b35cc92f91546af3d2}
+
+\begin{DoxyCompactList}\small\item\em clear\-Realtime3\-D\-Triangles clears the std\-::vector m\-\_\-realtime3\-D\-Triangles \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_afb08a29dcb96256be0469b64fde74b05}{void \hyperlink{classMarchingAlgorithms_afb08a29dcb96256be0469b64fde74b05}{clear\-Snapshot3\-D\-Triangles} ()}\label{classMarchingAlgorithms_afb08a29dcb96256be0469b64fde74b05}
+
+\begin{DoxyCompactList}\small\item\em clear\-Snapshot3\-D\-Triangles clears the 4d std\-::vector m\-\_\-realtime3\-D\-Triangles and resizes them to the 3d render width, height and depth. \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_a09372b6314026f6045db3b51bc6b8782}{void \hyperlink{classMarchingAlgorithms_a09372b6314026f6045db3b51bc6b8782}{increase2\-D\-Resolution} ()}\label{classMarchingAlgorithms_a09372b6314026f6045db3b51bc6b8782}
+
+\begin{DoxyCompactList}\small\item\em increase2\-D\-Resolution increases the 2\-D marching squares resolution by 1 \end{DoxyCompactList}\item 
+\hypertarget{classMarchingAlgorithms_af72442c4c16cb90bf339b63e0a0ff803}{void \hyperlink{classMarchingAlgorithms_af72442c4c16cb90bf339b63e0a0ff803}{decrease2\-D\-Resolution} ()}\label{classMarchingAlgorithms_af72442c4c16cb90bf339b63e0a0ff803}
+
+\begin{DoxyCompactList}\small\item\em decrease2\-D\-Resolution decreases the 2\-D marching squares resolution by 1 (but not when it is 1) \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Constructor \& Destructor Documentation}
+\hypertarget{classMarchingAlgorithms_af884d18ba13d54b68c3148d859219a31}{\index{Marching\-Algorithms@{Marching\-Algorithms}!Marching\-Algorithms@{Marching\-Algorithms}}
+\index{Marching\-Algorithms@{Marching\-Algorithms}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{Marching\-Algorithms}]{\setlength{\rightskip}{0pt plus 5cm}Marching\-Algorithms\-::\-Marching\-Algorithms (
+\begin{DoxyParamCaption}
+\item[{const float}]{\-\_\-render2d\-Threshold, }
+\item[{const float}]{\-\_\-render3d\-Threshold, }
+\item[{const float}]{\-\_\-squaresize, }
+\item[{const float}]{\-\_\-renderresolution, }
+\item[{const float}]{\-\_\-render3dresolution, }
+\item[{const float}]{\-\_\-halfwidth, }
+\item[{const float}]{\-\_\-halfheight, }
+\item[{const float}]{\-\_\-snapshotmultiplier}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily [inline]}}}\label{classMarchingAlgorithms_af884d18ba13d54b68c3148d859219a31}
+
+
+\hyperlink{classMarchingAlgorithms}{Marching\-Algorithms} constructor for \hyperlink{classMarchingAlgorithms}{Marching\-Algorithms}. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-render2d\-Threshold} & sets the renderthreshold for which to draw the marching squares with \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-render3d\-Threshold} & sets the isolevel for which to draw the marching cubes with \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-squaresize} & sets the width/height of the square in the rendergrid \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-renderresolution} & sets the renderresolution for the 2d marching squares \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-render3dresolution} & sets the renderresolution for the 3d marching squares \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-halfwidth} & sets the halfwidth -\/ half the screen's width in opengl's coordinate system \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-halfheight} & sets the halfheight -\/ half the screen's height in opengl's coordinate system \\
+\hline
+\end{DoxyParams}
+
+
+\subsection{Member Function Documentation}
+\hypertarget{classMarchingAlgorithms_ad3ea84f528558c3057eb71598ace118a}{\index{Marching\-Algorithms@{Marching\-Algorithms}!calculate\-Marching\-Cubes@{calculate\-Marching\-Cubes}}
+\index{calculate\-Marching\-Cubes@{calculate\-Marching\-Cubes}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{calculate\-Marching\-Cubes}]{\setlength{\rightskip}{0pt plus 5cm}void Marching\-Algorithms\-::calculate\-Marching\-Cubes (
+\begin{DoxyParamCaption}
+\item[{const std\-::vector$<$ std\-::vector$<$ std\-::vector$<$ float $>$$>$$>$}]{render\-Grid, }
+\item[{const {\bf Particle\-Properties}}]{p}
+\end{DoxyParamCaption}
+)}}\label{classMarchingAlgorithms_ad3ea84f528558c3057eb71598ace118a}
+
+
+calculate\-Marching\-Cubes fills m\-\_\-snapshot3\-D\-Triangles or m\-\_\-realtime3\-D\-Triangles with triangle verticies and colors 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-render\-Grid} & the 3d rendergrid containing the metaball floats \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-p} & particle properties -\/ used for the colour attributes \\
+\hline
+\end{DoxyParams}
+\hypertarget{classMarchingAlgorithms_a0b6fb536f84f8cd573110c8568d8978f}{\index{Marching\-Algorithms@{Marching\-Algorithms}!calculate\-Marching\-Squares@{calculate\-Marching\-Squares}}
+\index{calculate\-Marching\-Squares@{calculate\-Marching\-Squares}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{calculate\-Marching\-Squares}]{\setlength{\rightskip}{0pt plus 5cm}void Marching\-Algorithms\-::calculate\-Marching\-Squares (
+\begin{DoxyParamCaption}
+\item[{const std\-::vector$<$ std\-::vector$<$ float $>$$>$}]{render\-Grid, }
+\item[{const {\bf Particle\-Properties}}]{p, }
+\item[{const bool}]{inner}
+\end{DoxyParamCaption}
+)}}\label{classMarchingAlgorithms_a0b6fb536f84f8cd573110c8568d8978f}
+
+
+calculate\-Marching\-Squares fills m\-\_\-realtime2\-D\-Triangles full of triangle verticies and colors 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-render\-Grid} & the 2d rendergrid containing the metaball floats \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-p} & particle properties -\/ used for the colour attributes \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-inner} & whether to increase the threshold for the outer rim effect for the liquid \\
+\hline
+\end{DoxyParams}
+\hypertarget{classMarchingAlgorithms_a36c86931558ec0de770baf06f6a8e2a5}{\index{Marching\-Algorithms@{Marching\-Algorithms}!get\-Snapshot\-Mode@{get\-Snapshot\-Mode}}
+\index{get\-Snapshot\-Mode@{get\-Snapshot\-Mode}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{get\-Snapshot\-Mode}]{\setlength{\rightskip}{0pt plus 5cm}int Marching\-Algorithms\-::get\-Snapshot\-Mode (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}\label{classMarchingAlgorithms_a36c86931558ec0de770baf06f6a8e2a5}
+
+
+get\-Snapshot\-Mode returns the snapshot mode integer 
+
+\begin{DoxyReturn}{Returns}
+returns m\-\_\-snapshot\-Mode 
+\end{DoxyReturn}
+\hypertarget{classMarchingAlgorithms_a9fafe791d5a20410bce4200709fa666a}{\index{Marching\-Algorithms@{Marching\-Algorithms}!set\-Snapshot\-Mode@{set\-Snapshot\-Mode}}
+\index{set\-Snapshot\-Mode@{set\-Snapshot\-Mode}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{set\-Snapshot\-Mode}]{\setlength{\rightskip}{0pt plus 5cm}void Marching\-Algorithms\-::set\-Snapshot\-Mode (
+\begin{DoxyParamCaption}
+\item[{const int}]{\-\_\-s}
+\end{DoxyParamCaption}
+)}}\label{classMarchingAlgorithms_a9fafe791d5a20410bce4200709fa666a}
+
+
+set\-Snapshot\-Mode sets the m\-\_\-snapshot\-Mode that shows where in the snapshot process we are 
+
+
+\begin{DoxyParams}{Parameters}
+{\em \-\_\-s} & the integer to set m\-\_\-snapshot\-Mode to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classMarchingAlgorithms_a4b80a9c0f5d814ed1d931655b3472c38}{\index{Marching\-Algorithms@{Marching\-Algorithms}!set\-Square\-Size@{set\-Square\-Size}}
+\index{set\-Square\-Size@{set\-Square\-Size}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{set\-Square\-Size}]{\setlength{\rightskip}{0pt plus 5cm}void Marching\-Algorithms\-::set\-Square\-Size (
+\begin{DoxyParamCaption}
+\item[{const float}]{ss}
+\end{DoxyParamCaption}
+)}}\label{classMarchingAlgorithms_a4b80a9c0f5d814ed1d931655b3472c38}
+
+
+set\-Square\-Size sets m\-\_\-squaresize which is the width/height of the square in the rendergrid 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ss} & the float to set m\-\_\-squaresize to \\
+\hline
+\end{DoxyParams}
+\hypertarget{classMarchingAlgorithms_afe2a91dcd2b7948e0980acd2f2a73322}{\index{Marching\-Algorithms@{Marching\-Algorithms}!Vertex\-Interp@{Vertex\-Interp}}
+\index{Vertex\-Interp@{Vertex\-Interp}!MarchingAlgorithms@{Marching\-Algorithms}}
+\subsubsection[{Vertex\-Interp}]{\setlength{\rightskip}{0pt plus 5cm}{\bf Vec3} Marching\-Algorithms\-::\-Vertex\-Interp (
+\begin{DoxyParamCaption}
+\item[{const {\bf Vec3}}]{p1, }
+\item[{const {\bf Vec3}}]{p2, }
+\item[{const float}]{valp1, }
+\item[{const float}]{valp2}
+\end{DoxyParamCaption}
+)}}\label{classMarchingAlgorithms_afe2a91dcd2b7948e0980acd2f2a73322}
+
+
+Vertex\-Interp calculates the position between two points depending on the floats at either point. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\mbox{\tt in}  & {\em \-\_\-p1} & point 1 position \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-p2} & point 2 position \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-valp1} & float at point 1 \\
+\hline
+\mbox{\tt in}  & {\em \-\_\-valp2} & float at point 2 \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+the interpolated \hyperlink{classVec3}{Vec3} used in calculate\-Marching\-Cubes 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following file\-:\begin{DoxyCompactItemize}
+\item 
+include/\hyperlink{MarchingAlgorithms_8h}{Marching\-Algorithms.\-h}\end{DoxyCompactItemize}

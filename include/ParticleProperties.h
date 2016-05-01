@@ -42,7 +42,7 @@ public:
     //water */
 
     ParticleProperties(bool spring=false,
-                       GLfloat _sigma=0.0f,
+                       GLfloat _sigma=0.05f,
                        GLfloat _beta=0.1f,
                        GLfloat _gamma=0.004f,
                        GLfloat _alpha=0.3f,

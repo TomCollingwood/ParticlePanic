@@ -141,6 +141,8 @@ Uint32 timerCallback(Uint32 interval, void *) {
  * @param args Not used
  * @return EXIT_SUCCESS if it went well!
  */
+
+/// This function was originally written by Richard Southern in his Cube workshop
 int main( int argc, char* args[] ) {
     //Start up SDL and create window
     if( initSDL() == EXIT_FAILURE ) return EXIT_FAILURE;
@@ -335,7 +337,7 @@ int main( int argc, char* args[] ) {
             else if (e.type == SDL_MOUSEMOTION) {
               int x = 0, y = 0;
               SDL_GetMouseState( &x, &y );
-              world->mouseMove(x, y, leftMouseOnWorld, rightMouseButton);
+              world->mouseMove(x, y, leftMouseOnWorld);
             }
 
         }
@@ -417,3 +419,4 @@ int main( int argc, char* args[] ) {
 
     return EXIT_SUCCESS;
 }
+/// end of function

@@ -498,6 +498,11 @@ void Toolbar::drawToolbar(int _h) const
     numbersX=X;
     numbersY=Y;
 
+    if(m_help)
+    {
+      drawHelpScreen(Width);
+    }
+
   }
 
   //----------------------CAMERA SNAPSHOT-----------------------
@@ -943,10 +948,6 @@ void Toolbar::drawNumbers(float _x, float _y, int _h, std::string _numbers) cons
   glDisable(GL_TEXTURE_2D);
   glEnable(GL_LIGHTING);
 
-  if(m_help)
-  {
-    drawHelpScreen();
-  }
 }
 
 bool Toolbar::getdropdownopen()
@@ -1019,16 +1020,19 @@ void Toolbar::removeNumber()
   }
 }
 
-void Toolbar::drawHelpScreen() const
+void Toolbar::drawHelpScreen(float _buttonwidth) const
 {
+
+
+  /// The following section is modified from :-
+  /// Tim Jones (2011). SDL Tip - SDL Surface to OpenGL Texture [online]. [Accessed 2016].
+  /// Available from: <http://www.sdltutorials.com/sdl-tip-sdl-surface-to-opengl-texture>.
   glDisable(GL_LIGHTING);
   glEnable(GL_TEXTURE_2D);
 
   glEnable (GL_BLEND);
   glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-  // You should probably use CSurface::OnLoad ... ;)
-  //-- and make sure the Surface pointer is good!
   GLuint titleTextureID = 0;
   SDL_Surface* Surface = IMG_Load("textures/helpscreen.png");
   if(!Surface)
@@ -1051,15 +1055,20 @@ void Toolbar::drawHelpScreen() const
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+  // end of Citation
+
   float x = -m_world->getHalfWidth()+0.1f;
-  float y = -m_world->getHalfHeight()+1.f;
+  float y = m_world->getHalfHeight()-_buttonwidth*0.5;
+
+  float width = _buttonwidth*6;
+  float height = _buttonwidth*3.4;
 
   glBegin(GL_QUADS);
   glColor3f(1.0f,1.0f,1.0f);
-  glTexCoord2f(0, 0); glVertex3f(x,   y+8,-1);
-  glTexCoord2f(1, 0); glVertex3f(x+14, y+8,-1);
-  glTexCoord2f(1, 1); glVertex3f(x+14, y,  -1);
-  glTexCoord2f(0, 1); glVertex3f(x,   y,  -1);
+  glTexCoord2f(0, 0); glVertex3f(x,   y,-1);
+  glTexCoord2f(1, 0); glVertex3f(x+width, y,-1);
+  glTexCoord2f(1, 1); glVertex3f(x+width, y-height,  -1);
+  glTexCoord2f(0, 1); glVertex3f(x,   y-height,  -1);
   glEnd();
 
   glEnable(GL_LIGHTING);
