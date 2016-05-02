@@ -856,7 +856,6 @@ void World::mouseDraw(int x, int y)
 
 void World::mouseDrag(int _x, int _y)
 {
-  std::cout<<x<<std::endl;
   if(m_previousmousex>0 && m_previousmousey>0)
   {
     float toaddx = (_x-m_previousmousex)*((m_halfwidth*2)/(float)m_pixelwidth);
